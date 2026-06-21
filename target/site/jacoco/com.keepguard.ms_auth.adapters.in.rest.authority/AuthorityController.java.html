@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthorityController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-auth</a> &gt; <a href="index.source.html" class="el_package">com.keepguard.ms_auth.adapters.in.rest.authority</a> &gt; <span class="el_source">AuthorityController.java</span></div><h1>AuthorityController.java</h1><pre class="source lang-java linenums">package com.keepguard.ms_auth.adapters.in.rest.authority;
+
+import com.keepguard.lib_common.metrics.annotation.MetricsEndpoint;
+import com.keepguard.lib_common.utils.ValidationUtils;
+import com.keepguard.ms_auth.adapters.in.rest.authority.dto.*;
+import com.keepguard.ms_auth.adapters.in.rest.authority.mapper.AuthorityAdapterMapper;
+import com.keepguard.ms_auth.application.dto.authority.*;
+import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.port.in.AuthorityPort;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+<span class="fc" id="L27">@Slf4j</span>
+@RestController
+@RequestMapping(&quot;/api/v1/authorities&quot;)
+<span class="fc" id="L30">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Authorities&quot;, description = &quot;APIs para gerenciamento de authorities/permissões no sistema&quot;)
+public class AuthorityController {
+
+    private final AuthorityPort authorityService;
+    private final AuthorityAdapterMapper mapper;
+
+    @PostMapping
+    @Operation(
+        summary = &quot;Criar authority&quot;,
+        description = &quot;Cria uma nova authority/permissão no sistema.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;201&quot;, description = &quot;Authority criada com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = AuthorityCreateResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos ou authority já existe&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;authority_create&quot;,
+        operation = &quot;criar authority&quot;
+    )
+    public ResponseEntity&lt;AuthorityCreateResponseDTO&gt; create(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;Dados da authority a ser criada&quot;, required = true)
+            @RequestBody @Valid AuthorityCreateRequestDTO dto) {
+
+<span class="fc" id="L58">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L59">        log.info(&quot;Criando authority: {}, application={}&quot;, dto.getName(), xApplicationUuid);</span>
+<span class="fc" id="L60">        var command = mapper.toCreateCommand(dto, xApplicationUuid);</span>
+<span class="fc" id="L61">        var authorityView = authorityService.create(command);</span>
+<span class="fc" id="L62">        var response = mapper.toCreateResponseDTO(authorityView);</span>
+<span class="fc" id="L63">        log.info(&quot;Authority created: {} with application: {}&quot;, response.getId(), xApplicationUuid);</span>
+<span class="fc" id="L64">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    @Operation(
+        summary = &quot;Atualizar authority&quot;,
+        description = &quot;Atualiza os dados de uma authority existente.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Authority atualizada com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = AuthorityUpdateResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Authority não encontrada&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;authority_update&quot;,
+        operation = &quot;atualizar authority&quot;
+    )
+    public ResponseEntity&lt;AuthorityUpdateResponseDTO&gt; update(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;ID da authority&quot;, required = true)
+            @PathVariable UUID id,
+            @Parameter(description = &quot;Dados da authority a ser atualizada&quot;, required = true)
+            @RequestBody @Valid AuthorityUpdateRequestDTO dto) {
+
+<span class="fc" id="L91">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L92">        log.info(&quot;Atualizando authority: {} com nome: {}, application={}&quot;, id, dto.getName(), xApplicationUuid);</span>
+<span class="fc" id="L93">        var command = mapper.toUpdateCommand(id, dto, xApplicationUuid);</span>
+<span class="fc" id="L94">        var authorityView = authorityService.update(command);</span>
+<span class="fc" id="L95">        var response = mapper.toUpdateResponseDTO(authorityView);</span>
+<span class="fc" id="L96">        log.info(&quot;Authority updated: {} with application: {}&quot;, response.getId(), xApplicationUuid);</span>
+<span class="fc" id="L97">        return ResponseEntity.ok(response);</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    @Operation(
+        summary = &quot;Remover authority&quot;,
+        description = &quot;Remove uma authority do sistema permanentemente.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;204&quot;, description = &quot;Authority removida com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Authority não encontrada&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;authority_delete&quot;,
+        operation = &quot;remover authority&quot;
+    )
+    public ResponseEntity&lt;Void&gt; delete(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;ID da authority&quot;, required = true)
+            @PathVariable UUID id) {
+
+<span class="fc" id="L120">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L121">        log.info(&quot;Removendo authority: {}, application={}&quot;, id, xApplicationUuid);</span>
+<span class="fc" id="L122">        var command = mapper.toDeleteCommand(id, xApplicationUuid);</span>
+<span class="fc" id="L123">        authorityService.delete(command);</span>
+<span class="fc" id="L124">        log.info(&quot;Authority deleted: {} with application: {}&quot;, id, xApplicationUuid);</span>
+<span class="fc" id="L125">        return ResponseEntity.noContent().build();</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    @Operation(
+        summary = &quot;Buscar authority por ID&quot;,
+        description = &quot;Retorna os detalhes completos de uma authority usando seu ID.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Authority encontrada&quot;,
+                    content = @Content(schema = @Schema(implementation = AuthorityGetByIdResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Authority não encontrada&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;authority_get_by_id&quot;,
+        operation = &quot;buscar authority por ID&quot;
+    )
+    public ResponseEntity&lt;AuthorityGetByIdResponseDTO&gt; getById(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;ID da authority&quot;, required = true)
+            @PathVariable UUID id) {
+
+<span class="fc" id="L149">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L150">        log.info(&quot;Buscando authority por ID: {}, application={}&quot;, id, xApplicationUuid);</span>
+<span class="fc" id="L151">        var query = mapper.toGetByIdQuery(id, xApplicationUuid);</span>
+<span class="fc" id="L152">        Optional&lt;AuthorityGetByIdView&gt; authorityView = authorityService.findById(query);</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">        if (authorityView.isPresent()) {</span>
+<span class="fc" id="L154">            var response = mapper.toGetByIdResponseDTO(authorityView.get());</span>
+<span class="fc" id="L155">            log.info(&quot;Authority found: {} with application: {}&quot;, id, xApplicationUuid);</span>
+<span class="fc" id="L156">            return ResponseEntity.ok(response);</span>
+        } else {
+<span class="fc" id="L158">            log.warn(&quot;Authority not found: {} with application: {}&quot;, id, xApplicationUuid);</span>
+<span class="fc" id="L159">            return ResponseEntity.notFound().build();</span>
+        }
+    }
+
+    @GetMapping(&quot;/name/{name}&quot;)
+    @Operation(
+        summary = &quot;Buscar authority por nome&quot;,
+        description = &quot;Retorna os detalhes completos de uma authority usando seu nome.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Authority encontrada&quot;,
+                    content = @Content(schema = @Schema(implementation = AuthorityGetByNameResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Authority não encontrada&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;authority_get_by_name&quot;,
+        operation = &quot;buscar authority por nome&quot;
+    )
+    public ResponseEntity&lt;AuthorityGetByNameResponseDTO&gt; getByName(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;Nome da authority&quot;, required = true)
+            @PathVariable String name) {
+
+<span class="fc" id="L184">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L185">        log.info(&quot;Buscando authority por nome: {}, application={}&quot;, name, xApplicationUuid);</span>
+<span class="fc" id="L186">        var query = mapper.toGetByNameQuery(name, xApplicationUuid);</span>
+<span class="fc" id="L187">        Optional&lt;AuthorityGetByNameView&gt; authorityView = authorityService.findByName(query);</span>
+<span class="pc bpc" id="L188" title="1 of 2 branches missed.">        if (authorityView.isPresent()) {</span>
+<span class="fc" id="L189">            var response = mapper.toGetByNameResponseDTO(authorityView.get());</span>
+<span class="fc" id="L190">            log.info(&quot;Authority found by name: {} with application: {}&quot;, name, xApplicationUuid);</span>
+<span class="fc" id="L191">            return ResponseEntity.ok(response);</span>
+        } else {
+<span class="nc" id="L193">            log.warn(&quot;Authority not found by name: {} with application: {}&quot;, name, xApplicationUuid);</span>
+<span class="nc" id="L194">            return ResponseEntity.notFound().build();</span>
+        }
+    }
+
+    @GetMapping
+    @Operation(
+        summary = &quot;Listar authorities&quot;,
+        description = &quot;Retorna uma lista de todas as authorities do sistema.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Lista de authorities retornada com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;authority_list&quot;,
+        operation = &quot;listar authorities&quot;
+    )
+    public ResponseEntity&lt;List&lt;AuthorityListResponseDTO&gt;&gt; listAll(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L215">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L216">        log.info(&quot;Listando todas as authorities, application={}&quot;, xApplicationUuid);</span>
+<span class="fc" id="L217">        var query = mapper.toGetAllQuery(xApplicationUuid);</span>
+<span class="fc" id="L218">        List&lt;AuthorityListView&gt; authorityViews = authorityService.findAll(query);</span>
+<span class="fc" id="L219">        List&lt;AuthorityListResponseDTO&gt; response = authorityViews.stream()</span>
+<span class="fc" id="L220">                .map(mapper::toListResponseDTO)</span>
+<span class="fc" id="L221">                .toList();</span>
+<span class="fc" id="L222">        log.info(&quot;Authorities listed: {} total with application: {}&quot;, response.size(), xApplicationUuid);</span>
+<span class="fc" id="L223">        return ResponseEntity.ok(response);</span>
+    }
+
+    @GetMapping(&quot;/search&quot;)
+    @Operation(
+        summary = &quot;Buscar authorities com paginação&quot;,
+        description = &quot;Retorna uma página de authorities com filtros e paginação.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Página de authorities retornada com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;authority_search&quot;,
+        operation = &quot;buscar authorities com paginação&quot;
+    )
+    public ResponseEntity&lt;PageResultView&lt;AuthoritySearchResponseDTO&gt;&gt; search(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Valid @ModelAttribute AuthoritySearchRequestDTO searchRequest) {
+
+<span class="fc" id="L244">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L245">        log.info(&quot;Buscando authorities com paginação: página {}, tamanho {}, application={}&quot;, </span>
+<span class="fc" id="L246">                searchRequest.getPage(), searchRequest.getSize(), xApplicationUuid);</span>
+        
+<span class="fc" id="L248">        var query = mapper.toSearchQuery(searchRequest, xApplicationUuid);</span>
+<span class="fc" id="L249">        PageResultView&lt;AuthoritySearchView&gt; pageResultView = authorityService.findAll(query);</span>
+        
+<span class="fc" id="L251">        List&lt;AuthoritySearchResponseDTO&gt; content = pageResultView.getContent().stream()</span>
+<span class="fc" id="L252">                .map(mapper::toSearchResponseDTO)</span>
+<span class="fc" id="L253">                .toList();</span>
+        
+<span class="fc" id="L255">        PageResultView&lt;AuthoritySearchResponseDTO&gt; response = new PageResultView&lt;&gt;(</span>
+                content, 
+<span class="fc" id="L257">                pageResultView.getPageNumber(),</span>
+<span class="fc" id="L258">                pageResultView.getSize(),</span>
+<span class="fc" id="L259">                pageResultView.getTotalElements(),</span>
+<span class="fc" id="L260">                pageResultView.getTotalPages(),</span>
+<span class="fc" id="L261">                pageResultView.isFirst(),</span>
+<span class="fc" id="L262">                pageResultView.isLast(),</span>
+<span class="fc" id="L263">                pageResultView.hasNext(),</span>
+<span class="fc" id="L264">                pageResultView.hasPrevious()</span>
+        );
+<span class="fc" id="L266">        log.info(&quot;Authorities searched: {} total with application: {}&quot;, response.getTotalElements(), xApplicationUuid);</span>
+<span class="fc" id="L267">        return ResponseEntity.ok(response);</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

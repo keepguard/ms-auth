@@ -1,0 +1,90 @@
+server:
+  port: 8581
+  
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/keepguard_api_db
+    username: keepguard_api_user
+    password: keepguard_api_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+  data:
+    redis:
+      host: localhost
+      port: 6380
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: -1ms 
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: ms_auth
+        query:
+          startup_check: false
+
+security:
+  jwt:
+    secret: Q2FjaG9ycm8gU2VndXJhbmNhIFByb2pldG8gS2VlcEd1YXJkIQ==
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+cache:
+  redis:
+    ttl:
+      user: 604800           # 7 dias
+      user-roles: 604800     # 7 dias
+      role: 604800           # 7 dias
+      token: 3600            # 1 hora
+      reset-token: 600       # 10 minutos para tokens de reset
+    prefix:
+      user: "user_cache"
+      user-roles: "user_roles_cache"
+      role: "role_cache"
+      token: "token_cache"
+      reset-token: "resetpassword:"
+        
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
+# Configuração específica para ambiente local
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    org.hibernate: WARN
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    com.keepguard.ms_auth: INFO
+    # Desabilitar logs em ambiente local
+    com.keepguard.ms_auth.infrastructure.logging: OFF
+  # Configuração do Logstash por ambiente - DESABILITADO
+  #   host: localhost
+  #   port: 5000

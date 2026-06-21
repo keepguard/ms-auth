@@ -1,0 +1,83 @@
+spring:
+  profiles:
+    active: test
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+# Configurações de logging para testes
+logging:
+  level:
+    root: WARN
+    com.keepguard.ms_auth: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+    org.springframework.test: WARN
+    # Desabilitar logs em ambiente de teste
+    com.keepguard.ms_auth.infrastructure.logging: OFF
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  # Configuração do Logstash por ambiente - DESABILITADO
+  #   host: localhost
+  #   port: 5000
+
+# Desabilita métricas e health checks durante testes
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+# Configurações de segurança para testes
+security:
+  jwt:
+    secret: test-secret-key-for-testing-purposes-only
+    expiration: 3600000 # 1 hora 
+  rate-limiting:
+    max-attempts: 3  # Menos tentativas para testes
+    lockout-duration-minutes: 5  # Bloqueio mais curto para testes
+    attempts-ttl-hours: 1  # TTL das tentativas em horas
+
+# Configurações de Cache para Testes
+cache:
+  redis:
+    # TTL em segundos (7 dias = 604800 segundos)
+    ttl:
+      user: 604800
+      user-roles: 604800
+      role: 604800
+      application: 604800
+      token: 3600  # 1 hora para tokens
+      reset-token: 900  # 15 minutos para tokens de reset
+    # Prefixos para as chaves do Redis
+    prefix:
+      user: "user_cache:"
+      user-roles: "user_roles_cache:"
+      role: "role_cache:"
+      application: "application_cache:"
+      token: "tokenlogin:"
+      reset-token: "resetpassword:" 

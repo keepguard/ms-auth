@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RoleController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-auth</a> &gt; <a href="index.source.html" class="el_package">com.keepguard.ms_auth.adapters.in.rest.role</a> &gt; <span class="el_source">RoleController.java</span></div><h1>RoleController.java</h1><pre class="source lang-java linenums">package com.keepguard.ms_auth.adapters.in.rest.role;
+
+import com.keepguard.lib_common.metrics.annotation.MetricsEndpoint;
+import com.keepguard.lib_common.utils.ValidationUtils;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.*;
+import com.keepguard.ms_auth.application.dto.role.*;
+import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.adapters.in.rest.role.mapper.RoleAdapterMapper;
+import com.keepguard.ms_auth.application.port.in.RolePort;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+<span class="fc" id="L29">@Slf4j</span>
+@RestController
+@RequestMapping(&quot;/api/v1/roles&quot;)
+<span class="fc" id="L32">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Roles&quot;, description = &quot;APIs para gerenciamento de roles no sistema&quot;)
+public class RoleController {
+
+    private final RolePort roleService;
+    private final RoleAdapterMapper mapper;
+
+    @PostMapping
+    @Operation(
+        summary = &quot;Criar role&quot;,
+        description = &quot;Cria um novo role no sistema.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;201&quot;, description = &quot;Role criado com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = RoleCreateResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos ou role já existe&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;role_create&quot;,
+        operation = &quot;criar role&quot;
+    )
+    public ResponseEntity&lt;RoleCreateResponseDTO&gt; create(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;Dados do role a ser criado&quot;, required = true)
+            @RequestBody @Valid RoleCreateDTO dto) {
+
+<span class="fc" id="L60">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L61">        log.info(&quot;Criando role: {}, application={}&quot;, dto.getName(), xApplicationUuid);</span>
+<span class="fc" id="L62">        var command = mapper.toCreateCommand(dto, xApplicationUuid);</span>
+<span class="fc" id="L63">        var roleView = roleService.create(command);</span>
+<span class="fc" id="L64">        var response = mapper.toCreateResponseDTO(roleView);</span>
+<span class="fc" id="L65">        log.info(&quot;Role created: {} with application: {}&quot;, response.getId(), xApplicationUuid);</span>
+<span class="fc" id="L66">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    @Operation(
+        summary = &quot;Atualizar role&quot;,
+        description = &quot;Atualiza os dados de um role existente.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Role atualizado com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = RoleUpdateResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Role não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;role_update&quot;,
+        operation = &quot;atualizar role&quot;
+    )
+    public ResponseEntity&lt;RoleUpdateResponseDTO&gt; update(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;ID do role&quot;, required = true)
+            @PathVariable UUID id,
+            @Parameter(description = &quot;Dados do role a ser atualizado&quot;, required = true)
+            @RequestBody @Valid RoleUpdateDTO dto) {
+
+<span class="fc" id="L93">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L94">        log.info(&quot;Atualizando role: {} com nome: {}, application={}&quot;, id, dto.getName(), xApplicationUuid);</span>
+<span class="fc" id="L95">        var command = mapper.toUpdateCommand(id, dto, xApplicationUuid);</span>
+<span class="fc" id="L96">        var roleView = roleService.update(command);</span>
+<span class="fc" id="L97">        var response = mapper.toUpdateResponseDTO(roleView);</span>
+<span class="fc" id="L98">        log.info(&quot;Role updated: {} with application: {}&quot;, response.getId(), xApplicationUuid);</span>
+<span class="fc" id="L99">        return ResponseEntity.ok(response);</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    @Operation(
+        summary = &quot;Remover role&quot;,
+        description = &quot;Remove um role do sistema permanentemente.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;204&quot;, description = &quot;Role removido com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Role não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;role_delete&quot;,
+        operation = &quot;remover role&quot;
+    )
+    public ResponseEntity&lt;Void&gt; delete(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;ID do role&quot;, required = true)
+            @PathVariable UUID id) {
+
+<span class="fc" id="L122">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L123">        log.info(&quot;Removendo role: {}, application={}&quot;, id, xApplicationUuid);</span>
+<span class="fc" id="L124">        var command = mapper.toDeleteCommand(id, xApplicationUuid);</span>
+<span class="fc" id="L125">        roleService.delete(command);</span>
+<span class="fc" id="L126">        log.info(&quot;Role deleted: {} with application: {}&quot;, id, xApplicationUuid);</span>
+<span class="fc" id="L127">        return ResponseEntity.noContent().build();</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    @Operation(
+        summary = &quot;Buscar role por ID&quot;,
+        description = &quot;Retorna os detalhes completos de um role usando seu ID.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Role encontrado&quot;,
+                    content = @Content(schema = @Schema(implementation = RoleGetByIdResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Role não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;role_get_by_id&quot;,
+        operation = &quot;buscar role por ID&quot;
+    )
+    public ResponseEntity&lt;RoleGetByIdResponseDTO&gt; getById(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;ID do role&quot;, required = true)
+            @PathVariable UUID id) {
+
+<span class="fc" id="L151">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L152">        log.info(&quot;Buscando role por ID: {}, application={}&quot;, id, xApplicationUuid);</span>
+<span class="fc" id="L153">        var command = mapper.toGetByIdCommand(id, xApplicationUuid);</span>
+<span class="fc" id="L154">        Optional&lt;RoleGetByIdView&gt; roleView = roleService.findById(command);</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">        if (roleView.isPresent()) {</span>
+<span class="fc" id="L156">            var response = mapper.toGetByIdResponseDTO(roleView.get());</span>
+<span class="fc" id="L157">            log.info(&quot;Role found: {} with application: {}&quot;, id, xApplicationUuid);</span>
+<span class="fc" id="L158">            return ResponseEntity.ok(response);</span>
+        } else {
+<span class="fc" id="L160">            log.warn(&quot;Role not found: {} with application: {}&quot;, id, xApplicationUuid);</span>
+<span class="fc" id="L161">            return ResponseEntity.notFound().build();</span>
+        }
+    }
+
+    @GetMapping(&quot;/name/{name}&quot;)
+    @Operation(
+        summary = &quot;Buscar role por nome&quot;,
+        description = &quot;Retorna os detalhes completos de um role usando seu nome.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Role encontrado&quot;,
+                    content = @Content(schema = @Schema(implementation = RoleGetByNameResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Role não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;role_get_by_name&quot;,
+        operation = &quot;buscar role por nome&quot;
+    )
+    public ResponseEntity&lt;RoleGetByNameResponseDTO&gt; getByName(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;Nome do role&quot;, required = true)
+            @PathVariable String name) {
+
+<span class="fc" id="L186">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L187">        log.info(&quot;Buscando role por nome: {}, application={}&quot;, name, xApplicationUuid);</span>
+<span class="fc" id="L188">        var command = mapper.toGetByNameCommand(name, xApplicationUuid);</span>
+<span class="fc" id="L189">        Optional&lt;RoleGetByNameView&gt; roleView = roleService.findByName(command);</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">        if (roleView.isPresent()) {</span>
+<span class="fc" id="L191">            var response = mapper.toGetByNameResponseDTO(roleView.get());</span>
+<span class="fc" id="L192">            log.info(&quot;Role found by name: {} with application: {}&quot;, name, xApplicationUuid);</span>
+<span class="fc" id="L193">            return ResponseEntity.ok(response);</span>
+        } else {
+<span class="fc" id="L195">            log.warn(&quot;Role not found by name: {} with application: {}&quot;, name, xApplicationUuid);</span>
+<span class="fc" id="L196">            return ResponseEntity.notFound().build();</span>
+        }
+    }
+
+    @GetMapping
+    @Operation(
+        summary = &quot;Listar roles&quot;,
+        description = &quot;Retorna uma lista de todos os roles do sistema.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Lista de roles retornada com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;role_list&quot;,
+        operation = &quot;listar roles&quot;
+    )
+    public ResponseEntity&lt;List&lt;RoleListResponseDTO&gt;&gt; listAll(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L217">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L218">        log.info(&quot;Listando todas as roles, application={}&quot;, xApplicationUuid);</span>
+<span class="fc" id="L219">        var command = mapper.toGetAllCommand(xApplicationUuid);</span>
+<span class="fc" id="L220">        List&lt;RoleListView&gt; roleViews = roleService.findAll(command);</span>
+<span class="fc" id="L221">        List&lt;RoleListResponseDTO&gt; response = roleViews.stream()</span>
+<span class="fc" id="L222">                .map(mapper::toListResponseDTO)</span>
+<span class="fc" id="L223">                .toList();</span>
+<span class="fc" id="L224">        log.info(&quot;Roles listed: {} total with application: {}&quot;, response.size(), xApplicationUuid);</span>
+<span class="fc" id="L225">        return ResponseEntity.ok(response);</span>
+    }
+
+    @GetMapping(&quot;/search&quot;)
+    @Operation(
+        summary = &quot;Buscar roles com paginação&quot;,
+        description = &quot;Retorna uma página de roles com paginação.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Página de roles retornada com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;role_search&quot;,
+        operation = &quot;buscar roles com paginação&quot;
+    )
+    public ResponseEntity&lt;PageResultView&lt;RoleSearchResponseDTO&gt;&gt; search(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            Pageable pageable) {
+
+<span class="fc" id="L246">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L247">        log.info(&quot;Buscando roles com paginação: página {}, tamanho {}, application={}&quot;, </span>
+<span class="fc" id="L248">                pageable.getPageNumber(), pageable.getPageSize(), xApplicationUuid);</span>
+<span class="fc" id="L249">        var command = mapper.toSearchCommand(pageable, xApplicationUuid);</span>
+<span class="fc" id="L250">        PageResultView&lt;RoleSearchView&gt; pageResultView = roleService.findAll(command);</span>
+<span class="fc" id="L251">        List&lt;RoleSearchResponseDTO&gt; content = pageResultView.getContent().stream()</span>
+<span class="fc" id="L252">                .map(mapper::toSearchResponseDTO)</span>
+<span class="fc" id="L253">                .toList();</span>
+<span class="fc" id="L254">        PageResultView&lt;RoleSearchResponseDTO&gt; response = new PageResultView&lt;&gt;(</span>
+                content, 
+<span class="fc" id="L256">                pageResultView.getPageNumber(),</span>
+<span class="fc" id="L257">                pageResultView.getSize(),</span>
+<span class="fc" id="L258">                pageResultView.getTotalElements(),</span>
+<span class="fc" id="L259">                pageResultView.getTotalPages(),</span>
+<span class="fc" id="L260">                pageResultView.isFirst(),</span>
+<span class="fc" id="L261">                pageResultView.isLast(),</span>
+<span class="fc" id="L262">                pageResultView.hasNext(),</span>
+<span class="fc" id="L263">                pageResultView.hasPrevious()</span>
+        );
+<span class="fc" id="L265">        log.info(&quot;Roles searched: {} total with application: {}&quot;, response.getTotalElements(), xApplicationUuid);</span>
+<span class="fc" id="L266">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PostMapping(&quot;/authorities/add&quot;)
+    @Operation(
+        summary = &quot;Adicionar authority ao role&quot;,
+        description = &quot;Adiciona uma authority existente a um role específico.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Authority adicionada com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = RoleAddAuthorityResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Role ou Authority não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;409&quot;, description = &quot;Authority já está associada ao role&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;role_add_authority&quot;,
+        operation = &quot;adicionar authority ao role&quot;
+    )
+    public ResponseEntity&lt;RoleAddAuthorityResponseDTO&gt; addAuthority(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;Dados para adicionar authority ao role&quot;, required = true)
+            @RequestBody @Valid RoleAddAuthorityRequestDTO dto) {
+
+<span class="nc" id="L292">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="nc" id="L293">        log.info(&quot;Adicionando authority {} ao role: {}, application={}&quot;, </span>
+<span class="nc" id="L294">                dto.getAuthorityName(), dto.getRoleId(), xApplicationUuid);</span>
+        
+<span class="nc" id="L296">        var command = mapper.toAddAuthorityCommand(dto, xApplicationUuid);</span>
+<span class="nc" id="L297">        var roleView = roleService.addAuthority(command);</span>
+<span class="nc" id="L298">        var response = mapper.toAddAuthorityResponseDTO(roleView);</span>
+        
+<span class="nc" id="L300">        log.info(&quot;Authority {} adicionada ao role: {} with application: {}&quot;, </span>
+<span class="nc" id="L301">                dto.getAuthorityName(), dto.getRoleId(), xApplicationUuid);</span>
+<span class="nc" id="L302">        return ResponseEntity.status(HttpStatus.CREATED).body(response);</span>
+    }
+
+    @PostMapping(&quot;/authorities/remove&quot;)
+    @Operation(
+        summary = &quot;Remover authority do role&quot;,
+        description = &quot;Remove uma authority de um role específico.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Authority removida com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = RoleRemoveAuthorityResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Role ou Authority não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;role_remove_authority&quot;,
+        operation = &quot;remover authority do role&quot;
+    )
+    public ResponseEntity&lt;RoleRemoveAuthorityResponseDTO&gt; removeAuthority(
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @Parameter(description = &quot;Dados para remover authority do role&quot;, required = true)
+            @RequestBody @Valid RoleRemoveAuthorityRequestDTO dto) {
+
+<span class="nc" id="L327">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="nc" id="L328">        log.info(&quot;Removendo authority {} do role: {}, application={}&quot;, </span>
+<span class="nc" id="L329">                dto.getAuthorityName(), dto.getRoleId(), xApplicationUuid);</span>
+        
+<span class="nc" id="L331">        var command = mapper.toRemoveAuthorityCommand(dto, xApplicationUuid);</span>
+<span class="nc" id="L332">        var roleView = roleService.removeAuthority(command);</span>
+<span class="nc" id="L333">        var response = mapper.toRemoveAuthorityResponseDTO(roleView);</span>
+        
+<span class="nc" id="L335">        log.info(&quot;Authority {} removida do role: {} with application: {}&quot;, </span>
+<span class="nc" id="L336">                dto.getAuthorityName(), dto.getRoleId(), xApplicationUuid);</span>
+<span class="nc" id="L337">        return ResponseEntity.ok(response);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

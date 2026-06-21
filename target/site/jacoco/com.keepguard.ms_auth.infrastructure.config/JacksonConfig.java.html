@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JacksonConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-auth</a> &gt; <a href="index.source.html" class="el_package">com.keepguard.ms_auth.infrastructure.config</a> &gt; <span class="el_source">JacksonConfig.java</span></div><h1>JacksonConfig.java</h1><pre class="source lang-java linenums">package com.keepguard.ms_auth.infrastructure.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+@Configuration
+<span class="nc" id="L14">public class JacksonConfig {</span>
+
+    @Bean
+    public ObjectMapper objectMapper() {
+<span class="nc" id="L18">        ObjectMapper objectMapper = new ObjectMapper();</span>
+
+        // Configuração para deserialização de enums usando valores customizados
+<span class="nc" id="L21">        objectMapper.configure(DeserializationFeature.READ_ENUMS_USING_TO_STRING, true);</span>
+<span class="nc" id="L22">        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);</span>
+
+        // Configuração para LocalDateTime - formato sem milissegundos
+<span class="nc" id="L25">        JavaTimeModule javaTimeModule = new JavaTimeModule();</span>
+<span class="nc" id="L26">        javaTimeModule.addSerializer(LocalDateTime.class,</span>
+<span class="nc" id="L27">            new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd'T'HH:mm:ss&quot;)));</span>
+
+<span class="nc" id="L29">        objectMapper.registerModule(javaTimeModule);</span>
+<span class="nc" id="L30">        return objectMapper;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

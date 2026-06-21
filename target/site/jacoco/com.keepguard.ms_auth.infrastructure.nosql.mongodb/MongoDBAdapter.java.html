@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MongoDBAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-auth</a> &gt; <a href="index.source.html" class="el_package">com.keepguard.ms_auth.infrastructure.nosql.mongodb</a> &gt; <span class="el_source">MongoDBAdapter.java</span></div><h1>MongoDBAdapter.java</h1><pre class="source lang-java linenums">package com.keepguard.ms_auth.infrastructure.nosql.mongodb;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Adapter base para operações com MongoDB (PREPARADO PARA USO FUTURO).
+ * 
+ * &lt;p&gt;&lt;b&gt;ATENÇÃO:&lt;/b&gt; Esta classe está preparada para ser habilitada quando
+ * MongoDB for adicionado ao projeto. Atualmente está desabilitada (sem @Component).
+ * 
+ * &lt;p&gt;&lt;b&gt;Para habilitar:&lt;/b&gt;
+ * &lt;ol&gt;
+ *   &lt;li&gt;Adicionar dependência {@code spring-boot-starter-data-mongodb} no pom.xml&lt;/li&gt;
+ *   &lt;li&gt;Configurar MongoDB no {@code application.yml}&lt;/li&gt;
+ *   &lt;li&gt;Descomentar a anotação {@code @Component}&lt;/li&gt;
+ *   &lt;li&gt;Injetar {@code MongoTemplate}&lt;/li&gt;
+ *   &lt;li&gt;Implementar métodos concretos&lt;/li&gt;
+ * &lt;/ol&gt;
+ * 
+ * &lt;p&gt;&lt;b&gt;Resiliência a ser aplicada:&lt;/b&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;&lt;b&gt;Circuit Breaker:&lt;/b&gt; Proteger contra MongoDB indisponível&lt;/li&gt;
+ *   &lt;li&gt;&lt;b&gt;Retry:&lt;/b&gt; 2 tentativas em falhas temporárias&lt;/li&gt;
+ *   &lt;li&gt;&lt;b&gt;Timeout:&lt;/b&gt; 10 segundos por query&lt;/li&gt;
+ *   &lt;li&gt;&lt;b&gt;Fallback:&lt;/b&gt; Retornar empty/null (graceful degradation)&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;&lt;b&gt;Casos de Uso:&lt;/b&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;Armazenar logs de auditoria (audit trail)&lt;/li&gt;
+ *   &lt;li&gt;Armazenar eventos históricos (event sourcing)&lt;/li&gt;
+ *   &lt;li&gt;Read Model para CQRS&lt;/li&gt;
+ *   &lt;li&gt;Análises e relatórios&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;&lt;b&gt;Configuração no application.yml:&lt;/b&gt;
+ * &lt;pre&gt;{@code
+ * spring:
+ *   data:
+ *     mongodb:
+ *       uri: mongodb://localhost:27017/keepguard_auth
+ *       
+ * resilience4j:
+ *   circuitbreaker:
+ *     instances:
+ *       mongodbOperation:
+ *         failureRateThreshold: 60
+ *         waitDurationInOpenState: 30s
+ *   retry:
+ *     instances:
+ *       mongodbOperation:
+ *         maxAttempts: 2
+ *         waitDuration: 1s
+ * }&lt;/pre&gt;
+ * 
+ * @param &lt;T&gt; Tipo da entidade
+ * @param &lt;ID&gt; Tipo do identificador
+ * @author KeepGuard Team
+ * @version 1.0.77
+ * @since 1.0.77
+ */
+<span class="nc" id="L66">@Slf4j</span>
+// @Component // Descomentar quando MongoDB for adicionado
+<span class="nc" id="L68">public class MongoDBAdapter&lt;T, ID&gt; {</span>
+
+    // TODO: Injetar quando MongoDB for adicionado
+    // private final MongoTemplate mongoTemplate;
+
+    /**
+     * Salva entidade no MongoDB com resiliência.
+     * 
+     * &lt;p&gt;&lt;b&gt;Implementação futura:&lt;/b&gt;
+     * &lt;pre&gt;{@code
+     * @CircuitBreaker(name = &quot;mongodbOperation&quot;, fallbackMethod = &quot;saveFallback&quot;)
+     * @Retry(name = &quot;mongodbOperation&quot;)
+     * @TimeLimiter(name = &quot;mongodbOperation&quot;)
+     * public T save(T entity) {
+     *     return mongoTemplate.save(entity);
+     * }
+     * 
+     * private T saveFallback(T entity, Exception ex) {
+     *     log.error(&quot;FALLBACK: MongoDB indisponível, não foi possível salvar&quot;);
+     *     return null; // ou lançar exceção customizada
+     * }
+     * }&lt;/pre&gt;
+     */
+    public T save(T entity) {
+<span class="nc" id="L92">        log.warn(&quot;⚠️ MongoDB não habilitado. Entidade não salva | entity={}&quot;, </span>
+<span class="nc" id="L93">            entity.getClass().getSimpleName());</span>
+<span class="nc" id="L94">        return null;</span>
+    }
+
+    /**
+     * Busca entidade por ID com resiliência.
+     * 
+     * &lt;p&gt;&lt;b&gt;Implementação futura com Circuit Breaker + Retry + Timeout&lt;/b&gt;
+     */
+    public Optional&lt;T&gt; findById(ID id) {
+<span class="nc" id="L103">        log.warn(&quot;⚠️ MongoDB não habilitado. Busca não realizada | id={}&quot;, id);</span>
+<span class="nc" id="L104">        return Optional.empty();</span>
+    }
+
+    /**
+     * Lista todas as entidades com resiliência.
+     * 
+     * &lt;p&gt;&lt;b&gt;Implementação futura com Circuit Breaker + Retry + Timeout&lt;/b&gt;
+     */
+    public List&lt;T&gt; findAll() {
+<span class="nc" id="L113">        log.warn(&quot;⚠️ MongoDB não habilitado. Listagem não realizada&quot;);</span>
+<span class="nc" id="L114">        return Collections.emptyList();</span>
+    }
+
+    /**
+     * Remove entidade por ID com resiliência.
+     * 
+     * &lt;p&gt;&lt;b&gt;Implementação futura com Circuit Breaker + Retry&lt;/b&gt;
+     */
+    public void deleteById(ID id) {
+<span class="nc" id="L123">        log.warn(&quot;⚠️ MongoDB não habilitado. Remoção não realizada | id={}&quot;, id);</span>
+<span class="nc" id="L124">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,14 @@
+-------------------------------------------------------------------------------
+Test set: com.keepguard.ms_auth.adapters.in.rest.user.mapper.UserAdapterMapperNormalizationTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.013 s <<< FAILURE! -- in com.keepguard.ms_auth.adapters.in.rest.user.mapper.UserAdapterMapperNormalizationTest
+com.keepguard.ms_auth.adapters.in.rest.user.mapper.UserAdapterMapperNormalizationTest.toCreateCommand_shouldNormalizeUsername -- Time elapsed: 0.007 s <<< ERROR!
+java.lang.IllegalArgumentException: Invalid UUID string: USR123
+	at java.base/java.util.UUID.fromString1(UUID.java:282)
+	at java.base/java.util.UUID.fromString(UUID.java:260)
+	at com.keepguard.ms_auth.adapters.in.rest.user.mapper.UserAdapterMapper.toCreateCommand(UserAdapterMapper.java:35)
+	at com.keepguard.ms_auth.adapters.in.rest.user.mapper.UserAdapterMapperNormalizationTest.toCreateCommand_shouldNormalizeUsername(UserAdapterMapperNormalizationTest.java:37)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+

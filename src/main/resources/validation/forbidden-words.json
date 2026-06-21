@@ -1,0 +1,21 @@
+{
+  "forbiddenWords": [
+    "teste", "test", "usuario", "user", "example", "exemplo",
+    "anonimo", "anônimo", "fake", "null", "undefined", "vazio",
+    "visitante", "guest", "cliente", "pessoa", "person",
+    "cadastro", "conta", "perfil", "sistema", "empresa",
+
+    "admin", "administrador", "moderador", "moderator", "root",
+    "suporte", "support", "helpdesk", "dev", "developer",
+    "staff", "owner", "official", "oficial", "master",
+    "manager", "gerente", "diretor", "system",
+
+    "bosta", "merda", "porra", "caralho", "puta", "puto",
+    "fuder", "fude", "fudido", "cu", "pinto", "pau", "rola",
+    "boquete", "anal", "buceta", "piroca", "penis", "vagina",
+    "gay", "viado", "vadia", "otario", "idiota", "burro",
+    "racista", "nazi", "nazista", "hitler", "terrorista",
+    "shit", "fuck", "fucker", "bitch", "dick", "cock", "asshole",
+    "porn", "porno", "pornography", "nigger", "slut", "whore"
+  ]
+}

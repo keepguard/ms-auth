@@ -1,0 +1,255 @@
+server:
+  port: 8581
+
+spring:
+  application:
+    name: ms-auth
+  datasource:
+    url: jdbc:postgresql://postgres:5432/keepguard_api_db
+    username: keepguard_api_user
+    password: keepguard_api_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+  data:
+    redis:
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: -1ms
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        default_schema: ms_auth
+        query:
+          startup_check: false
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# Configurações de Cache
+cache:
+  redis:
+    # TTL em segundos (7 dias = 604800 segundos)
+    ttl:
+      user: 604800
+      user-roles: 604800
+      role: 604800
+      token: 3600  # 1 hora para tokens
+      reset-token: 600  # 10 minutos para tokens de reset
+    # Prefixos para as chaves do Redis
+    prefix:
+      user: "user_cache:"
+      user-roles: "user_roles_cache:"
+      role: "role_cache:"
+      token: "tokenlogin:"
+      reset-token: "resetpassword:"
+
+# Configurações de Segurança e Rate Limiting
+security:
+  rate-limiting:
+    max-attempts: 5  # Máximo de tentativas de login
+    lockout-duration-minutes: 15  # Duração do bloqueio em minutos
+    attempts-ttl-hours: 1  # TTL das tentativas em horas
+  oauth2:
+    resourceserver:
+      jwt:
+        issuer-uri: ${SECURITY_ISSUER_URI:https://auth.example.com/realms/default}
+        jwk-set-uri: ${SECURITY_JWKS_URI:https://auth.example.com/realms/default/protocol/openid-connect/certs}
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+  # Configuração do Logstash por ambiente - DESABILITADO
+  #   host: localhost
+  #   port: 5000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+    ratelimiters:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# ========================================================================
+# Resilience4j - Configurações de Resiliência
+# ========================================================================
+# Implementa padrões de resiliência para proteger o microserviço contra
+# falhas em cascata, sobrecargas e indisponibilidade de dependências.
+#
+# Padrões implementados:
+# - Circuit Breaker: Previne sobrecarga quando serviços dependentes falham
+# - Retry: Tenta novamente operações com falhas temporárias
+# - Rate Limiter: Limita taxa de requisições (proteção contra força bruta)
+# - Bulkhead: Isola recursos para evitar esgotamento de threads
+# - Time Limiter: Define timeouts para operações assíncronas
+# ========================================================================
+
+resilience4j:
+  # Circuit Breaker - Evita sobrecarga em cascata
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10                          # Janela deslizante de 10 chamadas
+        minimumNumberOfCalls: 5                        # Mínimo 5 chamadas para calcular taxa
+        permittedNumberOfCallsInHalfOpenState: 3       # 3 chamadas de teste em HALF_OPEN
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s                   # Aguarda 10s antes de HALF_OPEN
+        failureRateThreshold: 50                       # Abre se 50% falharem
+        slowCallRateThreshold: 50                      # Considera lenta se 50% demorarem
+        slowCallDurationThreshold: 5s                  # Chamada lenta > 5s
+        eventConsumerBufferSize: 10
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.util.concurrent.TimeoutException
+          - java.io.IOException
+          - feign.FeignException
+          - org.springframework.data.redis.RedisConnectionFailureException
+    instances:
+      communicationClient:                             # Circuit Breaker para ms-communication
+        baseConfig: default
+        waitDurationInOpenState: 30s                   # Aguarda 30s (serviço externo)
+        failureRateThreshold: 50
+      redisCache:                                      # Circuit Breaker para Redis
+        baseConfig: default
+        failureRateThreshold: 70                       # Mais tolerante (70%)
+        waitDurationInOpenState: 20s
+
+  # Retry - Tentativas automáticas com backoff exponencial
+  retry:
+    configs:
+      default:
+        maxAttempts: 3                                 # Máximo 3 tentativas
+        waitDuration: 1s                               # Aguarda 1s entre tentativas
+        enableExponentialBackoff: true                 # Backoff exponencial
+        exponentialBackoffMultiplier: 2                # Multiplica por 2 a cada tentativa
+        retryExceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - java.net.SocketTimeoutException
+          - org.springframework.dao.DataAccessResourceFailureException
+          - org.springframework.data.redis.RedisConnectionFailureException
+    instances:
+      communicationClient:                             # Retry para ms-communication
+        baseConfig: default
+        maxAttempts: 3
+        waitDuration: 2s
+      databaseOperation:                               # Retry para operações de banco
+        baseConfig: default
+        maxAttempts: 2
+        waitDuration: 500ms
+      redisCache:                                      # Retry para Redis
+        baseConfig: default
+        maxAttempts: 2
+        waitDuration: 300ms
+
+  # Rate Limiter - Limita taxa de requisições
+  ratelimiter:
+    configs:
+      default:
+        registerHealthIndicator: true
+        limitForPeriod: 10                             # 10 requisições
+        limitRefreshPeriod: 1s                         # Por segundo
+        timeoutDuration: 0s                            # Não aguarda (rejeita)
+        eventConsumerBufferSize: 100
+    instances:
+      loginAttempt:                                    # Rate Limiter para login
+        limitForPeriod: 5                              # 5 tentativas
+        limitRefreshPeriod: 60s                        # Por minuto
+        timeoutDuration: 0s
+      apiCall:                                         # Rate Limiter para API
+        limitForPeriod: 100                            # 100 requisições
+        limitRefreshPeriod: 1s                         # Por segundo
+        timeoutDuration: 0s
+
+  # Bulkhead - Isola recursos (threads/conexões)
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 25                         # Máximo 25 chamadas simultâneas
+        maxWaitDuration: 0ms                           # Não aguarda (rejeita)
+    instances:
+      communicationClient:                             # Bulkhead para ms-communication
+        maxConcurrentCalls: 10                         # Máximo 10 simultâneas
+        maxWaitDuration: 0ms
+      databaseOperation:                               # Bulkhead para banco
+        maxConcurrentCalls: 50                         # Máximo 50 simultâneas
+        maxWaitDuration: 0ms
+
+  # Time Limiter - Define timeouts
+  timelimiter:
+    configs:
+      default:
+        cancelRunningFuture: true                      # Cancela future em timeout
+        timeoutDuration: 5s                            # Timeout padrão 5s
+    instances:
+      communicationClient:                             # Timeout ms-communication
+        timeoutDuration: 5s
+      databaseQuery:                                   # Timeout queries
+        timeoutDuration: 10s
+
+# Configuração do Feign Client (ms-communication e ms-user)
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000                           # 5s para conectar
+        readTimeout: 10000                             # 10s para ler resposta
+    communication:
+      url: ${COMMUNICATION_SERVICE_URL:http://localhost:8082}
+    user:
+      url: ${USER_SERVICE_URL:http://localhost:8580}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+security:
+  jwt:
+    secret: Q2FjaG9ycm8gU2VndXJhbmNhIFByb2pldG8gS2VlcEd1YXJkIQ==
+
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true

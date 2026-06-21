@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest
+-------------------------------------------------------------------------------
+Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.355 s -- in com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest

@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.0.0</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.keepguard</groupId>
+	<artifactId>ms-auth</artifactId>
+	<version>1.0.0</version>
+	<name>ms-auth</name>
+	<description>Auth</description>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>21</java.version>
+		<spring-cloud.version>2023.0.4</spring-cloud.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Spring Boot Starter Web -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<!-- Spring Boot Starter Data JPA -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<!-- PostgreSQL Driver -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- Lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.0.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- Spring Boot Starter Validation -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<!-- Spring Boot Starter Security -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<!-- Spring Boot Starter OAuth2 Resource Server -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+		</dependency>
+		<!-- Spring Boot Starter Data Redis -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+		<!-- JJWT -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>1.0.0</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>1.0.0</version>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- Jakarta Annotations (PostConstruct) -->
+		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
+		</dependency>
+		<!-- Springdoc OpenAPI para Spring Boot 3.x -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Mockito Inline para mocking de métodos estáticos em testes -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-inline</artifactId>
+			<version>1.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- Testcontainers -->
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>1.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>1.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- Dependência para Micrometer Prometheus -->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+		<!-- Spring Boot Actuator -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<!-- OpenFeign Spring Boot Starter -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+		</dependency>
+		
+		<!-- Dependência da biblioteca compartilhada -->
+		<dependency>
+			<groupId>com.keepguard</groupId>
+			<artifactId>lib-common</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		
+		<!-- Spring AOP para aspectos -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+		<dependency>			<groupId>com.internetitem</groupId>
+			<artifactId>logback-elasticsearch-appender</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+	<!-- ========================================== -->
+	<!-- Resilience4j - Padrões de Resiliência     -->
+	<!-- ========================================== -->
+	
+	<!-- Resilience4j Spring Boot 3 Starter -->
+	<dependency>
+		<groupId>io.github.resilience4j</groupId>
+		<artifactId>resilience4j-spring-boot3</artifactId>
+		<version>1.0.0</version>
+	</dependency>
+
+	<!-- Resilience4j Circuit Breaker -->
+	<dependency>
+		<groupId>io.github.resilience4j</groupId>
+		<artifactId>resilience4j-circuitbreaker</artifactId>
+		<version>1.0.0</version>
+	</dependency>
+
+	<!-- Resilience4j Retry -->
+	<dependency>
+		<groupId>io.github.resilience4j</groupId>
+		<artifactId>resilience4j-retry</artifactId>
+		<version>1.0.0</version>
+	</dependency>
+
+	<!-- Resilience4j Rate Limiter -->
+	<dependency>
+		<groupId>io.github.resilience4j</groupId>
+		<artifactId>resilience4j-ratelimiter</artifactId>
+		<version>1.0.0</version>
+	</dependency>
+
+	<!-- Resilience4j Bulkhead -->
+	<dependency>
+		<groupId>io.github.resilience4j</groupId>
+		<artifactId>resilience4j-bulkhead</artifactId>
+		<version>1.0.0</version>
+	</dependency>
+
+	<!-- Resilience4j Time Limiter -->
+	<dependency>
+		<groupId>io.github.resilience4j</groupId>
+		<artifactId>resilience4j-timelimiter</artifactId>
+		<version>1.0.0</version>
+	</dependency>
+
+	<!-- Resilience4j Micrometer (Métricas Prometheus) -->
+	<dependency>
+		<groupId>io.github.resilience4j</groupId>
+		<artifactId>resilience4j-micrometer</artifactId>
+		<version>1.0.0</version>
+	</dependency>
+</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>1.0.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>1.0.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<excludes>
+								<!-- Excluir DTOs, entidades JPA e classes geradas/infra sem regra -->
+								<exclude>**/adapters/**/dto/**</exclude>
+								<exclude>**/application/dto/**</exclude>
+								<exclude>**/domain/dto/**</exclude>
+								<exclude>**/infrastructure/persistence/entity/**</exclude>
+								<exclude>**/infrastructure/persistence/**</exclude>
+								<exclude>**/application/mapper/**</exclude>
+								<exclude>**/adapters/in/rest/*/mapper/**</exclude>
+								<exclude>**/adapters/out/feign/**</exclude>
+								<exclude>**/adapters/in/rest/health/**</exclude>
+								<exclude>**/domain/entity/**</exclude>
+								<exclude>**/domain/entity/**/specifications/**</exclude>
+								<exclude>**/application/service/authority/**</exclude>
+								<exclude>**/application/service/auth/**</exclude>
+								<exclude>**/application/service/role/**</exclude>
+								<exclude>**/application/service/user/**</exclude>
+								<exclude>**/application/service/exception/**</exclude>
+								<!-- Controllers agora serão medidos -->
+								<exclude>**/infrastructure/rest/**</exclude>
+								<exclude>**/infrastructure/config/security/**</exclude>
+								<exclude>**/infrastructure/redis/**</exclude>
+								<exclude>**/infrastructure/filter/**</exclude>
+								<exclude>**/infrastructure/validation/**</exclude>
+								<exclude>**/MsAuthApplication.class</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>local</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<spring-boot.run.profiles>local</spring-boot.run.profiles>
+			</properties>
+		</profile>
+		
+	</profiles>
+
+</project>

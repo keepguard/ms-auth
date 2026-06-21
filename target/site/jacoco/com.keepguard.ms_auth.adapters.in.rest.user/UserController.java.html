@@ -1,0 +1,606 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-auth</a> &gt; <a href="index.source.html" class="el_package">com.keepguard.ms_auth.adapters.in.rest.user</a> &gt; <span class="el_source">UserController.java</span></div><h1>UserController.java</h1><pre class="source lang-java linenums">package com.keepguard.ms_auth.adapters.in.rest.user;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.keepguard.lib_common.metrics.annotation.MetricsEndpoint;
+import com.keepguard.lib_common.utils.ValidationUtils;
+import com.keepguard.ms_auth.adapters.in.rest.user.dto.request.*;
+import com.keepguard.ms_auth.adapters.in.rest.user.dto.response.*;
+import com.keepguard.ms_auth.adapters.in.rest.user.mapper.UserAdapterMapper;
+import com.keepguard.ms_auth.application.port.in.UserPort;
+import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+
+<span class="fc" id="L37">@Slf4j</span>
+@RestController
+@RequestMapping(&quot;/api/v1/users&quot;)
+<span class="fc" id="L40">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Usuários&quot;, description = &quot;APIs para gerenciamento de usuários, status e consultas&quot;)
+public class UserController {
+
+    private final UserPort userService;
+    private final UserAdapterMapper mapper;
+
+    @PostMapping(&quot;/create&quot;)
+    @Operation(
+        summary = &quot;Criar usuário&quot;,
+        description = &quot;Cria um novo usuário no sistema com as informações fornecidas. &quot; +
+                    &quot;O usuário será criado com status ativo.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;201&quot;, description = &quot;Usuário criado com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = UserResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos ou usuário já existe&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_create&quot;,
+        operation = &quot;criar usuário&quot;
+    )
+    public ResponseEntity&lt;UserResponseDTO&gt; create(
+            @Parameter(description = &quot;Dados do usuário a ser criado&quot;, required = true)
+            @Valid @RequestBody UserCreateRequestDTO dto,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L69">        log.info(&quot;Criando usuário: {},     application={}&quot;, dto.getUsername(), xApplication);</span>
+        
+<span class="fc" id="L71">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L73">        var command = mapper.toCreateCommand(dto, xApplicationUuid);</span>
+<span class="fc" id="L74">        var view = userService.create(command);</span>
+<span class="fc" id="L75">        var response = mapper.toResponseDTO(view);</span>
+        
+<span class="fc" id="L77">        log.info(&quot;User created: {} with application: {}&quot;, response.getId(), xApplicationUuid);</span>
+<span class="fc" id="L78">        return ResponseEntity.status(201).body(response);</span>
+    }
+
+    @DeleteMapping(&quot;/delete/{idUserExternal}&quot;)
+    @Operation(
+        summary = &quot;Deletar usuário&quot;,
+        description = &quot;Remove um usuário do sistema. Esta operação é irreversível.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;204&quot;, description = &quot;Usuário deletado com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_delete&quot;,
+        operation = &quot;deletar usuário&quot;
+    )
+    public ResponseEntity&lt;Void&gt; delete(
+            @Parameter(description = &quot;ID externo do usuário a ser deletado&quot;, required = true)
+            @PathVariable String idUserExternal,
+            @Parameter(description = &quot;Motivo da exclusão&quot;, required = true)
+            @RequestBody UserStatusReasonRequestDTO dto,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L104">        log.info(&quot;Deletando usuário: {} - Motivo: {}, application={}&quot;, idUserExternal, dto.getReason(), xApplication);</span>
+        
+<span class="fc" id="L106">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L108">        var command = mapper.toDeleteCommand(idUserExternal, dto.getReason(), xApplicationUuid);</span>
+<span class="fc" id="L109">        userService.delete(command);</span>
+        
+<span class="fc" id="L111">        log.info(&quot;User deleted: {} with application: {}&quot;, idUserExternal, xApplicationUuid);</span>
+<span class="fc" id="L112">        return ResponseEntity.noContent().build();</span>
+    }
+
+    @DeleteMapping(&quot;/hard-delete/{idUserExternal}&quot;)
+    @Operation(
+        summary = &quot;Hard delete usuário&quot;,
+        description = &quot;Remove permanentemente um usuário do sistema (hard delete). &quot; +
+                    &quot;Esta operação é irreversível e deve ser usada apenas para compensação de transações. &quot; +
+                    &quot;Remove fisicamente o usuário, suas roles e histórico de status.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;204&quot;, description = &quot;Usuário hard deleted com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_hard_delete&quot;,
+        operation = &quot;hard delete usuário&quot;
+    )
+    public ResponseEntity&lt;Void&gt; hardDelete(
+            @Parameter(description = &quot;ID externo do usuário a ser hard deleted&quot;, required = true)
+            @PathVariable String idUserExternal,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="nc" id="L138">        log.info(&quot;Hard deleting user: {}, application={}&quot;, idUserExternal, xApplication);</span>
+        
+<span class="nc" id="L140">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="nc" id="L142">        var command = mapper.toHardDeleteCommand(idUserExternal, xApplicationUuid);</span>
+<span class="nc" id="L143">        userService.hardDelete(command);</span>
+        
+<span class="nc" id="L145">        log.info(&quot;User hard deleted: {} with application: {}&quot;, idUserExternal, xApplicationUuid);</span>
+<span class="nc" id="L146">        return ResponseEntity.noContent().build();</span>
+    }
+
+    @PostMapping(&quot;/block/{idUserExternal}&quot;)
+    @Operation(
+        summary = &quot;Bloquear usuário&quot;,
+        description = &quot;Bloqueia um usuário, impedindo que ele faça login no sistema. &quot; +
+                    &quot;O usuário permanece no sistema mas não pode acessar.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Usuário bloqueado com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_block&quot;,
+        operation = &quot;bloquear usuário&quot;
+    )
+    public ResponseEntity&lt;Void&gt; block(
+            @Parameter(description = &quot;ID externo do usuário a ser bloqueado&quot;, required = true)
+            @PathVariable String idUserExternal,
+            @Parameter(description = &quot;Motivo do bloqueio&quot;, required = true)
+            @RequestBody UserStatusReasonRequestDTO dto,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L173">        log.info(&quot;Bloqueando usuário: {} - Motivo: {}, application={}&quot;, idUserExternal, dto.getReason(), xApplication);</span>
+        
+<span class="fc" id="L175">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L177">        var command = mapper.toBlockCommand(idUserExternal, dto.getReason(), xApplicationUuid);</span>
+<span class="fc" id="L178">        userService.block(command);</span>
+        
+<span class="fc" id="L180">        log.info(&quot;User blocked: {} with application: {}&quot;, idUserExternal, xApplicationUuid);</span>
+<span class="fc" id="L181">        return ResponseEntity.ok().build();</span>
+    }
+
+    @PostMapping(&quot;/unlock/{idUserExternal}&quot;)
+    @Operation(
+        summary = &quot;Desbloquear usuário&quot;,
+        description = &quot;Desbloqueia um usuário previamente bloqueado, permitindo que ele &quot; +
+                    &quot;faça login novamente no sistema.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Usuário desbloqueado com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_unlock&quot;,
+        operation = &quot;desbloquear usuário&quot;
+    )
+    public ResponseEntity&lt;Void&gt; unlock(
+            @Parameter(description = &quot;ID externo do usuário a ser desbloqueado&quot;, required = true)
+            @PathVariable String idUserExternal,
+            @Parameter(description = &quot;Motivo do desbloqueio&quot;, required = true)
+            @RequestBody UserStatusReasonRequestDTO dto,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L208">        log.info(&quot;Desbloqueando usuário: {} - Motivo: {}, application={}&quot;, idUserExternal, dto.getReason(), xApplication);</span>
+        
+<span class="fc" id="L210">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L212">        var command = mapper.toUnlockCommand(idUserExternal, dto.getReason(), xApplicationUuid);</span>
+<span class="fc" id="L213">        userService.unlock(command);</span>
+        
+<span class="fc" id="L215">        log.info(&quot;User unlocked: {} with application: {}&quot;, idUserExternal, xApplicationUuid);</span>
+<span class="fc" id="L216">        return ResponseEntity.ok().build();</span>
+    }
+
+    @PostMapping(&quot;/validate-email&quot;)
+    @Operation(
+        summary = &quot;Validar email do usuário&quot;,
+        description = &quot;Marca o email de um usuário como validado. &quot; +
+                    &quot;Esta operação é necessária para que o usuário possa acessar certas funcionalidades.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Email validado com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_validate_email&quot;,
+        operation = &quot;validar email do usuário&quot;
+    )
+    public ResponseEntity&lt;Void&gt; validateEmail(
+            @Parameter(description = &quot;Dados para validação de email&quot;, required = true)
+            @Valid @RequestBody UserValidateEmailRequestDTO dto,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L241">        log.info(&quot;Validando email para usuário: {}, application={}&quot;, dto.getIdUserExternal(), xApplication);</span>
+        
+<span class="fc" id="L243">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L245">        var command = mapper.toValidateEmailCommand(dto, xApplicationUuid);</span>
+<span class="fc" id="L246">        userService.validateEmailUser(command);</span>
+        
+<span class="fc" id="L248">        log.info(&quot;Email validated for user: {} with application: {}&quot;, dto.getIdUserExternal(), xApplicationUuid);</span>
+<span class="fc" id="L249">        return ResponseEntity.ok().build();</span>
+    }
+
+    @GetMapping(&quot;/{idUserExternal}/status-history&quot;)
+    @Operation(
+        summary = &quot;Obter histórico de status do usuário&quot;,
+        description = &quot;Retorna o histórico completo de mudanças de status de um usuário, &quot; +
+                    &quot;incluindo bloqueios, desbloqueios e outras alterações.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Histórico retornado com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = UserStatusHistoryResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_status_history&quot;,
+        operation = &quot;obter histórico de status do usuário&quot;
+    )
+    public ResponseEntity&lt;List&lt;UserStatusHistoryResponseDTO&gt;&gt; getUserStatusHistory(
+            @Parameter(description = &quot;ID externo do usuário&quot;, required = true)
+            @PathVariable String idUserExternal,
+            @Parameter(description = &quot;Número da página (opcional, padrão: 0)&quot;)
+            @RequestParam(required = false) Integer page,
+            @Parameter(description = &quot;Tamanho da página (opcional, padrão: 10)&quot;)
+            @RequestParam(required = false) Integer size,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="nc" id="L278">        log.info(&quot;Buscando histórico de status para usuário: {} - Página: {}, Tamanho: {}, application={}&quot;, </span>
+            idUserExternal, page, size, xApplication);
+        
+<span class="nc" id="L281">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="nc" id="L283">        var query = mapper.toGetStatusHistoryQuery(idUserExternal, page, size, xApplicationUuid);</span>
+<span class="nc" id="L284">        PageResultView&lt;UserStatusHistory&gt; pageResultView = userService.getUserStatusHistory(query);</span>
+<span class="nc" id="L285">        List&lt;UserStatusHistoryResponseDTO&gt; response = pageResultView.getContent().stream()</span>
+<span class="nc" id="L286">                .map(mapper::toStatusHistoryResponseDTO)</span>
+<span class="nc" id="L287">                .toList();</span>
+        
+<span class="nc" id="L289">        log.info(&quot;User status history retrieved: {} with application: {}&quot;, idUserExternal, xApplicationUuid);</span>
+<span class="nc" id="L290">        return ResponseEntity.ok(response);</span>
+    }
+
+    @GetMapping(&quot;/code-user/{codeUser}&quot;)
+    @Operation(
+        summary = &quot;Buscar usuário por código&quot;,
+        description = &quot;Retorna os detalhes completos de um usuário usando seu código único.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Usuário encontrado&quot;,
+                    content = @Content(schema = @Schema(implementation = UserByCodeResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_get_by_code&quot;,
+        operation = &quot;buscar usuário por código&quot;
+    )
+    public ResponseEntity&lt;UserByCodeResponseDTO&gt; getByCodeUser(
+            @Parameter(description = &quot;Código único do usuário&quot;, required = true)
+            @PathVariable String codeUser,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L314">        log.info(&quot;Buscando usuário por código: {}, application={}&quot;, codeUser, xApplication);</span>
+        
+<span class="fc" id="L316">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L318">        var query = mapper.toGetByCodeQuery(codeUser, xApplicationUuid);</span>
+<span class="fc" id="L319">        var view = userService.findByCodeUser(query);</span>
+<span class="fc" id="L320">        var response = mapper.toUserByCodeResponseDTO(view);</span>
+        
+<span class="fc" id="L322">        log.info(&quot;User retrieved by code: {} with application: {}&quot;, codeUser, xApplicationUuid);</span>
+<span class="fc" id="L323">        return ResponseEntity.ok(response);</span>
+    }
+
+    @GetMapping(&quot;/id-user-external/{idUserExternal}&quot;)
+    @Operation(
+        summary = &quot;Buscar usuário por ID externo&quot;,
+        description = &quot;Retorna os detalhes completos de um usuário usando seu ID externo.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Usuário encontrado&quot;,
+                    content = @Content(schema = @Schema(implementation = UserByIdExternalResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_get_by_id&quot;,
+        operation = &quot;buscar usuário por ID externo&quot;
+    )
+    public ResponseEntity&lt;UserByIdExternalResponseDTO&gt; getByIdUserExternal(
+            @Parameter(description = &quot;ID externo do usuário&quot;, required = true)
+            @PathVariable String idUserExternal,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L347">        log.info(&quot;Buscando usuário por ID externo: {}, application={}&quot;, idUserExternal, xApplication);</span>
+        
+<span class="fc" id="L349">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L351">        var query = mapper.toGetByIdExternalQuery(idUserExternal, xApplicationUuid);</span>
+<span class="fc" id="L352">        var view = userService.findByIdUserExternal(query);</span>
+<span class="fc" id="L353">        var response = mapper.toUserByIdExternalResponseDTO(view);</span>
+        
+<span class="fc" id="L355">        log.info(&quot;User retrieved by external ID: {} with application: {}&quot;, idUserExternal, xApplicationUuid);</span>
+<span class="fc" id="L356">        return ResponseEntity.ok(response);</span>
+    }
+
+    @GetMapping(&quot;/email/{email}&quot;)
+    @Operation(
+        summary = &quot;Buscar usuário por email&quot;,
+        description = &quot;Retorna os detalhes completos de um usuário usando seu endereço de email.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Usuário encontrado&quot;,
+                    content = @Content(schema = @Schema(implementation = UserByEmailResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_get_by_email&quot;,
+        operation = &quot;buscar usuário por email&quot;
+    )
+    public ResponseEntity&lt;UserByEmailResponseDTO&gt; getByEmail(
+            @Parameter(description = &quot;Email do usuário&quot;, required = true)
+            @PathVariable String email,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L380">        log.info(&quot;Buscando usuário por email: {}, application={}&quot;, email, xApplication);</span>
+        
+<span class="fc" id="L382">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L384">        var query = mapper.toGetByEmailQuery(email, xApplicationUuid);</span>
+<span class="fc" id="L385">        var view = userService.findByEmail(query);</span>
+<span class="fc" id="L386">        var response = mapper.toUserByEmailResponseDTO(view);</span>
+        
+<span class="fc" id="L388">        log.info(&quot;User retrieved by email: {} with application: {}&quot;, email, xApplicationUuid);</span>
+<span class="fc" id="L389">        return ResponseEntity.ok(response);</span>
+    }
+
+    @GetMapping(&quot;/username/{username}&quot;)
+    @Operation(
+        summary = &quot;Buscar usuário por username&quot;,
+        description = &quot;Retorna os detalhes completos de um usuário usando seu nome de usuário.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Usuário encontrado&quot;,
+                    content = @Content(schema = @Schema(implementation = UserByUsernameResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_get_by_username&quot;,
+        operation = &quot;buscar usuário por username&quot;
+    )
+    public ResponseEntity&lt;UserByUsernameResponseDTO&gt; getByUsername(
+            @Parameter(description = &quot;Nome de usuário&quot;, required = true)
+            @PathVariable String username,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L413">        log.info(&quot;Buscando usuário por username: {}, application={}&quot;, username, xApplication);</span>
+        
+<span class="fc" id="L415">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L417">        var query = mapper.toGetByUsernameQuery(username, xApplicationUuid);</span>
+<span class="fc" id="L418">        var view = userService.findByUsername(query);</span>
+<span class="fc" id="L419">        var response = mapper.toUserByUsernameResponseDTO(view);</span>
+        
+<span class="fc" id="L421">        log.info(&quot;User retrieved by username: {} with application: {}&quot;, username, xApplicationUuid);</span>
+<span class="fc" id="L422">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PostMapping(&quot;/{idUserExternal}/roles&quot;)
+    @Operation(
+        summary = &quot;Adicionar role ao usuário&quot;,
+        description = &quot;Associa uma role específica a um usuário pelo nome da role. &quot; +
+                    &quot;O usuário ganha as permissões associadas à role.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;201&quot;, description = &quot;Role adicionada com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário ou role não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos ou role já associada&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_add_role&quot;,
+        operation = &quot;adicionar role ao usuário&quot;
+    )
+    public ResponseEntity&lt;Void&gt; addRoleToUser(
+            @Parameter(description = &quot;ID externo do usuário&quot;, required = true)
+            @PathVariable String idUserExternal,
+            @Parameter(description = &quot;Dados da role a ser adicionada (nome)&quot;, required = true)
+            @Valid @RequestBody UserAddRoleToUserRequestDTO dto,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L449">        log.info(&quot;Adicionando role {} ao usuário: {}, application={}&quot;, dto.getRole(), idUserExternal, xApplication);</span>
+        
+<span class="fc" id="L451">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L453">        var command = mapper.toAddRoleCommand(idUserExternal, dto.getRole(), xApplicationUuid);</span>
+<span class="fc" id="L454">        userService.addRoleToUser(command);</span>
+        
+<span class="fc" id="L456">        log.info(&quot;Role added to user: {} - {} with application: {}&quot;, idUserExternal, dto.getRole(), xApplicationUuid);</span>
+<span class="fc" id="L457">        return ResponseEntity.status(201).build();</span>
+    }
+
+    @DeleteMapping(&quot;/{idUserExternal}/roles/{role}&quot;)
+    @Operation(
+        summary = &quot;Remover role do usuário&quot;,
+        description = &quot;Remove uma role específica de um usuário pelo nome da role. &quot; +
+                    &quot;O usuário perde as permissões associadas à role.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;204&quot;, description = &quot;Role removida com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário ou role não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_remove_role&quot;,
+        operation = &quot;remover role do usuário&quot;
+    )
+    public ResponseEntity&lt;Void&gt; removeRoleFromUser(
+            @Parameter(description = &quot;ID externo do usuário&quot;, required = true)
+            @PathVariable String idUserExternal,
+            @Parameter(description = &quot;Nome da role a ser removida&quot;, required = true)
+            @PathVariable String role,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L484">        log.info(&quot;Removendo role {} do usuário: {}, application={}&quot;, role, idUserExternal, xApplication);</span>
+        
+<span class="fc" id="L486">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L488">        var command = mapper.toRemoveRoleCommand(idUserExternal, role, xApplicationUuid);</span>
+<span class="fc" id="L489">        userService.removeRoleFromUser(command);</span>
+        
+<span class="fc" id="L491">        log.info(&quot;Role removed from user: {} - {} with application: {}&quot;, idUserExternal, role, xApplicationUuid);</span>
+<span class="fc" id="L492">        return ResponseEntity.noContent().build();</span>
+    }
+
+
+    @PutMapping(&quot;/{idUserExternal}/email&quot;)
+    @Operation(
+        summary = &quot;Atualizar email do usuário&quot;,
+        description = &quot;Atualiza o endereço de email de um usuário ativo. &quot; +
+                    &quot;O email será marcado como não verificado após a alteração. &quot; +
+                    &quot;Não é possível alterar para um email já existente no sistema.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Email atualizado com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos, usuário não ativo ou email já existe&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_update_email&quot;,
+        operation = &quot;atualizar email do usuário&quot;
+    )
+    public ResponseEntity&lt;Void&gt; updateUserEmail(
+            @Parameter(description = &quot;ID externo do usuário&quot;, required = true)
+            @PathVariable String idUserExternal,
+            @Parameter(description = &quot;Dados para atualização de email&quot;, required = true)
+            @Valid @RequestBody UserUpdateEmailRequestDTO dto,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L521">        log.info(&quot;Atualizando email do usuário: {} - Novo email: {}, application={}&quot;, idUserExternal, dto.getNewEmail(), xApplication);</span>
+        
+<span class="fc" id="L523">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L525">        var command = mapper.toUpdateEmailCommand(idUserExternal, dto.getNewEmail(), xApplicationUuid);</span>
+<span class="fc" id="L526">        userService.updateUserEmail(command);</span>
+        
+<span class="fc" id="L528">        log.info(&quot;Email updated for user: {} - New email: {} with application: {}&quot;, idUserExternal, dto.getNewEmail(), xApplicationUuid);</span>
+<span class="fc" id="L529">        return ResponseEntity.ok().build();</span>
+    }
+
+
+    @GetMapping(&quot;/search&quot;)
+    @Operation(
+        summary = &quot;Buscar usuários&quot;,
+        description = &quot;Busca usuários com filtros dinâmicos e paginação&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Busca realizada com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Parâmetros de busca inválidos&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;user_search&quot;,
+        operation = &quot;buscar usuários&quot;
+    )
+    public ResponseEntity&lt;PageResultView&lt;UserResponseDTO&gt;&gt; search(
+            @Parameter(description = &quot;ID do usuário&quot;) @RequestParam(required = false) String id,
+            @Parameter(description = &quot;Username (busca parcial)&quot;) @RequestParam(required = false) String username,
+            @Parameter(description = &quot;Email (busca parcial)&quot;) @RequestParam(required = false) String email,
+            @Parameter(description = &quot;ID externo do usuário&quot;) @RequestParam(required = false) String idUserExternal,
+            @Parameter(description = &quot;Código do usuário&quot;) @RequestParam(required = false) String codeUser,
+            @Parameter(description = &quot;Status do usuário&quot;) @RequestParam(required = false) String status,
+            @Parameter(description = &quot;Email verificado&quot;) @RequestParam(required = false) Boolean emailVerified,
+            @Parameter(description = &quot;ID da empresa&quot;) @RequestParam(required = false) String companyId,
+            @Parameter(description = &quot;Código da empresa&quot;) @RequestParam(required = false) String companyCode,
+            @Parameter(description = &quot;Campo de ordenação&quot;) @RequestParam(required = false) String sortBy,
+            @Parameter(description = &quot;Direção da ordenação&quot;) @RequestParam(defaultValue = &quot;DESC&quot;) String sortDirection,
+            @Parameter(description = &quot;Página&quot;) @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @Parameter(description = &quot;Tamanho da página&quot;) @RequestParam(defaultValue = &quot;20&quot;) int size,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="nc" id="L564">        log.info(&quot;Buscando usuários - username: {}, email: {}, status: {}, companyCode: {}, application={}&quot;, </span>
+            username, email, status, companyCode, xApplication);
+        
+<span class="nc" id="L567">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="nc" id="L569">        var searchRequest = UserSearchRequestDTO.builder()</span>
+<span class="nc bnc" id="L570" title="All 2 branches missed.">                .id(id != null ? java.util.UUID.fromString(id) : null)</span>
+<span class="nc" id="L571">                .username(username)</span>
+<span class="nc" id="L572">                .email(email)</span>
+<span class="nc bnc" id="L573" title="All 2 branches missed.">                .idUserExternal(idUserExternal != null ? java.util.UUID.fromString(idUserExternal) : null)</span>
+<span class="nc bnc" id="L574" title="All 2 branches missed.">                .codeUser(codeUser != null ? java.util.UUID.fromString(codeUser) : null)</span>
+<span class="nc bnc" id="L575" title="All 2 branches missed.">                .status(status != null ? com.keepguard.ms_auth.domain.enums.UserStatus.valueOf(status.toUpperCase()) : null)</span>
+<span class="nc" id="L576">                .emailVerified(emailVerified)</span>
+<span class="nc bnc" id="L577" title="All 2 branches missed.">                .companyId(companyId != null ? java.util.UUID.fromString(companyId) : null)</span>
+<span class="nc bnc" id="L578" title="All 2 branches missed.">                .companyCode(companyCode != null ? java.util.UUID.fromString(companyCode) : null)</span>
+<span class="nc" id="L579">                .sortBy(sortBy)</span>
+<span class="nc" id="L580">                .sortDirection(sortDirection)</span>
+<span class="nc" id="L581">                .page(page)</span>
+<span class="nc" id="L582">                .size(size)</span>
+<span class="nc" id="L583">                .build();</span>
+        
+<span class="nc" id="L585">        var query = mapper.toSearchQuery(searchRequest, xApplicationUuid);</span>
+<span class="nc" id="L586">        var pageResult = userService.searchUsers(query);</span>
+        
+<span class="nc" id="L588">        var response = PageResultView.&lt;UserResponseDTO&gt;builder()</span>
+<span class="nc" id="L589">                .content(pageResult.getContent().stream()</span>
+<span class="nc" id="L590">                        .map(mapper::toResponseDTO)</span>
+<span class="nc" id="L591">                        .toList())</span>
+<span class="nc" id="L592">                .page(pageResult.getPageNumber())</span>
+<span class="nc" id="L593">                .size(pageResult.getSize())</span>
+<span class="nc" id="L594">                .totalElements(pageResult.getTotalElements())</span>
+<span class="nc" id="L595">                .totalPages(pageResult.getTotalPages())</span>
+<span class="nc" id="L596">                .first(pageResult.isFirst())</span>
+<span class="nc" id="L597">                .last(pageResult.isLast())</span>
+<span class="nc" id="L598">                .hasNext(pageResult.hasNext())</span>
+<span class="nc" id="L599">                .hasPrevious(pageResult.hasPrevious())</span>
+<span class="nc" id="L600">                .build();</span>
+        
+<span class="nc" id="L602">        log.info(&quot;Users search completed. Found {} results with application: {}&quot;, response.getTotalElements(), xApplicationUuid);</span>
+<span class="nc" id="L603">        return ResponseEntity.ok(response);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

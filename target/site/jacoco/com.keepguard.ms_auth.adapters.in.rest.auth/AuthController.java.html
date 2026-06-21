@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-auth</a> &gt; <a href="index.source.html" class="el_package">com.keepguard.ms_auth.adapters.in.rest.auth</a> &gt; <span class="el_source">AuthController.java</span></div><h1>AuthController.java</h1><pre class="source lang-java linenums">package com.keepguard.ms_auth.adapters.in.rest.auth;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.keepguard.lib_common.metrics.annotation.MetricsEndpoint;
+import com.keepguard.lib_common.utils.ValidationUtils;
+import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthLoginRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthLoginResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthRefreshTokenResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthChangePasswordRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthRefreshTokenRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthResetPasswordRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthGenerateResetTokenRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthGenerateResetTokenResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthValidateTokenRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthLogoutResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthRegisterLoginRequestDTO;
+
+import com.keepguard.ms_auth.application.port.in.AuthPort;
+import com.keepguard.ms_auth.adapters.in.rest.auth.mapper.AuthAdapterMapper;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+<span class="fc" id="L38">@Slf4j</span>
+@RestController
+@RequestMapping(&quot;/api/v1/auth&quot;)
+<span class="fc" id="L41">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Autenticação&quot;, description = &quot;APIs para autenticação, autorização e gerenciamento de tokens&quot;)
+public class AuthController {
+
+    private final AuthPort authService;
+    private final AuthAdapterMapper mapper;
+
+    @PostMapping(&quot;/login&quot;)
+    @Operation(
+        summary = &quot;Realizar login&quot;,
+        description = &quot;Autentica um usuário com username e senha, retornando um token JWT válido.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Login realizado com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = AuthLoginResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;401&quot;, description = &quot;Credenciais inválidas&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados de entrada inválidos ou X-Application inválido&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;auth_login&quot;,
+        operation = &quot;realizar login&quot;
+    )
+    public ResponseEntity&lt;AuthLoginResponseDTO&gt; login(
+            @Parameter(description = &quot;Credenciais do usuário&quot;, required = true)
+            @RequestBody @Valid AuthLoginRequestDTO request,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @RequestHeader(&quot;User-Agent&quot;) String userAgent) {
+
+<span class="fc" id="L71">        log.info(&quot;Realizando login para usuário: {}, application={}, userAgent={}&quot;, </span>
+<span class="fc" id="L72">            request.getUsername(), xApplication, userAgent);</span>
+        
+<span class="fc" id="L74">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L76">        var command = mapper.toLoginCommand(request, xApplicationUuid, userAgent);</span>
+<span class="fc" id="L77">        var view = authService.login(command);</span>
+<span class="fc" id="L78">        var response = mapper.toLoginResponseDTO(view);</span>
+        
+<span class="fc" id="L80">        log.info(&quot;Login successful for user: {} with application: {}&quot;, request.getUsername(), xApplicationUuid);</span>
+<span class="fc" id="L81">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PostMapping(&quot;/register-login&quot;)
+    @Operation(
+        summary = &quot;Login após registro&quot;,
+        description = &quot;Realiza login após registro usando senha criptografada. Este endpoint é usado internamente pelo BFF após confirmação de registro.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Login realizado com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = AuthLoginResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;401&quot;, description = &quot;Credenciais inválidas&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados de entrada inválidos ou X-Application inválido&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;auth_register_login&quot;,
+        operation = &quot;realizar login após registro&quot;
+    )
+    public ResponseEntity&lt;AuthLoginResponseDTO&gt; registerLogin(
+            @Parameter(description = &quot;Dados para login após registro&quot;, required = true)
+            @RequestBody @Valid AuthRegisterLoginRequestDTO request,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @RequestHeader(&quot;User-Agent&quot;) String userAgent) {
+
+<span class="nc" id="L107">        log.info(&quot;Realizando register login para usuário: {}, application={}, userAgent={}&quot;, </span>
+<span class="nc" id="L108">            request.getUsername(), xApplication, userAgent);</span>
+        
+<span class="nc" id="L110">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="nc" id="L112">        var command = mapper.toRegisterLoginCommand(request, xApplicationUuid, userAgent);</span>
+<span class="nc" id="L113">        var view = authService.registerLogin(command);</span>
+<span class="nc" id="L114">        var response = mapper.toLoginResponseDTO(view);</span>
+        
+<span class="nc" id="L116">        log.info(&quot;Register login successful for user: {} with application: {}&quot;, request.getUsername(), xApplicationUuid);</span>
+<span class="nc" id="L117">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PostMapping(&quot;/refresh&quot;)
+    @Operation(
+        summary = &quot;Renovar token&quot;,
+        description = &quot;Renova um token JWT válido, retornando um novo token com tempo de expiração atualizado.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Token renovado com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = AuthRefreshTokenResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;401&quot;, description = &quot;Token inválido ou expirado&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados de entrada inválidos ou X-Application inválido&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;auth_refresh&quot;,
+        operation = &quot;renovar token&quot;
+    )
+    public ResponseEntity&lt;AuthRefreshTokenResponseDTO&gt; refreshToken(
+            @Parameter(description = &quot;Dados para renovação do token&quot;, required = true)
+            @RequestBody @Valid AuthRefreshTokenRequestDTO request,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication,
+            @RequestHeader(&quot;User-Agent&quot;) String userAgent) {
+
+<span class="fc" id="L143">        log.info(&quot;Renovando token JWT - application={}, userAgent={}&quot;, xApplication, userAgent);</span>
+        
+<span class="fc" id="L145">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+        
+<span class="fc" id="L147">        var command = mapper.toRefreshTokenCommand(request, xApplicationUuid, userAgent);</span>
+<span class="fc" id="L148">        var view = authService.refreshToken(command);</span>
+<span class="fc" id="L149">        var response = mapper.toRefreshTokenResponseDTO(view);</span>
+        
+<span class="fc" id="L151">        log.info(&quot;Token refreshed successfully&quot;);</span>
+<span class="fc" id="L152">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PostMapping(&quot;/logout&quot;)
+    @Operation(
+        summary = &quot;Realizar logout&quot;,
+        description = &quot;Invalida o token JWT do usuário, fazendo logout do sistema.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Logout realizado com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = AuthLogoutResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;401&quot;, description = &quot;Token inválido&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;X-Application inválido&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;auth_logout&quot;,
+        operation = &quot;realizar logout&quot;
+    )
+    public ResponseEntity&lt;AuthLogoutResponseDTO&gt; logout(
+            @Parameter(description = &quot;Token JWT a ser invalidado&quot;, required = true)
+            @RequestHeader(&quot;Authorization&quot;) String authorization,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L177">        log.info(&quot;Realizando logout - application={}&quot;, xApplication);</span>
+        
+<span class="fc" id="L179">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L180">        String token = authorization.replace(&quot;Bearer &quot;, &quot;&quot;);</span>
+
+<span class="fc" id="L182">        var command = mapper.toLogoutCommand(token, xApplicationUuid);</span>
+<span class="fc" id="L183">        var view = authService.logout(command);</span>
+<span class="fc" id="L184">        var response = mapper.toLogoutResponseDTO(view);</span>
+        
+<span class="fc" id="L186">        log.info(&quot;Logout successful for application: {}&quot;, xApplicationUuid);</span>
+<span class="fc" id="L187">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PostMapping(&quot;/validate&quot;)
+    @Operation(
+        summary = &quot;Validar token&quot;,
+        description = &quot;Valida se um token JWT é válido e não expirou. &quot; +
+                    &quot;Retorna 200 se o token for válido, 401 caso contrário.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Token válido&quot;),
+        @ApiResponse(responseCode = &quot;401&quot;, description = &quot;Token inválido ou expirado&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Token não fornecido&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;auth_validate&quot;,
+        operation = &quot;validar token&quot;
+    )
+    public ResponseEntity&lt;Void&gt; validate(
+            @Parameter(description = &quot;Token JWT a ser validado&quot;, required = true)
+            @RequestBody @Valid AuthValidateTokenRequestDTO validateTokenDTO, 
+            @Parameter(description = &quot;Identificador da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String application) {
+        
+<span class="fc" id="L212">        log.info(&quot;Validando token JWT - application={}&quot;, application);</span>
+        
+<span class="fc" id="L214">        var xApplicationUuid = ValidationUtils.validateXApplication(application);</span>
+        
+<span class="fc" id="L216">        var command = mapper.toValidateTokenCommand(validateTokenDTO, xApplicationUuid);</span>
+<span class="fc" id="L217">        authService.validateToken(command);</span>
+        
+<span class="fc" id="L219">        log.info(&quot;Token valid for application: {}&quot;, xApplicationUuid);</span>
+<span class="fc" id="L220">        return ResponseEntity.ok().build();</span>
+    }
+
+    @PostMapping(&quot;/change-password&quot;)
+    @Operation(
+        summary = &quot;Alterar senha&quot;,
+        description = &quot;Altera a senha do usuário autenticado.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Senha alterada com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos, senha atual incorreta ou X-Application inválido&quot;),
+        @ApiResponse(responseCode = &quot;401&quot;, description = &quot;Token inválido&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;auth_change_password&quot;,
+        operation = &quot;alterar senha&quot;
+    )
+    public ResponseEntity&lt;Void&gt; changePassword(
+            @Parameter(description = &quot;Dados para alteração de senha&quot;, required = true)
+            @RequestBody @Valid AuthChangePasswordRequestDTO request,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L244">        log.info(&quot;Alterando senha para usuário: {}, application={}&quot;, request.getCodeUser(), xApplication);</span>
+        
+<span class="fc" id="L246">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L247">        var command = mapper.toChangePasswordCommand(request, xApplicationUuid);</span>
+<span class="fc" id="L248">        authService.changePassword(command);</span>
+        
+<span class="fc" id="L250">        log.info(&quot;Password changed successfully for user: {} with application: {}&quot;, request.getCodeUser(), xApplicationUuid);</span>
+<span class="fc" id="L251">        return ResponseEntity.ok().build();</span>
+    }
+
+    @PostMapping(&quot;/reset-password&quot;)
+    @Operation(
+        summary = &quot;Resetar senha&quot;,
+        description = &quot;Reseta a senha do usuário usando um token de reset válido.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Senha resetada com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos, token inválido ou X-Application inválido&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;auth_reset_password&quot;,
+        operation = &quot;resetar senha&quot;
+    )
+    public ResponseEntity&lt;Void&gt; resetPassword(
+            @Parameter(description = &quot;Dados para reset de senha&quot;, required = true)
+            @RequestBody @Valid AuthResetPasswordRequestDTO request,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="fc" id="L274">        log.info(&quot;Resetando senha para usuário: {}, application={}, resetToken={}&quot;, </span>
+<span class="fc" id="L275">            request.getCodeUser(), xApplication, request.getResetToken());</span>
+        
+<span class="fc" id="L277">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="fc" id="L278">        var command = mapper.toResetPasswordCommand(request, xApplicationUuid);</span>
+<span class="fc" id="L279">        authService.resetPassword(command);</span>
+        
+<span class="fc" id="L281">        log.info(&quot;Password reset successfully for user: {} with application: {}&quot;, request.getCodeUser(), xApplicationUuid);</span>
+<span class="fc" id="L282">        return ResponseEntity.ok().build();</span>
+    }
+
+    @PostMapping(&quot;/generate-reset-token&quot;)
+    @Operation(
+        summary = &quot;Gerar token de recuperação de senha&quot;,
+        description = &quot;Gera um token de 6 dígitos para recuperação de senha e armazena no cache Redis com TTL configurado. &quot; +
+                     &quot;O token será utilizado posteriormente para validar a solicitação de reset de senha.&quot;
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Token gerado com sucesso&quot;,
+                    content = @Content(schema = @Schema(implementation = AuthGenerateResetTokenResponseDTO.class))),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos ou X-Application inválido&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;500&quot;, description = &quot;Erro interno do servidor&quot;)
+    })
+    @MetricsEndpoint(
+        endpoint = &quot;auth_generate_reset_token&quot;,
+        operation = &quot;gerar token de reset&quot;
+    )
+    public ResponseEntity&lt;AuthGenerateResetTokenResponseDTO&gt; generateResetToken(
+            @Parameter(description = &quot;Dados para geração de token de reset&quot;, required = true)
+            @RequestBody @Valid AuthGenerateResetTokenRequestDTO request,
+            @Parameter(description = &quot;UUID da aplicação&quot;, required = true)
+            @RequestHeader(&quot;X-Application&quot;) String xApplication) {
+
+<span class="nc" id="L308">        log.info(&quot;Gerando token de reset | codeUser={} | application={} | messageType={} | templateType={}&quot;, </span>
+<span class="nc" id="L309">            request.getCodeUser(), xApplication, request.getMessageType(), request.getTemplateType());</span>
+        
+<span class="nc" id="L311">        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);</span>
+<span class="nc" id="L312">        var command = mapper.toGenerateResetTokenCommand(request, xApplicationUuid);</span>
+<span class="nc" id="L313">        var view = authService.generateResetToken(command);</span>
+<span class="nc" id="L314">        var response = mapper.toGenerateResetTokenResponseDTO(view);</span>
+        
+<span class="nc" id="L316">        log.info(&quot;Token de reset gerado com sucesso | codeUser={} | application={}&quot;, </span>
+<span class="nc" id="L317">            request.getCodeUser(), xApplicationUuid);</span>
+<span class="nc" id="L318">        return ResponseEntity.ok(response);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
