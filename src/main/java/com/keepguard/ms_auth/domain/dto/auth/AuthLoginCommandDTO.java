@@ -24,6 +24,6 @@ public class AuthLoginCommandDTO {
     private UUID tenantId;
 
     @NotBlank(message = "O header User-Agent é obrigatório")
-    private String userAgent;
+    private String clientId;
 }
 

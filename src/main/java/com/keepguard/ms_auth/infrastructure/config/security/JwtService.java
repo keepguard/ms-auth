@@ -27,29 +27,20 @@ public class JwtService {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    private static final Map<String, String> USER_AGENT_PATTERNS = Map.ofEntries(
-            Map.entry("Postman", "postman"),
-            Map.entry("Mozilla", "web-app"),
-            Map.entry("Chrome", "web-app"),
-            Map.entry("Safari", "web-app"),
-            Map.entry("Mobile", "mobile-app"),
-            Map.entry("Android", "mobile-app"),
-            Map.entry("iPhone", "mobile-app")
-    );
-
-    public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId, String userAgent) {
-        return generateToken(user, roles, authorities, tenantId, userAgent, null);
+    public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId, String clientId) {
+        return generateToken(user, roles, authorities, tenantId, clientId, null);
     }
 
-    public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId, String userAgent, String displayHandle) {
+    public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId, String clientId, String displayHandle) {
+        String finalClientId = (clientId == null || clientId.isBlank()) ? "keepguard-default-client" : clientId;
         var builder = Jwts.builder()
                 .issuer("ms-auth")
-                .audience().add(getUserAgent(userAgent)).and()
+                .audience().add(finalClientId).and()
                 .id(UUID.randomUUID().toString())
                 .subject(user.getCodeUser().toString())
                 .claim("roles", roles)
                 .claim("authorities", authorities)
-                .claim("client_id", getUserAgent(userAgent))
+                .claim("client_id", finalClientId)
                 .claim("tenant_id", tenantId)
                 .claim("login_method", "password");
         
@@ -64,19 +55,7 @@ public class JwtService {
                 .compact();
     }
 
-    private String getUserAgent(String userAgent) {
-        if (userAgent == null || userAgent.isBlank()) {
-            return "unknown";
-        }
 
-        String normalized = userAgent.toLowerCase();
-
-        return USER_AGENT_PATTERNS.entrySet().stream()
-                .filter(entry -> normalized.contains(entry.getKey().toLowerCase()))
-                .map(Map.Entry::getValue)
-                .findFirst()
-                .orElse("unknown");
-    }
 
     public boolean validateToken(String token) {
         try {

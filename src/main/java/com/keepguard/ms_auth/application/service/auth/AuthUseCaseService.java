@@ -74,8 +74,8 @@ public class AuthUseCaseService implements AuthPort {
     @Override
     @RateLimiter(name = "loginAttempt", fallbackMethod = "loginRateLimitExceeded")
     public AuthLoginView login(AuthLoginCommandDTO request) {
-        log.info("Processando login | username={} | application={} | userAgent={}", 
-            request.getUsername(), request.getTenantId(), request.getUserAgent());
+        log.info("Processando login | username={} | application={} | clientId={}", 
+            request.getUsername(), request.getTenantId(), request.getClientId());
         
         String token = authCommandService.login(request);
         
@@ -85,8 +85,8 @@ public class AuthUseCaseService implements AuthPort {
 
     @Override
     public AuthLoginView registerLogin(AuthRegisterLoginCommandDTO request) {
-        log.info("Processando register login | username={} | application={} | userAgent={}", 
-            request.getUsername(), request.getTenantId(), request.getUserAgent());
+        log.info("Processando register login | username={} | application={} | clientId={}", 
+            request.getUsername(), request.getTenantId(), request.getClientId());
         
         String token = authCommandService.registerLogin(request);
         
@@ -110,10 +110,10 @@ public class AuthUseCaseService implements AuthPort {
      * @throws RuntimeException com mensagem amigável
      */
     private AuthLoginView loginRateLimitExceeded(AuthLoginCommandDTO request, RequestNotPermitted ex) {
-        log.warn("RATE LIMIT EXCEDIDO | username={} | application={} | userAgent={}", 
+        log.warn("RATE LIMIT EXCEDIDO | username={} | application={} | clientId={}", 
             request.getUsername(), 
             request.getTenantId(), 
-            request.getUserAgent());
+            request.getClientId());
         
         throw new RuntimeException(
             "Muitas tentativas de login. Por favor, aguarde 1 minuto antes de tentar novamente."
@@ -122,8 +122,8 @@ public class AuthUseCaseService implements AuthPort {
 
     @Override
     public AuthRefreshTokenView refreshToken(AuthRefreshTokenCommandDTO request) {
-        log.info("Processing refresh token request - application={}, userAgent={}", 
-            request.getTenantId(), request.getUserAgent());
+        log.info("Processing refresh token request - application={}, clientId={}", 
+            request.getTenantId(), request.getClientId());
         String token = authCommandService.refreshToken(request);
         return new AuthRefreshTokenView(token, 3600L);
     }

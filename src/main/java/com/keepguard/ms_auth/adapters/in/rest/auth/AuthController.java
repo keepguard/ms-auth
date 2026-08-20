@@ -66,14 +66,14 @@ public class AuthController {
             @RequestBody @Valid AuthLoginRequestDTO request,
             @Parameter(description = "UUID da aplicação", required = true)
             @RequestHeader("X-Tenant-Id") String tenantIdHeader,
-            @RequestHeader("User-Agent") String userAgent) {
+            @RequestHeader(value = "X-Client-ID", defaultValue = "keepguard-default-client") String clientId) {
 
-        log.info("Realizando login para usuário: {}, tenantIdHeader={}, userAgent={}", 
-            request.getUsername(), tenantIdHeader, userAgent);
+        log.info("Realizando login para usuário: {}, tenantIdHeader={}, clientId={}", 
+            request.getUsername(), tenantIdHeader, clientId);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toLoginCommand(request, tenantId, userAgent);
+        var command = mapper.toLoginCommand(request, tenantId, clientId);
         var view = authService.login(command);
         var response = mapper.toLoginResponseDTO(view);
         
@@ -102,14 +102,14 @@ public class AuthController {
             @RequestBody @Valid AuthRegisterLoginRequestDTO request,
             @Parameter(description = "UUID da aplicação", required = true)
             @RequestHeader("X-Tenant-Id") String tenantIdHeader,
-            @RequestHeader("User-Agent") String userAgent) {
+            @RequestHeader(value = "X-Client-ID", defaultValue = "keepguard-default-client") String clientId) {
 
-        log.info("Realizando register login para usuário: {}, tenantIdHeader={}, userAgent={}", 
-            request.getUsername(), tenantIdHeader, userAgent);
+        log.info("Realizando register login para usuário: {}, tenantIdHeader={}, clientId={}", 
+            request.getUsername(), tenantIdHeader, clientId);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toRegisterLoginCommand(request, tenantId, userAgent);
+        var command = mapper.toRegisterLoginCommand(request, tenantId, clientId);
         var view = authService.registerLogin(command);
         var response = mapper.toLoginResponseDTO(view);
         
@@ -138,13 +138,13 @@ public class AuthController {
             @RequestBody @Valid AuthRefreshTokenRequestDTO request,
             @Parameter(description = "UUID da aplicação", required = true)
             @RequestHeader("X-Tenant-Id") String tenantIdHeader,
-            @RequestHeader("User-Agent") String userAgent) {
+            @RequestHeader(value = "X-Client-ID", defaultValue = "keepguard-default-client") String clientId) {
 
-        log.info("Renovando token JWT - tenantIdHeader={}, userAgent={}", tenantIdHeader, userAgent);
+        log.info("Renovando token JWT - tenantIdHeader={}, clientId={}", tenantIdHeader, clientId);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toRefreshTokenCommand(request, tenantId, userAgent);
+        var command = mapper.toRefreshTokenCommand(request, tenantId, clientId);
         var view = authService.refreshToken(command);
         var response = mapper.toRefreshTokenResponseDTO(view);
         

@@ -57,7 +57,7 @@ public class UserJpaEntity {
     @Column(name = "company_code", nullable = false, columnDefinition = "uuid")
     private UUID companyCode;
 
-    @Column(name = "tenant_id", unique = true, nullable = false, updatable = false, columnDefinition = "uuid")
+    @Column(name = "tenant_id", nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID tenantId;
 
     @PreUpdate

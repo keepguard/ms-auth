@@ -46,11 +46,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleInvalidCredentials(InvalidCredentialsException ex, WebRequest request) {
         String path = request.getDescription(false).replace("uri=", "");
-        String userAgent = request.getHeader("User-Agent");
+        String clientId = request.getHeader("X-Client-ID");
         String correlationId = request.getHeader("X-Correlation-ID");
         
-        log.error("Credenciais inválidas: message={}, path={}, correlationId={}, userAgent={}", 
-            ex.getMessage(), path, correlationId, userAgent);
+        log.error("Credenciais inválidas: message={}, path={}, correlationId={}, clientId={}", 
+            ex.getMessage(), path, correlationId, clientId);
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
         problemDetail.setType(URI.create("https://keepguard.com/problems/invalid-credentials"));
@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("path", path);
         problemDetail.setProperty("errorCode", "INVALID_CREDENTIALS");
         problemDetail.setProperty("correlationId", correlationId);
-        problemDetail.setProperty("userAgent", userAgent);
+        problemDetail.setProperty("userAgent", clientId);
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
     }
@@ -216,11 +216,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccountLockedException.class)
     public ResponseEntity<ProblemDetail> handleAccountLockedException(AccountLockedException ex, WebRequest request) {
         String path = request.getDescription(false).replace("uri=", "");
-        String userAgent = request.getHeader("User-Agent");
+        String clientId = request.getHeader("X-Client-ID");
         String correlationId = request.getHeader("X-Correlation-ID");
         
-        log.error("Conta bloqueada: message={}, path={}, correlationId={}, userAgent={}", 
-            ex.getMessage(), path, correlationId, userAgent);
+        log.error("Conta bloqueada: message={}, path={}, correlationId={}, clientId={}", 
+            ex.getMessage(), path, correlationId, clientId);
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.LOCKED, ex.getMessage());
         problemDetail.setType(URI.create("https://keepguard.com/problems/account-locked"));
@@ -229,7 +229,7 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("path", path);
         problemDetail.setProperty("errorCode", "ACCOUNT_LOCKED");
         problemDetail.setProperty("correlationId", correlationId);
-        problemDetail.setProperty("userAgent", userAgent);
+        problemDetail.setProperty("userAgent", clientId);
 
         return ResponseEntity.status(HttpStatus.LOCKED).body(problemDetail);
     }

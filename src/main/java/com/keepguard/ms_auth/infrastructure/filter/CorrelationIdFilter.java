@@ -50,7 +50,7 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
         
         // Captura informações adicionais da requisição
         String method = request.getMethod();
-        String userAgent = request.getHeader("User-Agent");
+        String clientId = request.getHeader("X-Client-ID");
         String remoteAddr = request.getRemoteAddr();
         String applicationName = request.getHeader("X-Tenant-Id");
         
@@ -61,8 +61,8 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
         response.setHeader("X-Correlation-ID", correlationId);
         
         // Log detalhado da requisição
-        log.info("Processing request: method={}, path={}, correlationId={}, application={}, userAgent={}, remoteAddr={}", 
-            method, requestPath, correlationId, applicationName, userAgent, remoteAddr);
+        log.info("Processing request: method={}, path={}, correlationId={}, application={}, clientId={}, remoteAddr={}", 
+            method, requestPath, correlationId, applicationName, clientId, remoteAddr);
         
         try {
             filterChain.doFilter(request, response);

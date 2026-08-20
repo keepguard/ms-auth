@@ -103,7 +103,7 @@ public class AuthCommandService {
         String displayHandle = getDisplayHandle(user.getCodeUser(), request.getTenantId().toString());
 
         // Gerar token
-        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getUserAgent(), displayHandle);
+        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), displayHandle);
 
         // Atualizar último login
         user.setLastLogin(LocalDateTime.now());
@@ -167,7 +167,7 @@ public class AuthCommandService {
         String displayHandle = getDisplayHandle(user.getCodeUser(), request.getTenantId().toString());
 
         // Gerar token
-        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getUserAgent(), displayHandle);
+        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), displayHandle);
 
         // Atualizar último login
         user.setLastLogin(LocalDateTime.now());
@@ -192,8 +192,8 @@ public class AuthCommandService {
     )
     @Transactional
     public String refreshToken(AuthRefreshTokenCommandDTO request) {
-        log.info("Processing refresh token request - application={}, userAgent={}", 
-            request.getTenantId(), request.getUserAgent());
+        log.info("Processing refresh token request - application={}, clientId={}", 
+            request.getTenantId(), request.getClientId());
 
         if (!jwtService.validateToken(request.getToken())) {
             throw new InvalidCredentialsException("Invalid token", "INVALID_TOKEN", 
@@ -223,7 +223,7 @@ public class AuthCommandService {
         // Buscar displayHandle do ms-user (com fallback gracioso)
         String displayHandle = getDisplayHandle(user.getCodeUser(), request.getTenantId().toString());
 
-        String newToken = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getUserAgent(), displayHandle);
+        String newToken = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), displayHandle);
 
         tokenCachePort.removeToken(codeUser.toString(), request.getToken());
         tokenCachePort.saveToken(user.getCodeUser().toString(), newToken, jwtService.getExpiration());

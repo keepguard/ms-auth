@@ -31,7 +31,7 @@ import java.util.UUID;
 @Slf4j
 public class AuthAdapterMapper {
 
-    public AuthLoginCommandDTO toLoginCommand(AuthLoginRequestDTO dto, UUID tenantId, String userAgent) {
+    public AuthLoginCommandDTO toLoginCommand(AuthLoginRequestDTO dto, UUID tenantId, String clientId) {
         if (dto == null) {
             return null;
         }
@@ -41,7 +41,7 @@ public class AuthAdapterMapper {
                     .username(dto.getUsername() != null ? dto.getUsername().trim().toLowerCase() : null)
                     .password(dto.getPassword())
                     .tenantId(tenantId)
-                    .userAgent(userAgent)
+                    .clientId(clientId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthLoginRequestDTO para AuthLoginCommandDTO: {}", e.getMessage(), e);
@@ -49,7 +49,7 @@ public class AuthAdapterMapper {
         }
     }
 
-    public AuthRegisterLoginCommandDTO toRegisterLoginCommand(AuthRegisterLoginRequestDTO dto, UUID tenantId, String userAgent) {
+    public AuthRegisterLoginCommandDTO toRegisterLoginCommand(AuthRegisterLoginRequestDTO dto, UUID tenantId, String clientId) {
         if (dto == null) {
             return null;
         }
@@ -59,7 +59,7 @@ public class AuthAdapterMapper {
                     .username(dto.getUsername() != null ? dto.getUsername().trim().toLowerCase() : null)
                     .passwordHash(dto.getPasswordHash())
                     .tenantId(tenantId)
-                    .userAgent(userAgent)
+                    .clientId(clientId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthRegisterLoginRequestDTO para AuthRegisterLoginCommandDTO: {}", e.getMessage(), e);
@@ -67,7 +67,7 @@ public class AuthAdapterMapper {
         }
     }
 
-    public AuthRefreshTokenCommandDTO toRefreshTokenCommand(AuthRefreshTokenRequestDTO dto, UUID tenantId, String userAgent) {
+    public AuthRefreshTokenCommandDTO toRefreshTokenCommand(AuthRefreshTokenRequestDTO dto, UUID tenantId, String clientId) {
         if (dto == null) {
             return null;
         }
@@ -76,7 +76,7 @@ public class AuthAdapterMapper {
             return AuthRefreshTokenCommandDTO.builder()
                     .token(dto.getToken())
                     .tenantId(tenantId)
-                    .userAgent(userAgent)
+                    .clientId(clientId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthRefreshTokenRequestDTO para AuthRefreshTokenCommandDTO: {}", e.getMessage(), e);

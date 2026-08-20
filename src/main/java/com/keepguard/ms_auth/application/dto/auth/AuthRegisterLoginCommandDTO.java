@@ -16,5 +16,5 @@ public class AuthRegisterLoginCommandDTO {
     private String username;
     private String passwordHash;
     private UUID tenantId;
-    private String userAgent;
+    private String clientId;
 }
