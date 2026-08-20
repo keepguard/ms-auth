@@ -20,7 +20,7 @@ public class UserBlockCommandDTO {
     @NotBlank(message = "Motivo do bloqueio é obrigatório")
     private String reason;
 
-    @NotBlank(message = "O header X-Application é obrigatório")
-    private UUID xApplicationUuid;
+    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
+    private UUID tenantId;
 }
 

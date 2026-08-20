@@ -17,7 +17,7 @@ public class UserGetByCodeQueryDTO {
     @NotBlank(message = "Código do usuário é obrigatório")
     private String codeUser;
 
-    @NotBlank(message = "O header X-Application é obrigatório")
-    private UUID xApplicationUuid;
+    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
+    private UUID tenantId;
 }
 

@@ -28,14 +28,14 @@ public class User {
     private LocalDateTime lastLogin;
     private UUID companyId;
     private UUID companyCode;
-    private UUID xApplication;
+    private UUID tenantId;
 
     public void updateTimestamp() {
         this.updatedAt = LocalDateTime.now();
     }
 
     public static User createNew(String username, String email, String passwordHash,
-                                  UUID idUserExternal, UUID codeUser, UUID companyId, UUID companyCode, UUID xApplication) {
+                                  UUID idUserExternal, UUID codeUser, UUID companyId, UUID companyCode, UUID tenantId) {
 
         String normalizedUsername = username != null ? username.trim().toLowerCase() : null;
         if (normalizedUsername == null) {
@@ -55,7 +55,7 @@ public class User {
                 .updatedAt(now)
                 .companyId(companyId)
                 .companyCode(companyCode)
-                .xApplication(xApplication)
+                .tenantId(tenantId)
                 .build();
     }
 

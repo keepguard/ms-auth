@@ -31,7 +31,7 @@ class UserAdapterMapperNormalizationTest {
                 .codeUser("USR123")
                 .companyId(UUID.randomUUID().toString())
                 .companyCode(UUID.randomUUID().toString())
-                .xApplication(UUID.randomUUID().toString())
+                .tenantId(UUID.randomUUID().toString())
                 .build();
 
         UserCreateCommandDTO cmd = mapper.toCreateCommand(dto, UUID.randomUUID());

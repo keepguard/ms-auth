@@ -31,17 +31,17 @@ public interface UserRepositoryPort {
 
     Optional<User> findByIdUserExternal(UUID idUserExternal);
 
-    Optional<User> findByIdUserExternalAndXApplication(UUID idUserExternal, UUID xApplication);
+    Optional<User> findByIdUserExternalAndTenantId(UUID idUserExternal, UUID tenantId);
 
     Optional<User> findByUsernameAndStatus(String username, UserStatus status);
 
     Optional<User> findByEmailAndStatus(String email, UserStatus status);
 
-    Optional<User> findByUsernameAndXApplication(String username, UUID xApplication);
+    Optional<User> findByUsernameAndTenantId(String username, UUID tenantId);
 
-    Optional<User> findByEmailAndXApplication(String email, UUID xApplication);
+    Optional<User> findByEmailAndTenantId(String email, UUID tenantId);
 
-    Optional<User> findByCodeUserAndXApplication(UUID codeUser, UUID xApplication);
+    Optional<User> findByCodeUserAndTenantId(UUID codeUser, UUID tenantId);
 
     List<User> findAllByStatus(UserStatus status);
 

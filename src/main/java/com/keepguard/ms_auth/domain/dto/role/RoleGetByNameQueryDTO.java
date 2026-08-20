@@ -16,6 +16,6 @@ public class RoleGetByNameQueryDTO {
 
     @NotBlank(message = "Nome é obrigatório")
     private String name;
-    private UUID xApplicationUuid;
+    private UUID tenantId;
 }
 

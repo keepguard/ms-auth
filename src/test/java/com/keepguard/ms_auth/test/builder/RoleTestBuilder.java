@@ -19,7 +19,7 @@ public class RoleTestBuilder {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean active;
-    private UUID xApplication;
+    private UUID tenantId;
     
     private RoleTestBuilder() {
         // Valores padrão
@@ -29,7 +29,7 @@ public class RoleTestBuilder {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         this.active = true;
-        this.xApplication = UUID.randomUUID();
+        this.tenantId = UUID.randomUUID();
     }
     
     public static RoleTestBuilder builder() {
@@ -70,8 +70,8 @@ public class RoleTestBuilder {
         return this;
     }
     
-    public RoleTestBuilder withXApplication(UUID xApplication) {
-        this.xApplication = xApplication;
+    public RoleTestBuilder withTenantId(UUID tenantId) {
+        this.tenantId = tenantId;
         return this;
     }
     
@@ -91,7 +91,7 @@ public class RoleTestBuilder {
         return RoleCreateCommandDTO.builder()
             .name(name)
             .description(description)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -99,7 +99,7 @@ public class RoleTestBuilder {
         return RoleCreateCommandDTO.builder()
             .name(name)
             .description(description)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -108,7 +108,7 @@ public class RoleTestBuilder {
             .id(id)
             .name(name)
             .description(description)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -117,21 +117,21 @@ public class RoleTestBuilder {
             .id(id)
             .name(name)
             .description(description)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
     public RoleDeleteCommandDTO buildDeleteCommand() {
         return RoleDeleteCommandDTO.builder()
             .id(id)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
     public RoleDeleteCommandDTO buildDeleteCommand(UUID id) {
         return RoleDeleteCommandDTO.builder()
             .id(id)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     

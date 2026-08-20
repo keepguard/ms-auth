@@ -69,5 +69,5 @@ public class UserDetailsResponseDTO {
 
     @Schema(description = "Identificador único da aplicação",
             example = "550e8400-e29b-41d4-a716-446655440002")
-    private UUID xApplication;
+    private UUID tenantId;
 }

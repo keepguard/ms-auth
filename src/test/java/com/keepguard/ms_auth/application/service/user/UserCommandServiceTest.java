@@ -54,19 +54,19 @@ class UserCommandServiceTest {
     private Role role;
     private UUID userId;
     private UUID idUserExternal;
-    private UUID xApplicationUuid;
+    private UUID tenantId;
     private UserTestBuilder userTestBuilder;
 
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
         idUserExternal = UUID.randomUUID();
-        xApplicationUuid = UUID.randomUUID();
+        tenantId = UUID.randomUUID();
         
         userTestBuilder = UserTestBuilder.builder()
             .withId(userId)
             .withIdUserExternal(idUserExternal)
-            .withXApplication(xApplicationUuid);
+            .withTenantId(tenantId);
             
         user = userTestBuilder.buildDomain();
         userCreateCommand = userTestBuilder.buildCreateCommand();
@@ -80,9 +80,9 @@ class UserCommandServiceTest {
     @DisplayName("Deve criar usuário com sucesso")
     void shouldCreateUserSuccessfully() {
         // Given
-        when(userRepository.findByUsernameAndXApplication("testuser", xApplicationUuid)).thenReturn(Optional.empty());
-        when(userRepository.findByEmailAndXApplication("test@example.com", xApplicationUuid)).thenReturn(Optional.empty());
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.empty());
+        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(roleRepository.findByName("ADMIN")).thenReturn(Optional.of(role));
         when(userRoleRepository.save(any(UserRole.class))).thenReturn(new UserRole());
@@ -94,9 +94,9 @@ class UserCommandServiceTest {
 
         // Then
         assertNotNull(result);
-        verify(userRepository).findByUsernameAndXApplication("testuser", xApplicationUuid);
-        verify(userRepository).findByEmailAndXApplication("test@example.com", xApplicationUuid);
-        verify(userRepository).findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid);
+        verify(userRepository).findByUsernameAndTenantId("testuser", tenantId);
+        verify(userRepository).findByEmailAndTenantId("test@example.com", tenantId);
+        verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
         verify(userRepository).save(any(User.class));
         verify(roleRepository).findByName("ADMIN");
         verify(userRoleRepository).save(any(UserRole.class));
@@ -108,7 +108,7 @@ class UserCommandServiceTest {
     @DisplayName("Deve lançar exceção quando username já existe")
     void shouldThrowExceptionWhenUsernameAlreadyExists() {
         // Given
-        when(userRepository.findByUsernameAndXApplication("testuser", xApplicationUuid)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.of(user));
 
         // When & Then
         AlreadyExistsException exception = assertThrows(AlreadyExistsException.class, 
@@ -122,8 +122,8 @@ class UserCommandServiceTest {
     @DisplayName("Deve lançar exceção quando email já existe")
     void shouldThrowExceptionWhenEmailAlreadyExists() {
         // Given
-        when(userRepository.findByUsernameAndXApplication("testuser", xApplicationUuid)).thenReturn(Optional.empty());
-        when(userRepository.findByEmailAndXApplication("test@example.com", xApplicationUuid)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.of(user));
 
         // When & Then
         AlreadyExistsException exception = assertThrows(AlreadyExistsException.class, 
@@ -137,9 +137,9 @@ class UserCommandServiceTest {
     @DisplayName("Deve lançar exceção quando ID externo já existe")
     void shouldThrowExceptionWhenIdExternalAlreadyExists() {
         // Given
-        when(userRepository.findByUsernameAndXApplication("testuser", xApplicationUuid)).thenReturn(Optional.empty());
-        when(userRepository.findByEmailAndXApplication("test@example.com", xApplicationUuid)).thenReturn(Optional.empty());
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
 
         // When & Then
         AlreadyExistsException exception = assertThrows(AlreadyExistsException.class, 
@@ -153,7 +153,7 @@ class UserCommandServiceTest {
     @DisplayName("Deve deletar usuário com sucesso")
     void shouldDeleteUserSuccessfully() {
         // Given
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
@@ -163,7 +163,7 @@ class UserCommandServiceTest {
         userCommandService.delete(deleteCommand);
 
         // Then
-        verify(userRepository).findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid);
+        verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
         verify(userRepository).save(any(User.class));
         verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
         verify(userCachePort).removeUserFromCache(any(User.class));
@@ -174,7 +174,7 @@ class UserCommandServiceTest {
     @DisplayName("Deve lançar exceção quando usuário não encontrado para deletar")
     void shouldThrowExceptionWhenUserNotFoundForDelete() {
         // Given
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.empty());
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
 
         // When & Then
         NotFoundException exception = assertThrows(NotFoundException.class, 
@@ -190,7 +190,7 @@ class UserCommandServiceTest {
     @DisplayName("Deve bloquear usuário com sucesso")
     void shouldBlockUserSuccessfully() {
         // Given
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
@@ -200,7 +200,7 @@ class UserCommandServiceTest {
         userCommandService.block(blockCommand);
 
         // Then
-        verify(userRepository).findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid);
+        verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
         verify(userRepository).save(any(User.class));
         verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
         verify(userCachePort).removeUserFromCache(any(User.class));
@@ -211,7 +211,7 @@ class UserCommandServiceTest {
     @DisplayName("Deve desbloquear usuário com sucesso")
     void shouldUnlockUserSuccessfully() {
         // Given
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
@@ -221,7 +221,7 @@ class UserCommandServiceTest {
         userCommandService.unlock(unlockCommand);
 
         // Then
-        verify(userRepository).findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid);
+        verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
         verify(userRepository).save(any(User.class));
         verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
         verify(userCachePort).removeUserFromCache(any(User.class));
@@ -232,7 +232,7 @@ class UserCommandServiceTest {
     @DisplayName("Deve validar email do usuário com sucesso")
     void shouldValidateEmailUserSuccessfully() {
         // Given
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
@@ -242,7 +242,7 @@ class UserCommandServiceTest {
         userCommandService.validateEmailUser(validateCommand);
 
         // Then
-        verify(userRepository).findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid);
+        verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
         verify(userRepository).save(any(User.class));
         verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
         verify(userCachePort).removeUserFromCache(any(User.class));
@@ -253,7 +253,7 @@ class UserCommandServiceTest {
     @DisplayName("Deve adicionar role ao usuário com sucesso")
     void shouldAddRoleToUserSuccessfully() {
         // Given
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
         when(roleRepository.findByName("ADMIN")).thenReturn(Optional.of(role));
         when(userRoleRepository.findByUserIdAndRoleId(userId, role.getId())).thenReturn(Optional.empty());
         when(userRoleRepository.save(any(UserRole.class))).thenReturn(new UserRole());
@@ -264,7 +264,7 @@ class UserCommandServiceTest {
         userCommandService.addRoleToUser(addRoleCommand);
 
         // Then
-        verify(userRepository).findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid);
+        verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
         verify(roleRepository).findByName("ADMIN");
         verify(userRoleRepository).findByUserIdAndRoleId(userId, role.getId());
         verify(userRoleRepository).save(any(UserRole.class));
@@ -276,7 +276,7 @@ class UserCommandServiceTest {
     @DisplayName("Deve lançar exceção quando role já está atribuída ao usuário")
     void shouldThrowExceptionWhenRoleAlreadyAssigned() {
         // Given
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
         when(roleRepository.findByName("ADMIN")).thenReturn(Optional.of(role));
         when(userRoleRepository.findByUserIdAndRoleId(userId, role.getId())).thenReturn(Optional.of(new UserRole()));
 
@@ -296,7 +296,7 @@ class UserCommandServiceTest {
     void shouldRemoveRoleFromUserSuccessfully() {
         // Given
         UserRole userRole = new UserRole();
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
         when(roleRepository.findByName("ADMIN")).thenReturn(Optional.of(role));
         when(userRoleRepository.findByUserIdAndRoleId(userId, role.getId())).thenReturn(Optional.of(userRole));
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
@@ -306,7 +306,7 @@ class UserCommandServiceTest {
         userCommandService.removeRoleFromUser(removeRoleCommand);
 
         // Then
-        verify(userRepository).findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid);
+        verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
         verify(roleRepository).findByName("ADMIN");
         verify(userRoleRepository).findByUserIdAndRoleId(userId, role.getId());
         verify(userRoleRepository).delete(userRole);
@@ -320,8 +320,8 @@ class UserCommandServiceTest {
     void shouldUpdateUserEmailSuccessfully() {
         // Given
         String newEmail = "newemail@example.com";
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.of(user));
-        when(userRepository.findByEmailAndXApplication(newEmail, xApplicationUuid)).thenReturn(Optional.empty());
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailAndTenantId(newEmail, tenantId)).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
@@ -331,8 +331,8 @@ class UserCommandServiceTest {
         userCommandService.updateUserEmail(updateEmailCommand);
 
         // Then
-        verify(userRepository).findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid);
-        verify(userRepository).findByEmailAndXApplication(newEmail, xApplicationUuid);
+        verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
+        verify(userRepository).findByEmailAndTenantId(newEmail, tenantId);
         verify(userRepository).save(any(User.class));
         verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
         verify(userCachePort).removeUserFromCache(any(User.class));
@@ -344,8 +344,8 @@ class UserCommandServiceTest {
     void shouldThrowExceptionWhenNewEmailAlreadyExists() {
         // Given
         String newEmail = "newemail@example.com";
-        when(userRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplicationUuid)).thenReturn(Optional.of(user));
-        when(userRepository.findByEmailAndXApplication(newEmail, xApplicationUuid)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailAndTenantId(newEmail, tenantId)).thenReturn(Optional.of(user));
 
         // When & Then
         AlreadyExistsException exception = assertThrows(AlreadyExistsException.class, 
@@ -463,7 +463,7 @@ class UserCommandServiceTest {
             .lastLogin(now)
             .companyId(UUID.randomUUID())
             .companyCode(UUID.randomUUID())
-            .xApplication(UUID.randomUUID())
+            .tenantId(UUID.randomUUID())
             .build();
         
         // Then

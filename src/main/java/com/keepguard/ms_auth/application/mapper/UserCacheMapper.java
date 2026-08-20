@@ -29,7 +29,7 @@ public class UserCacheMapper {
             user.getLastLogin(),
             user.getCompanyId(),
             user.getCompanyCode(),
-            user.getXApplication()
+            user.getTenantId()
         );
     }
 
@@ -52,7 +52,7 @@ public class UserCacheMapper {
             .lastLogin(dto.lastLogin())
             .companyId(dto.companyId())
             .companyCode(dto.companyCode())
-            .xApplication(dto.xApplication())
+            .tenantId(dto.tenantId())
             .build();
     }
 

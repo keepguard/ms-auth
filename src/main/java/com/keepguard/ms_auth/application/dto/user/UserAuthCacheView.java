@@ -48,5 +48,5 @@ public record UserAuthCacheView(
     UUID companyCode,
 
     @Schema(description = "ID da aplicação")
-    UUID xApplication
+    UUID tenantId
 ) {}

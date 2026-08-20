@@ -66,33 +66,33 @@ public class AuthCommandService {
     public String login(AuthLoginCommandDTO request) {
         log.info("Processing login for username: {}", request.getUsername());
 
-        User user = userRepository.findByUsernameAndXApplication(request.getUsername(), request.getXApplicationUuid())
+        User user = userRepository.findByUsernameAndTenantId(request.getUsername(), request.getTenantId())
                 .orElseThrow(() -> {
-                    log.warn("Login failed - User not found: username={}, application={}", request.getUsername(), request.getXApplicationUuid());
+                    log.warn("Login failed - User not found: username={}, application={}", request.getUsername(), request.getTenantId());
                     return new InvalidCredentialsException("User not found", "USER_NOT_FOUND", 
-                        Map.of("username",  request.getUsername() != null ?  request.getUsername() : "null", "application", request.getXApplicationUuid().toString()));
+                        Map.of("username",  request.getUsername() != null ?  request.getUsername() : "null", "application", request.getTenantId().toString()));
                 });
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             log.warn("Login failed - Invalid password: username={}, userId={}, application={}", 
-                request.getUsername(), user.getCodeUser(), request.getXApplicationUuid());
+                request.getUsername(), user.getCodeUser(), request.getTenantId());
             throw new InvalidCredentialsException("Invalid password", "INVALID_PASSWORD", 
-                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getXApplicationUuid().toString()));
+                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getTenantId().toString()));
         }
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             log.warn("Login failed - User not active: username={}, userId={}, status={}, application={}",
-                    request.getUsername(), user.getCodeUser(), user.getStatus(), request.getXApplicationUuid());
+                    request.getUsername(), user.getCodeUser(), user.getStatus(), request.getTenantId());
             throw new InvalidCredentialsException("User is not active", "USER_NOT_ACTIVE", 
                 Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(),
-                       "status", user.getStatus().toString(), "application", request.getXApplicationUuid().toString()));
+                       "status", user.getStatus().toString(), "application", request.getTenantId().toString()));
         }
 
         if (!Boolean.TRUE.equals(user.getEmailVerified())) {
             log.warn("Login failed - Email not verified: username={}, userId={}, application={}",
-                    request.getUsername(), user.getCodeUser(), request.getXApplicationUuid());
+                    request.getUsername(), user.getCodeUser(), request.getTenantId());
             throw new EmailNotVerifiedException("Email not verified", "EMAIL_NOT_VERIFIED", 
-                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getXApplicationUuid().toString()));
+                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getTenantId().toString()));
         }
 
         // Buscar roles e authorities do usuário
@@ -100,10 +100,10 @@ public class AuthCommandService {
         List<String> authorities = getUserAuthorities(user.getId());
 
         // Buscar displayHandle do ms-user (com fallback gracioso)
-        String displayHandle = getDisplayHandle(user.getCodeUser(), request.getXApplicationUuid().toString());
+        String displayHandle = getDisplayHandle(user.getCodeUser(), request.getTenantId().toString());
 
         // Gerar token
-        String token = jwtService.generateToken(user, roleNames, authorities, request.getXApplicationUuid().toString(), request.getUserAgent(), displayHandle);
+        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getUserAgent(), displayHandle);
 
         // Atualizar último login
         user.setLastLogin(LocalDateTime.now());
@@ -113,7 +113,7 @@ public class AuthCommandService {
         tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getExpiration());
 
         metricsPort.incrementCounter("auth_login_success_total",
-            Map.of("application", request.getXApplicationUuid().toString()));
+            Map.of("application", request.getTenantId().toString()));
 
         return token;
     }
@@ -129,34 +129,34 @@ public class AuthCommandService {
     public String registerLogin(AuthRegisterLoginCommandDTO request) {
         log.info("Processing register login for username: {}", request.getUsername());
 
-        User user = userRepository.findByUsernameAndXApplication(request.getUsername(), request.getXApplicationUuid())
+        User user = userRepository.findByUsernameAndTenantId(request.getUsername(), request.getTenantId())
                 .orElseThrow(() -> {
-                    log.warn("Register login failed - User not found: username={}, application={}", request.getUsername(), request.getXApplicationUuid());
+                    log.warn("Register login failed - User not found: username={}, application={}", request.getUsername(), request.getTenantId());
                     return new InvalidCredentialsException("User not found", "USER_NOT_FOUND", 
-                        Map.of("username", request.getUsername() != null ? request.getUsername() : "null", "application", request.getXApplicationUuid().toString()));
+                        Map.of("username", request.getUsername() != null ? request.getUsername() : "null", "application", request.getTenantId().toString()));
                 });
 
         // Compara hash com hash diretamente (sem usar passwordEncoder.matches)
         if (!request.getPasswordHash().equals(user.getPasswordHash())) {
             log.warn("Register login failed - Invalid password hash: username={}, userId={}, application={}", 
-                request.getUsername(), user.getCodeUser(), request.getXApplicationUuid());
+                request.getUsername(), user.getCodeUser(), request.getTenantId());
             throw new InvalidCredentialsException("Invalid password", "INVALID_PASSWORD", 
-                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getXApplicationUuid().toString()));
+                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getTenantId().toString()));
         }
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             log.warn("Register login failed - User not active: username={}, userId={}, status={}, application={}",
-                    request.getUsername(), user.getCodeUser(), user.getStatus(), request.getXApplicationUuid());
+                    request.getUsername(), user.getCodeUser(), user.getStatus(), request.getTenantId());
             throw new InvalidCredentialsException("User is not active", "USER_NOT_ACTIVE", 
                 Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(),
-                       "status", user.getStatus().toString(), "application", request.getXApplicationUuid().toString()));
+                       "status", user.getStatus().toString(), "application", request.getTenantId().toString()));
         }
 
         if (!Boolean.TRUE.equals(user.getEmailVerified())) {
             log.warn("Register login failed - Email not verified: username={}, userId={}, application={}",
-                    request.getUsername(), user.getCodeUser(), request.getXApplicationUuid());
+                    request.getUsername(), user.getCodeUser(), request.getTenantId());
             throw new EmailNotVerifiedException("Email not verified", "EMAIL_NOT_VERIFIED", 
-                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getXApplicationUuid().toString()));
+                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getTenantId().toString()));
         }
 
         // Buscar roles e authorities do usuário
@@ -164,10 +164,10 @@ public class AuthCommandService {
         List<String> authorities = getUserAuthorities(user.getId());
 
         // Buscar displayHandle do ms-user (com fallback gracioso)
-        String displayHandle = getDisplayHandle(user.getCodeUser(), request.getXApplicationUuid().toString());
+        String displayHandle = getDisplayHandle(user.getCodeUser(), request.getTenantId().toString());
 
         // Gerar token
-        String token = jwtService.generateToken(user, roleNames, authorities, request.getXApplicationUuid().toString(), request.getUserAgent(), displayHandle);
+        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getUserAgent(), displayHandle);
 
         // Atualizar último login
         user.setLastLogin(LocalDateTime.now());
@@ -177,9 +177,9 @@ public class AuthCommandService {
         tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getExpiration());
 
         metricsPort.incrementCounter("auth_register_login_success_total",
-            Map.of("application", request.getXApplicationUuid().toString()));
+            Map.of("application", request.getTenantId().toString()));
 
-        log.info("Register login successful for user: {} with application: {}", request.getUsername(), request.getXApplicationUuid());
+        log.info("Register login successful for user: {} with application: {}", request.getUsername(), request.getTenantId());
         return token;
     }
 
@@ -193,27 +193,27 @@ public class AuthCommandService {
     @Transactional
     public String refreshToken(AuthRefreshTokenCommandDTO request) {
         log.info("Processing refresh token request - application={}, userAgent={}", 
-            request.getXApplicationUuid(), request.getUserAgent());
+            request.getTenantId(), request.getUserAgent());
 
         if (!jwtService.validateToken(request.getToken())) {
             throw new InvalidCredentialsException("Invalid token", "INVALID_TOKEN", 
-                Map.of("application", request.getXApplicationUuid().toString()));
+                Map.of("application", request.getTenantId().toString()));
         }
 
         UUID codeUser = jwtService.extractUserId(request.getToken());
         
-        User user = userRepository.findByCodeUserAndXApplication(codeUser, request.getXApplicationUuid())
+        User user = userRepository.findByCodeUserAndTenantId(codeUser, request.getTenantId())
                 .orElseThrow(() -> {
-                    log.warn("Refresh token failed - User not found: codeUser={}, application={}", codeUser, request.getXApplicationUuid());
+                    log.warn("Refresh token failed - User not found: codeUser={}, application={}", codeUser, request.getTenantId());
                     return new NotFoundException("User not found", "USER_NOT_FOUND", 
-                        Map.of("codeUser", codeUser.toString(), "application", request.getXApplicationUuid().toString()));
+                        Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
                 });
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new InvalidCredentialsException("User is not active", "USER_NOT_ACTIVE", 
                 Map.of("codeUser", codeUser.toString(), 
                 "status", user.getStatus().toString(), 
-                "application", request.getXApplicationUuid().toString()));
+                "application", request.getTenantId().toString()));
         }
 
         // Buscar roles e authorities do usuário
@@ -221,9 +221,9 @@ public class AuthCommandService {
         List<String> authorities = getUserAuthorities(user.getId());
 
         // Buscar displayHandle do ms-user (com fallback gracioso)
-        String displayHandle = getDisplayHandle(user.getCodeUser(), request.getXApplicationUuid().toString());
+        String displayHandle = getDisplayHandle(user.getCodeUser(), request.getTenantId().toString());
 
-        String newToken = jwtService.generateToken(user, roleNames, authorities, request.getXApplicationUuid().toString(), request.getUserAgent(), displayHandle);
+        String newToken = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getUserAgent(), displayHandle);
 
         tokenCachePort.removeToken(codeUser.toString(), request.getToken());
         tokenCachePort.saveToken(user.getCodeUser().toString(), newToken, jwtService.getExpiration());
@@ -240,13 +240,13 @@ public class AuthCommandService {
     )
     @Transactional
     public void logout(AuthLogoutCommandDTO request) {
-        log.info("Processing logout request - application={}", request.getXApplicationUuid());
+        log.info("Processing logout request - application={}", request.getTenantId());
 
         UUID codeUser = jwtService.extractUserId(request.getToken());
         tokenCachePort.removeAllTokens(codeUser.toString());
 
         metricsPort.incrementCounter("auth_logouts_total",
-            Map.of("codeUser", codeUser.toString(), "application", request.getXApplicationUuid().toString()));
+            Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
     }
 
     @LogOperation(
@@ -258,29 +258,29 @@ public class AuthCommandService {
     )
     @Transactional(readOnly = true)
     public void validateToken(AuthValidateTokenQueryDTO request) {
-        log.info("Processing token validation request - application={}", request.getXApplicationUuid());
+        log.info("Processing token validation request - application={}", request.getTenantId());
 
         if (!jwtService.validateToken(request.getToken())) {
             throw new InvalidCredentialsException("Token inválido ou expirado", "INVALID_TOKEN", 
-                Map.of("application", request.getXApplicationUuid().toString()));
+                Map.of("application", request.getTenantId().toString()));
         }
 
         UUID codeUser = jwtService.extractUserId(request.getToken());
 
-        userRepository.findByCodeUserAndXApplication(codeUser, request.getXApplicationUuid())
+        userRepository.findByCodeUserAndTenantId(codeUser, request.getTenantId())
                 .orElseThrow(() -> {
-                    log.warn("Refresh token failed - User not found: codeUser={}, application={}", codeUser, request.getXApplicationUuid());
+                    log.warn("Refresh token failed - User not found: codeUser={}, application={}", codeUser, request.getTenantId());
                     return new NotFoundException("User not found", "USER_NOT_FOUND", 
-                        Map.of("codeUser", codeUser.toString(), "application", request.getXApplicationUuid().toString()));
+                        Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
                 });
 
         if (!tokenCachePort.isTokenValid(codeUser.toString(), request.getToken())) {
             throw new InvalidCredentialsException("Token inválido ou expirado", "INVALID_TOKEN", 
-                Map.of("codeUser", codeUser.toString(), "application", request.getXApplicationUuid().toString()));
+                Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
         }
 
         metricsPort.incrementCounter("auth_token_validations_total",
-            Map.of("codeUser", codeUser.toString(), "application", request.getXApplicationUuid().toString()));
+            Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
     }
 
     @LogOperation(
@@ -293,17 +293,17 @@ public class AuthCommandService {
     @Transactional
     public void changePassword(AuthChangePasswordCommandDTO request) {
         log.info("Processing password change request - codeUser={}, application={}", 
-            request.getCodeUser(), request.getXApplicationUuid());
+            request.getCodeUser(), request.getTenantId());
 
         if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
             throw new InvalidPasswordException("New password and confirmation do not match");
         }
         
-        User user = userRepository.findByCodeUserAndXApplication(UUID.fromString(request.getCodeUser()), request.getXApplicationUuid())
+        User user = userRepository.findByCodeUserAndTenantId(UUID.fromString(request.getCodeUser()), request.getTenantId())
             .orElseThrow(() -> {
-                log.warn("Change password failed - User not found: codeUser={}, application={}", request.getCodeUser(), request.getXApplicationUuid());
+                log.warn("Change password failed - User not found: codeUser={}, application={}", request.getCodeUser(), request.getTenantId());
             return new NotFoundException("User not found", "USER_NOT_FOUND", 
-            Map.of("codeUser", request.getCodeUser(), "application", request.getXApplicationUuid().toString()));
+            Map.of("codeUser", request.getCodeUser(), "application", request.getTenantId().toString()));
         });
 
         if (user.getStatus() != UserStatus.ACTIVE) {
@@ -346,18 +346,18 @@ public class AuthCommandService {
     @Transactional(readOnly = true)
     public AuthGenerateResetTokenViewDTO generateResetToken(AuthGenerateResetTokenCommandDTO request) {
         log.info("Gerando token de reset | codeUser={} | application={}", 
-            request.getCodeUser(), request.getXApplicationUuid());
+            request.getCodeUser(), request.getTenantId());
 
         // Valida se o usuário existe e está ativo
-        User user = userRepository.findByCodeUserAndXApplication(
+        User user = userRepository.findByCodeUserAndTenantId(
             UUID.fromString(request.getCodeUser()), 
-            request.getXApplicationUuid())
+            request.getTenantId())
             .orElseThrow(() -> {
                 log.warn("Geração de token falhou - Usuário não encontrado: codeUser={}, application={}", 
-                    request.getCodeUser(), request.getXApplicationUuid());
+                    request.getCodeUser(), request.getTenantId());
                 return new NotFoundException("Usuário não encontrado", "USER_NOT_FOUND", 
                     Map.of("codeUser", request.getCodeUser(), 
-                           "application", request.getXApplicationUuid().toString()));
+                           "application", request.getTenantId().toString()));
             });
 
         if (user.getStatus() != UserStatus.ACTIVE) {
@@ -403,18 +403,18 @@ public class AuthCommandService {
     @Transactional
     public void resetPassword(AuthResetPasswordCommandDTO request) {
         log.info("Processing password reset request - codeUser={}, application={}, messageType={}, templateType={}, resetToken={}", 
-            request.getCodeUser(), request.getXApplicationUuid(), 
+            request.getCodeUser(), request.getTenantId(), 
             request.getMessageType(), request.getTemplateType(), request.getResetToken());
 
         if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
             throw new InvalidPasswordException("New password and confirmation do not match");
         }
         
-        User user = userRepository.findByCodeUserAndXApplication(UUID.fromString(request.getCodeUser()), request.getXApplicationUuid())
+        User user = userRepository.findByCodeUserAndTenantId(UUID.fromString(request.getCodeUser()), request.getTenantId())
             .orElseThrow(() -> {
-                log.warn("Change password failed - User not found: codeUser={}, application={}", request.getCodeUser(), request.getXApplicationUuid());
+                log.warn("Change password failed - User not found: codeUser={}, application={}", request.getCodeUser(), request.getTenantId());
             return new NotFoundException("User not found", "USER_NOT_FOUND", 
-            Map.of("codeUser", request.getCodeUser(), "application", request.getXApplicationUuid().toString()));
+            Map.of("codeUser", request.getCodeUser(), "application", request.getTenantId().toString()));
         });
 
         if (user.getStatus() != UserStatus.ACTIVE) {
@@ -509,12 +509,12 @@ public class AuthCommandService {
      * Se não conseguir buscar ou se displayHandle não estiver disponível, retorna null
      * 
      * @param codeUser Código único do usuário
-     * @param xApplication UUID da aplicação
+     * @param tenantId UUID da aplicação
      * @return displayHandle ou null se não disponível
      */
-    private String getDisplayHandle(UUID codeUser, String xApplication) {
+    private String getDisplayHandle(UUID codeUser, String tenantId) {
         try {
-            Map<String, Object> userData = userClient.getUserByCode(codeUser, xApplication);
+            Map<String, Object> userData = userClient.getUserByCode(codeUser, tenantId);
             if (userData != null) {
                 // display_handle está na raiz do user (ms-user)
                 String displayHandle = (String) userData.get("display_handle");

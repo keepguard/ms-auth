@@ -30,7 +30,7 @@ public class UserTestBuilder {
     private LocalDateTime lastLogin;
     private UUID companyId;
     private UUID companyCode;
-    private UUID xApplication;
+    private UUID tenantId;
     
     private UserTestBuilder() {
         // Valores padrão
@@ -46,7 +46,7 @@ public class UserTestBuilder {
         this.updatedAt = LocalDateTime.now();
         this.companyId = UUID.randomUUID();
         this.companyCode = UUID.randomUUID();
-        this.xApplication = UUID.randomUUID();
+        this.tenantId = UUID.randomUUID();
     }
     
     public static UserTestBuilder builder() {
@@ -122,8 +122,8 @@ public class UserTestBuilder {
         return this;
     }
     
-    public UserTestBuilder withXApplication(UUID xApplication) {
-        this.xApplication = xApplication;
+    public UserTestBuilder withTenantId(UUID tenantId) {
+        this.tenantId = tenantId;
         return this;
     }
     
@@ -163,7 +163,7 @@ public class UserTestBuilder {
             .lastLogin(lastLogin)
             .companyId(companyId)
             .companyCode(companyCode)
-            .xApplication(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -183,7 +183,7 @@ public class UserTestBuilder {
             null, // roles - será preenchido pelo serviço
             companyId,
             companyCode,
-            xApplication
+            tenantId
         );
     }
 
@@ -205,7 +205,7 @@ public class UserTestBuilder {
             null,
             companyId,
             companyCode,
-            xApplication
+            tenantId
         );
     }
 
@@ -225,7 +225,7 @@ public class UserTestBuilder {
             null,
             companyId,
             companyCode,
-            xApplication
+            tenantId
         );
     }
 
@@ -245,7 +245,7 @@ public class UserTestBuilder {
             null,
             companyId,
             companyCode,
-            xApplication
+            tenantId
         );
     }
 
@@ -265,7 +265,7 @@ public class UserTestBuilder {
             null,
             companyId,
             companyCode,
-            xApplication
+            tenantId
         );
     }
 
@@ -285,7 +285,7 @@ public class UserTestBuilder {
             null,
             companyId,
             companyCode,
-            xApplication
+            tenantId
         );
     }
     
@@ -300,7 +300,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .companyId(companyId)
             .companyCode(companyCode)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .roles(Arrays.asList("ADMIN"))
             .build();
     }
@@ -314,7 +314,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .companyId(companyId)
             .companyCode(companyCode)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .roles(Arrays.asList("ADMIN"))
             .build();
     }
@@ -328,7 +328,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .companyId(null)
             .companyCode(companyCode)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .roles(Arrays.asList("ADMIN"))
             .build();
     }
@@ -342,12 +342,12 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .companyId(companyId)
             .companyCode(null)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .roles(Arrays.asList("ADMIN"))
             .build();
     }
     
-    public UserCreateCommandDTO buildCreateCommandWithNullXApplication() {
+    public UserCreateCommandDTO buildCreateCommandWithNullTenantId() {
         return UserCreateCommandDTO.builder()
             .username(username)
             .email(email)
@@ -356,7 +356,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .companyId(companyId)
             .companyCode(companyCode)
-            .xApplicationUuid(null)
+            .tenantId(null)
             .roles(Arrays.asList("ADMIN"))
             .build();
     }
@@ -365,7 +365,7 @@ public class UserTestBuilder {
         return UserDeleteCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -373,7 +373,7 @@ public class UserTestBuilder {
         return UserDeleteCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -381,7 +381,7 @@ public class UserTestBuilder {
         return UserBlockCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -389,7 +389,7 @@ public class UserTestBuilder {
         return UserBlockCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -397,7 +397,7 @@ public class UserTestBuilder {
         return UserUnlockCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -405,21 +405,21 @@ public class UserTestBuilder {
         return UserUnlockCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
     public UserValidateEmailCommandDTO buildValidateEmailCommand() {
         return UserValidateEmailCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
     public UserValidateEmailCommandDTO buildValidateEmailCommand(UUID idUserExternal) {
         return UserValidateEmailCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -427,7 +427,7 @@ public class UserTestBuilder {
         return UserAddRoleCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .role("ADMIN")
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -435,7 +435,7 @@ public class UserTestBuilder {
         return UserAddRoleCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .role(role)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -443,7 +443,7 @@ public class UserTestBuilder {
         return UserRemoveRoleCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .role("ADMIN")
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -451,7 +451,7 @@ public class UserTestBuilder {
         return UserRemoveRoleCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .role(role)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -459,7 +459,7 @@ public class UserTestBuilder {
         return UserUpdateEmailCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .newEmail("newemail@example.com")
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -467,7 +467,7 @@ public class UserTestBuilder {
         return UserUpdateEmailCommandDTO.builder()
             .idUserExternal(idUserExternal.toString())
             .newEmail(newEmail)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -476,42 +476,42 @@ public class UserTestBuilder {
     public UserGetByUsernameQueryDTO buildGetByUsernameCommand() {
         return UserGetByUsernameQueryDTO.builder()
             .username(username)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
     public UserGetByUsernameQueryDTO buildGetByUsernameCommand(String username) {
         return UserGetByUsernameQueryDTO.builder()
             .username(username)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
     public UserGetByEmailQueryDTO buildGetByEmailCommand() {
         return UserGetByEmailQueryDTO.builder()
             .email(email)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
     public UserGetByEmailQueryDTO buildGetByEmailCommand(String email) {
         return UserGetByEmailQueryDTO.builder()
             .email(email)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
     public UserGetByIdExternalQueryDTO buildGetByIdExternalCommand() {
         return UserGetByIdExternalQueryDTO.builder()
             .idUserExternal(idUserExternal.toString())
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
     public UserGetByIdExternalQueryDTO buildGetByIdExternalCommand(UUID idUserExternal) {
         return UserGetByIdExternalQueryDTO.builder()
             .idUserExternal(idUserExternal.toString())
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -520,7 +520,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .page(0)
             .size(10)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -529,7 +529,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .page(page)
             .size(size)
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -545,7 +545,7 @@ public class UserTestBuilder {
             .size(10)
             .sortBy("username")
             .sortDirection("ASC")
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -561,7 +561,7 @@ public class UserTestBuilder {
             .size(criteria.size())
             .sortBy(criteria.sortBy())
             .sortDirection(criteria.sortDirection())
-            .xApplicationUuid(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -576,7 +576,7 @@ public class UserTestBuilder {
             .codeUser(codeUser.toString())
             .companyId(companyId.toString())
             .companyCode(companyCode.toString())
-            .xApplication(xApplication.toString())
+            .tenantId(tenantId.toString())
             .build();
     }
     
@@ -634,7 +634,7 @@ public class UserTestBuilder {
             .updatedAt(updatedAt)
             .companyId(companyId)
             .companyCode(companyCode)
-            .xApplication(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     
@@ -653,7 +653,7 @@ public class UserTestBuilder {
             .roles(Arrays.asList("ROLE_USER"))
             .companyId(companyId)
             .companyCode(companyCode)
-            .xApplication(xApplication)
+            .tenantId(tenantId)
             .build();
     }
     

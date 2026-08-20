@@ -17,7 +17,7 @@ public class AuthLogoutCommandDTO {
     @NotBlank(message = "Token é obrigatório")
     private String token;
 
-    @NotBlank(message = "O header X-Application é obrigatório")
-    private UUID xApplicationUuid;
+    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
+    private UUID tenantId;
 }
 

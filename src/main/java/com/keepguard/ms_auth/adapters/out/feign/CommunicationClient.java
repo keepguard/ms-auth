@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface CommunicationClient {
 
     @GetMapping("/api/v1/health")
-    String health(@RequestHeader("X-Application") String application);
+    String health(@RequestHeader("X-Tenant-Id") String tenantIdHeader);
 
     @GetMapping("/api/v1/communication/test")
-    String testCommunication(@RequestHeader("X-Application") String application);
+    String testCommunication(@RequestHeader("X-Tenant-Id") String tenantIdHeader);
 }

@@ -26,7 +26,7 @@ public class UserJpaMapper {
                 .lastLogin(domain.getLastLogin())
                 .companyId(domain.getCompanyId())
                 .companyCode(domain.getCompanyCode())
-                .xApplication(domain.getXApplication())
+                .tenantId(domain.getTenantId())
                 .build();
     }
 
@@ -49,7 +49,7 @@ public class UserJpaMapper {
                 .lastLogin(jpaEntity.getLastLogin())
                 .companyId(jpaEntity.getCompanyId())
                 .companyCode(jpaEntity.getCompanyCode())
-                .xApplication(jpaEntity.getXApplication())
+                .tenantId(jpaEntity.getTenantId())
                 .build();
     }
 }

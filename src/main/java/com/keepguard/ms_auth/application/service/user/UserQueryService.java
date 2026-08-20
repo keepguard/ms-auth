@@ -41,7 +41,7 @@ public class UserQueryService {
     private final UserApplicationMapper userMapper;
 
     public UserGetByUsernameView findByUsername(UserGetByUsernameQueryDTO query) {
-        User user = userRepository.findByUsernameAndXApplication(query.getUsername(), query.getXApplicationUuid())
+        User user = userRepository.findByUsernameAndTenantId(query.getUsername(), query.getTenantId())
             .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + query.getUsername(),
                 "USER_NOT_FOUND", Map.of("username", query.getUsername())));
 
@@ -58,7 +58,7 @@ public class UserQueryService {
 
     public UserGetByEmailView findByEmail(UserGetByEmailQueryDTO query) {
 
-        User user = userRepository.findByEmailAndXApplication(query.getEmail(), query.getXApplicationUuid())
+        User user = userRepository.findByEmailAndTenantId(query.getEmail(), query.getTenantId())
             .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + query.getEmail(),
                 "USER_NOT_FOUND", Map.of("email", query.getEmail())));
 
@@ -76,7 +76,7 @@ public class UserQueryService {
 
     public UserGetByCodeView findByCodeUser(UserGetByCodeQueryDTO query) {
         UUID codeUserUuid = UUID.fromString(query.getCodeUser());
-        User user = userRepository.findByCodeUserAndXApplication(codeUserUuid, query.getXApplicationUuid())
+        User user = userRepository.findByCodeUserAndTenantId(codeUserUuid, query.getTenantId())
             .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + query.getCodeUser(),
                 "USER_NOT_FOUND", Map.of("codeUser", query.getCodeUser())));
 

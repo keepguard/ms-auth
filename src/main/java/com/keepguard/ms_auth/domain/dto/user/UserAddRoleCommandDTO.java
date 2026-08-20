@@ -20,7 +20,7 @@ public class UserAddRoleCommandDTO {
     @NotBlank(message = "Nome da role é obrigatório")
     private String role;
 
-    @NotBlank(message = "O header X-Application é obrigatório")
-    private UUID xApplicationUuid;
+    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
+    private UUID tenantId;
 }
 

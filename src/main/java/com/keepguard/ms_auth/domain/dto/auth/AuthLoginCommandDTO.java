@@ -20,8 +20,8 @@ public class AuthLoginCommandDTO {
     @NotBlank(message = "Password é obrigatório")
     private String password;
 
-    @NotBlank(message = "O header X-Application é obrigatório")
-    private UUID xApplicationUuid;
+    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
+    private UUID tenantId;
 
     @NotBlank(message = "O header User-Agent é obrigatório")
     private String userAgent;

@@ -19,7 +19,7 @@ public class UserGetByEmailQueryDTO {
     @Email(message = "Email deve ter formato válido")
     private String email;
 
-    @NotBlank(message = "O header X-Application é obrigatório")
-    private UUID xApplicationUuid;
+    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
+    private UUID tenantId;
 }
 

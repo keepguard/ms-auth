@@ -23,6 +23,6 @@ public record UserSearchView(
     List<String> roles,
     UUID companyId,
     UUID companyCode,
-    UUID xApplication
+    UUID tenantId
 ) {}
 

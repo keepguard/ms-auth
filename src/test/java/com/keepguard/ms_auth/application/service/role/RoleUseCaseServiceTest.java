@@ -55,7 +55,7 @@ class RoleUseCaseServiceTest {
     private RoleUseCaseService roleUseCaseService;
     
     private UUID roleId;
-    private UUID xApplicationUuid;
+    private UUID tenantId;
     private Role role;
     private RoleCreateDTO createDTO;
     private RoleUpdateDTO updateDTO;
@@ -82,7 +82,7 @@ class RoleUseCaseServiceTest {
     @BeforeEach
     void setUp() {
         roleId = UUID.randomUUID();
-        xApplicationUuid = UUID.randomUUID();
+        tenantId = UUID.randomUUID();
         
         // Criar role de teste usando builder
         role = RoleTestBuilder.builder()
@@ -121,37 +121,37 @@ class RoleUseCaseServiceTest {
         createCommand = RoleCreateCommandDTO.builder()
             .name("ADMIN")
             .description("Administrador do sistema")
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         updateCommand = RoleUpdateCommandDTO.builder()
             .id(roleId)
             .name("ADMIN_UPDATED")
             .description("Descrição atualizada")
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         deleteCommand = RoleDeleteCommandDTO.builder()
             .id(roleId)
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         getByIdCommand = RoleGetByIdQueryDTO.builder()
             .id(roleId)
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         getByNameCommand = RoleGetByNameQueryDTO.builder()
             .name("ADMIN")
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         getAllCommand = RoleGetAllQueryDTO.builder()
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         searchCommand = RoleSearchQueryDTO.builder()
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .pageable(pageable)
             .build();
     }
@@ -266,7 +266,7 @@ class RoleUseCaseServiceTest {
         String roleName = "ROLE_INEXISTENTE";
         RoleGetByNameQueryDTO getByNameCommandInexistente = RoleGetByNameQueryDTO.builder()
             .name(roleName)
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         when(roleQueryService.findByName(roleName)).thenReturn(Optional.empty());
         
@@ -489,7 +489,7 @@ class RoleUseCaseServiceTest {
         RoleCreateCommandDTO createCommandWithLowercase = RoleCreateCommandDTO.builder()
             .name("user")
             .description("Usuário comum")
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         Role roleWithLowercase = RoleTestBuilder.builder()
@@ -525,7 +525,7 @@ class RoleUseCaseServiceTest {
             .id(roleId)
             .name("admin_updated")
             .description("Descrição atualizada")
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         Role roleWithLowercase = RoleTestBuilder.builder()

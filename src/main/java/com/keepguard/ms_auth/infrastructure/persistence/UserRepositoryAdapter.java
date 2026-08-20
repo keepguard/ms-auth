@@ -86,8 +86,8 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public Optional<User> findByIdUserExternalAndXApplication(UUID idUserExternal, UUID xApplication) {
-        return springRepository.findByIdUserExternalAndXApplication(idUserExternal, xApplication)
+    public Optional<User> findByIdUserExternalAndTenantId(UUID idUserExternal, UUID tenantId) {
+        return springRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)
                 .map(mapper::toDomain);
     }
 
@@ -104,20 +104,20 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public Optional<User> findByUsernameAndXApplication(String username, UUID xApplication) {
-        return springRepository.findByUsernameAndXApplication(username, xApplication)
+    public Optional<User> findByUsernameAndTenantId(String username, UUID tenantId) {
+        return springRepository.findByUsernameAndTenantId(username, tenantId)
                 .map(mapper::toDomain);
     }
 
     @Override
-    public Optional<User> findByEmailAndXApplication(String email, UUID xApplication) {
-        return springRepository.findByEmailAndXApplication(email, xApplication)
+    public Optional<User> findByEmailAndTenantId(String email, UUID tenantId) {
+        return springRepository.findByEmailAndTenantId(email, tenantId)
                 .map(mapper::toDomain);
     }
 
     @Override
-    public Optional<User> findByCodeUserAndXApplication(UUID codeUser, UUID xApplication) {
-        return springRepository.findByCodeUserAndXApplication(codeUser, xApplication)
+    public Optional<User> findByCodeUserAndTenantId(UUID codeUser, UUID tenantId) {
+        return springRepository.findByCodeUserAndTenantId(codeUser, tenantId)
                 .map(mapper::toDomain);
     }
 

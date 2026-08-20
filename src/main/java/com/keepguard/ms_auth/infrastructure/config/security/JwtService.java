@@ -37,19 +37,20 @@ public class JwtService {
             Map.entry("iPhone", "mobile-app")
     );
 
-    public String generateToken(User user, List<String> roles, List<String> authorities, String xApplicationUuid, String userAgent) {
-        return generateToken(user, roles, authorities, xApplicationUuid, userAgent, null);
+    public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId, String userAgent) {
+        return generateToken(user, roles, authorities, tenantId, userAgent, null);
     }
 
-    public String generateToken(User user, List<String> roles, List<String> authorities, String xApplicationUuid, String userAgent, String displayHandle) {
+    public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId, String userAgent, String displayHandle) {
         var builder = Jwts.builder()
                 .issuer("ms-auth")
-                .audience().add(xApplicationUuid).and()
+                .audience().add(getUserAgent(userAgent)).and()
                 .id(UUID.randomUUID().toString())
                 .subject(user.getCodeUser().toString())
                 .claim("roles", roles)
                 .claim("authorities", authorities)
                 .claim("client_id", getUserAgent(userAgent))
+                .claim("tenant_id", tenantId)
                 .claim("login_method", "password");
         
         if (displayHandle != null && !displayHandle.isEmpty()) {

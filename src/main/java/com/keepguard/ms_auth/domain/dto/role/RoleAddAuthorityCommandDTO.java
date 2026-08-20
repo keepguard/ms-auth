@@ -21,6 +21,6 @@ public class RoleAddAuthorityCommandDTO {
     @NotBlank(message = "Nome da authority é obrigatório")
     private String authorityName;
 
-    private UUID xApplicationUuid;
+    private UUID tenantId;
 }
 

@@ -5,7 +5,7 @@ import com.keepguard.ms_auth.application.service.exception.EmailNotVerifiedExcep
 import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException;
 import com.keepguard.lib_common.exception.InvalidEmailException;
 import com.keepguard.lib_common.exception.InvalidPasswordException;
-import com.keepguard.lib_common.exception.InvalidXApplicationException;
+import com.keepguard.lib_common.exception.InvalidTenantIdException;
 import com.keepguard.ms_auth.application.service.exception.RequiredFieldException;
 import com.keepguard.ms_auth.application.service.exception.ResourceNotFoundException;
 import com.keepguard.ms_auth.application.service.exception.QueryOperationException;
@@ -134,13 +134,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
 
-    @ExceptionHandler(InvalidXApplicationException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidXApplication(InvalidXApplicationException ex, WebRequest request) {
-        log.error("Header X-Application inválido: {}", ex.getMessage());
+    @ExceptionHandler(InvalidTenantIdException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidTenantId(InvalidTenantIdException ex, WebRequest request) {
+        log.error("Header X-Tenant-Id inválido: {}", ex.getMessage());
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problemDetail.setType(URI.create("https://keepguard.com/problems/invalid-x-application"));
-        problemDetail.setTitle("Header X-Application inválido");
+        problemDetail.setType(URI.create("https://keepguard.com/problems/invalid-x-tenant-id"));
+        problemDetail.setTitle("Header X-Tenant-Id inválido");
         problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         problemDetail.setProperty("path", request.getDescription(false).replace("uri=", ""));
         problemDetail.setProperty("errorCode", "INVALID_X_APPLICATION");

@@ -36,7 +36,7 @@ class AuthorityUseCaseServiceTest {
         var cmd = AuthorityCreateCommandDTO.builder()
                 .name("READ_USERS")
                 .description("desc")
-                .xApplicationUuid(UUID.randomUUID())
+                .tenantId(UUID.randomUUID())
                 .build();
         var view = new AuthorityCreateView(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         when(commandService.create(cmd)).thenReturn(view);
@@ -56,7 +56,7 @@ class AuthorityUseCaseServiceTest {
                 .id(id)
                 .name("WRITE_USERS")
                 .description("desc")
-                .xApplicationUuid(UUID.randomUUID())
+                .tenantId(UUID.randomUUID())
                 .build();
         var view = new AuthorityUpdateView(id, "WRITE_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         when(commandService.update(cmd)).thenReturn(view);
@@ -74,7 +74,7 @@ class AuthorityUseCaseServiceTest {
         UUID id = UUID.randomUUID();
         var cmd = AuthorityDeleteCommandDTO.builder()
                 .id(id)
-                .xApplicationUuid(UUID.randomUUID())
+                .tenantId(UUID.randomUUID())
                 .build();
 
         useCaseService.delete(cmd);
@@ -88,7 +88,7 @@ class AuthorityUseCaseServiceTest {
         UUID id = UUID.randomUUID();
         var query = AuthorityGetByIdQueryDTO.builder()
                 .id(id)
-                .xApplicationUuid(UUID.randomUUID())
+                .tenantId(UUID.randomUUID())
                 .build();
         var view = new AuthorityGetByIdView(id, "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         when(queryService.findById(id)).thenReturn(Optional.of(view));
@@ -106,7 +106,7 @@ class AuthorityUseCaseServiceTest {
         String name = "READ_USERS";
         var query = AuthorityGetByNameQueryDTO.builder()
                 .name(name)
-                .xApplicationUuid(UUID.randomUUID())
+                .tenantId(UUID.randomUUID())
                 .build();
         var view = new AuthorityGetByNameView(UUID.randomUUID(), name, "desc", LocalDateTime.now(), LocalDateTime.now());
         when(queryService.findByName(name)).thenReturn(Optional.of(view));
@@ -122,7 +122,7 @@ class AuthorityUseCaseServiceTest {
     @DisplayName("findAll (sem paginação) delega para queryService")
     void findAll_shouldDelegateToQueryService() {
         var query = AuthorityGetAllQueryDTO.builder()
-                .xApplicationUuid(UUID.randomUUID())
+                .tenantId(UUID.randomUUID())
                 .build();
         var view = new AuthorityListView(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         when(queryService.findAll()).thenReturn(List.of(view));
@@ -140,7 +140,7 @@ class AuthorityUseCaseServiceTest {
         var pageable = PageRequest.of(0, 10);
         var query = AuthoritySearchQueryDTO.builder()
                 .pageable(pageable)
-                .xApplicationUuid(UUID.randomUUID())
+                .tenantId(UUID.randomUUID())
                 .build();
         var view = new AuthoritySearchView(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         var page = new PageResultView<>(List.of(view), 0, 10, 1, 1, true, true, false, false);

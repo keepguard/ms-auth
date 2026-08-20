@@ -56,20 +56,20 @@ public class UserCommandService {
     public UserView create(UserCreateCommandDTO command) {
         log.info("Creating user with username: {}", command.getUsername());
 
-        if (userRepository.findByUsernameAndXApplication(command.getUsername(), command.getXApplicationUuid()).isPresent()) {
+        if (userRepository.findByUsernameAndTenantId(command.getUsername(), command.getTenantId()).isPresent()) {
             metricsPort.incrementCounter("user_business_errors_total",
                 Map.of("error_code", "USERNAME_ALREADY_EXISTS", "operation", "create"));
             throw new AlreadyExistsException("Username já existe: " + command.getUsername());
         }
 
-        if (userRepository.findByEmailAndXApplication(command.getEmail(), command.getXApplicationUuid()).isPresent()) {
+        if (userRepository.findByEmailAndTenantId(command.getEmail(), command.getTenantId()).isPresent()) {
             metricsPort.incrementCounter("user_business_errors_total",
                 Map.of("error_code", "EMAIL_ALREADY_EXISTS", "operation", "create"));
             throw new AlreadyExistsException("Email já existe: " + command.getEmail());
         }
 
         var idUserExternalUuid = UUID.fromString(command.getIdUserExternal());
-        if (userRepository.findByIdUserExternalAndXApplication(idUserExternalUuid, command.getXApplicationUuid()).isPresent()) {
+        if (userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId()).isPresent()) {
             metricsPort.incrementCounter("user_business_errors_total",
                 Map.of("error_code", "ID_EXTERNAL_ALREADY_EXISTS", "operation", "create"));
             throw new AlreadyExistsException("ID externo já existe: " + command.getIdUserExternal());
@@ -83,7 +83,7 @@ public class UserCommandService {
             command.getCodeUser(),
             command.getCompanyId(),
             command.getCompanyCode(),
-            command.getXApplicationUuid()
+            command.getTenantId()
         );
 
         User savedUser = userRepository.save(user);
@@ -125,7 +125,7 @@ public class UserCommandService {
         log.info("Deleting user with external ID: {}", command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndXApplication(idUserExternalUuid, command.getXApplicationUuid())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "delete"));
@@ -159,7 +159,7 @@ public class UserCommandService {
         log.info("Hard deleting user with external ID: {}", command.idUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.idUserExternal());
-        User user = userRepository.findByIdUserExternalAndXApplication(idUserExternalUuid, command.xApplicationUuid())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.tenantId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "hard_delete"));
@@ -196,7 +196,7 @@ public class UserCommandService {
         log.info("Blocking user with external ID: {}", command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndXApplication(idUserExternalUuid, command.getXApplicationUuid())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "block"));
@@ -230,7 +230,7 @@ public class UserCommandService {
         log.info("Unlocking user with external ID: {}", command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndXApplication(idUserExternalUuid, command.getXApplicationUuid())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "unlock"));
@@ -264,7 +264,7 @@ public class UserCommandService {
         log.info("Validating email for user with external ID: {}", command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndXApplication(idUserExternalUuid, command.getXApplicationUuid())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "validate_email"));
@@ -291,7 +291,7 @@ public class UserCommandService {
         log.info("Adding role {} to user with external ID: {}", command.getRole(), command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndXApplication(idUserExternalUuid, command.getXApplicationUuid())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "add_role"));
@@ -322,7 +322,7 @@ public class UserCommandService {
         log.info("Removing role {} from user with external ID: {}", command.getRole(), command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndXApplication(idUserExternalUuid, command.getXApplicationUuid())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "remove_role"));
@@ -351,7 +351,7 @@ public class UserCommandService {
         log.info("Updating email for user with external ID: {} to: {}", command.getIdUserExternal(), command.getNewEmail());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndXApplication(idUserExternalUuid, command.getXApplicationUuid())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "update_email"));
@@ -359,7 +359,7 @@ public class UserCommandService {
             });
 
 
-        if (userRepository.findByEmailAndXApplication(command.getNewEmail(), command.getXApplicationUuid()).isPresent()) {
+        if (userRepository.findByEmailAndTenantId(command.getNewEmail(), command.getTenantId()).isPresent()) {
             metricsPort.incrementCounter("user_business_errors_total",
                 Map.of("error_code", "EMAIL_ALREADY_EXISTS", "operation", "update_email"));
             throw new AlreadyExistsException("Email já existe: " + command.getNewEmail());

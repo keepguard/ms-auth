@@ -72,7 +72,7 @@ class UserUseCaseServiceTest {
             List.of("ROLE_USER"),
             UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID() // xApplication
+            UUID.randomUUID() // tenantId
         );
 
         userGetByUsernameView = userTestBuilder.buildGetByUsernameView();

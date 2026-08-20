@@ -18,19 +18,19 @@ public interface UserSpringRepository extends JpaRepository<UserJpaEntity, UUID>
     Optional<UserJpaEntity> findByCodeUser(UUID codeUser);
     Optional<UserJpaEntity> findByIdUserExternal(UUID idUserExternal);
     
-    @Query("SELECT u FROM UserJpaEntity u WHERE u.idUserExternal = :idUserExternal AND u.xApplication = :xApplication")
-    Optional<UserJpaEntity> findByIdUserExternalAndXApplication(@Param("idUserExternal") UUID idUserExternal, @Param("xApplication") UUID xApplication);
+    @Query("SELECT u FROM UserJpaEntity u WHERE u.idUserExternal = :idUserExternal AND u.tenantId = :tenantId")
+    Optional<UserJpaEntity> findByIdUserExternalAndTenantId(@Param("idUserExternal") UUID idUserExternal, @Param("tenantId") UUID tenantId);
     
     Optional<UserJpaEntity> findByUsernameAndStatus(String username, UserStatus status);
     Optional<UserJpaEntity> findByEmailAndStatus(String email, UserStatus status);
-    @Query("SELECT u FROM UserJpaEntity u WHERE u.username = :username AND u.xApplication = :xApplication")
-    Optional<UserJpaEntity> findByUsernameAndXApplication(@Param("username") String username, @Param("xApplication") UUID xApplication);
+    @Query("SELECT u FROM UserJpaEntity u WHERE u.username = :username AND u.tenantId = :tenantId")
+    Optional<UserJpaEntity> findByUsernameAndTenantId(@Param("username") String username, @Param("tenantId") UUID tenantId);
     
-    @Query("SELECT u FROM UserJpaEntity u WHERE u.email = :email AND u.xApplication = :xApplication")
-    Optional<UserJpaEntity> findByEmailAndXApplication(@Param("email") String email, @Param("xApplication") UUID xApplication);
+    @Query("SELECT u FROM UserJpaEntity u WHERE u.email = :email AND u.tenantId = :tenantId")
+    Optional<UserJpaEntity> findByEmailAndTenantId(@Param("email") String email, @Param("tenantId") UUID tenantId);
     
-    @Query("SELECT u FROM UserJpaEntity u WHERE u.codeUser = :codeUser AND u.xApplication = :xApplication")
-    Optional<UserJpaEntity> findByCodeUserAndXApplication(@Param("codeUser") UUID codeUser, @Param("xApplication") UUID xApplication);
+    @Query("SELECT u FROM UserJpaEntity u WHERE u.codeUser = :codeUser AND u.tenantId = :tenantId")
+    Optional<UserJpaEntity> findByCodeUserAndTenantId(@Param("codeUser") UUID codeUser, @Param("tenantId") UUID tenantId);
     
     List<UserJpaEntity> findAllByStatus(UserStatus status);
     

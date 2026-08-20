@@ -20,7 +20,7 @@ public class UserAdapterMapper {
 
     // Conversões internas movidas para UserApplicationMapper
 
-    public UserCreateCommandDTO toCreateCommand(UserCreateRequestDTO dto, UUID xApplicationUuid) {
+    public UserCreateCommandDTO toCreateCommand(UserCreateRequestDTO dto, UUID tenantId) {
         if (dto == null) {
             return null;
         }
@@ -35,7 +35,7 @@ public class UserAdapterMapper {
                     .codeUser(dto.getCodeUser() != null ? UUID.fromString(dto.getCodeUser()) : null)
                     .companyId(dto.getCompanyId() != null ? UUID.fromString(dto.getCompanyId()) : null)
                     .companyCode(dto.getCompanyCode() != null ? UUID.fromString(dto.getCompanyCode()) : null)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .roles(List.of()) // Roles vazias por padrão
                     .build();
         } catch (Exception e) {
@@ -44,12 +44,12 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserDeleteCommandDTO toDeleteCommand(String idUserExternal, String reason, UUID xApplicationUuid) {
+    public UserDeleteCommandDTO toDeleteCommand(String idUserExternal, String reason, UUID tenantId) {
         try {
             return UserDeleteCommandDTO.builder()
                     .idUserExternal(idUserExternal)
                     .reason(reason)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserDeleteCommandDTO: {}", e.getMessage(), e);
@@ -57,21 +57,21 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserHardDeleteCommandDTO toHardDeleteCommand(String idUserExternal, UUID xApplicationUuid) {
+    public UserHardDeleteCommandDTO toHardDeleteCommand(String idUserExternal, UUID tenantId) {
         try {
-            return new UserHardDeleteCommandDTO(idUserExternal, xApplicationUuid);
+            return new UserHardDeleteCommandDTO(idUserExternal, tenantId);
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserHardDeleteCommandDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
-    public UserBlockCommandDTO toBlockCommand(String idUserExternal, String reason, UUID xApplicationUuid) {
+    public UserBlockCommandDTO toBlockCommand(String idUserExternal, String reason, UUID tenantId) {
         try {
             return UserBlockCommandDTO.builder()
                     .idUserExternal(idUserExternal)
                     .reason(reason)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserBlockCommandDTO: {}", e.getMessage(), e);
@@ -79,12 +79,12 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserUnlockCommandDTO toUnlockCommand(String idUserExternal, String reason, UUID xApplicationUuid) {
+    public UserUnlockCommandDTO toUnlockCommand(String idUserExternal, String reason, UUID tenantId) {
         try {
             return UserUnlockCommandDTO.builder()
                     .idUserExternal(idUserExternal)
                     .reason(reason)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserUnlockCommandDTO: {}", e.getMessage(), e);
@@ -92,7 +92,7 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserValidateEmailCommandDTO toValidateEmailCommand(UserValidateEmailRequestDTO dto, UUID xApplicationUuid) {
+    public UserValidateEmailCommandDTO toValidateEmailCommand(UserValidateEmailRequestDTO dto, UUID tenantId) {
         if (dto == null) {
             return null;
         }
@@ -100,7 +100,7 @@ public class UserAdapterMapper {
         try {
             return UserValidateEmailCommandDTO.builder()
                     .idUserExternal(dto.getIdUserExternal())
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear UserValidateEmailRequestDTO para UserValidateEmailCommandDTO: {}", e.getMessage(), e);
@@ -108,13 +108,13 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserGetStatusHistoryQueryDTO toGetStatusHistoryQuery(String idUserExternal, Integer page, Integer size, UUID xApplicationUuid) {
+    public UserGetStatusHistoryQueryDTO toGetStatusHistoryQuery(String idUserExternal, Integer page, Integer size, UUID tenantId) {
         try {
             return UserGetStatusHistoryQueryDTO.builder()
                     .idUserExternal(idUserExternal)
                     .page(page)
                     .size(size)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserGetStatusHistoryQueryDTO: {}", e.getMessage(), e);
@@ -122,11 +122,11 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserGetByCodeQueryDTO toGetByCodeQuery(String codeUser, UUID xApplicationUuid) {
+    public UserGetByCodeQueryDTO toGetByCodeQuery(String codeUser, UUID tenantId) {
         try {
             return UserGetByCodeQueryDTO.builder()
                     .codeUser(codeUser)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserGetByCodeQueryDTO: {}", e.getMessage(), e);
@@ -134,11 +134,11 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserGetByIdExternalQueryDTO toGetByIdExternalQuery(String idUserExternal, UUID xApplicationUuid) {
+    public UserGetByIdExternalQueryDTO toGetByIdExternalQuery(String idUserExternal, UUID tenantId) {
         try {
             return UserGetByIdExternalQueryDTO.builder()
                     .idUserExternal(idUserExternal)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserGetByIdExternalQueryDTO: {}", e.getMessage(), e);
@@ -146,11 +146,11 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserGetByEmailQueryDTO toGetByEmailQuery(String email, UUID xApplicationUuid) {
+    public UserGetByEmailQueryDTO toGetByEmailQuery(String email, UUID tenantId) {
         try {
             return UserGetByEmailQueryDTO.builder()
                     .email(email)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserGetByEmailQueryDTO: {}", e.getMessage(), e);
@@ -158,11 +158,11 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserGetByUsernameQueryDTO toGetByUsernameQuery(String username, UUID xApplicationUuid) {
+    public UserGetByUsernameQueryDTO toGetByUsernameQuery(String username, UUID tenantId) {
         try {
             return UserGetByUsernameQueryDTO.builder()
                     .username(username != null ? username.trim().toLowerCase() : null)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserGetByUsernameQueryDTO: {}", e.getMessage(), e);
@@ -170,12 +170,12 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserAddRoleCommandDTO toAddRoleCommand(String idUserExternal, String role, UUID xApplicationUuid) {
+    public UserAddRoleCommandDTO toAddRoleCommand(String idUserExternal, String role, UUID tenantId) {
         try {
             return UserAddRoleCommandDTO.builder()
                     .idUserExternal(idUserExternal)
                     .role(role)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserAddRoleCommandDTO: {}", e.getMessage(), e);
@@ -183,12 +183,12 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserRemoveRoleCommandDTO toRemoveRoleCommand(String idUserExternal, String role, UUID xApplicationUuid) {
+    public UserRemoveRoleCommandDTO toRemoveRoleCommand(String idUserExternal, String role, UUID tenantId) {
         try {
             return UserRemoveRoleCommandDTO.builder()
                     .idUserExternal(idUserExternal)
                     .role(role)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserRemoveRoleCommandDTO: {}", e.getMessage(), e);
@@ -196,12 +196,12 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserUpdateEmailCommandDTO toUpdateEmailCommand(String idUserExternal, String newEmail, UUID xApplicationUuid) {
+    public UserUpdateEmailCommandDTO toUpdateEmailCommand(String idUserExternal, String newEmail, UUID tenantId) {
         try {
             return UserUpdateEmailCommandDTO.builder()
                     .idUserExternal(idUserExternal)
                     .newEmail(newEmail)
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserUpdateEmailCommandDTO: {}", e.getMessage(), e);
@@ -209,7 +209,7 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserSearchQueryDTO toSearchQuery(UserSearchRequestDTO dto, UUID xApplicationUuid) {
+    public UserSearchQueryDTO toSearchQuery(UserSearchRequestDTO dto, UUID tenantId) {
         if (dto == null) {
             return null;
         }
@@ -229,7 +229,7 @@ public class UserAdapterMapper {
                     .sortDirection(dto.getSortDirection())
                     .page(dto.getPage())
                     .size(dto.getSize())
-                    .xApplicationUuid(xApplicationUuid)
+                    .tenantId(tenantId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear UserSearchRequestDTO para UserSearchQueryDTO: {}", e.getMessage(), e);
@@ -254,7 +254,7 @@ public class UserAdapterMapper {
         dto.setUpdatedAt(view.updatedAt());
         dto.setCompanyId(view.companyId());
         dto.setCompanyCode(view.companyCode());
-        dto.setXApplication(view.xApplication());
+        dto.setTenantId(view.tenantId());
         return dto;
     }
 
@@ -273,7 +273,7 @@ public class UserAdapterMapper {
         dto.setUpdatedAt(view.updatedAt());
         dto.setCompanyId(view.companyId());
         dto.setCompanyCode(view.companyCode());
-        dto.setXApplication(view.xApplication());
+        dto.setTenantId(view.tenantId());
         return dto;
     }
 
@@ -316,7 +316,7 @@ public class UserAdapterMapper {
                 .roles(view.roles())
                 .companyId(view.companyId())
                 .companyCode(view.companyCode())
-                .xApplication(view.xApplication())
+                .tenantId(view.tenantId())
                 .build();
         } catch (Exception e) {
             throw new RuntimeException("Erro ao converter UserView para UserDetailsResponseDTO: " + e.getMessage(), e);
@@ -361,7 +361,7 @@ public class UserAdapterMapper {
                 .roles(view.roles())
                 .companyId(view.companyId())
                 .companyCode(view.companyCode())
-                .xApplication(view.xApplication())
+                .tenantId(view.tenantId())
                 .build();
         } catch (Exception e) {
             throw new RuntimeException("Erro ao converter UserGetByCodeView para UserByCodeResponseDTO: " + e.getMessage(), e);
@@ -406,7 +406,7 @@ public class UserAdapterMapper {
                 .roles(view.roles())
                 .companyId(view.companyId())
                 .companyCode(view.companyCode())
-                .xApplication(view.xApplication())
+                .tenantId(view.tenantId())
                 .build();
         } catch (Exception e) {
             throw new RuntimeException("Erro ao converter UserGetByIdExternalView para UserByIdExternalResponseDTO: " + e.getMessage(), e);
@@ -451,7 +451,7 @@ public class UserAdapterMapper {
                 .roles(view.roles())
                 .companyId(view.companyId())
                 .companyCode(view.companyCode())
-                .xApplication(view.xApplication())
+                .tenantId(view.tenantId())
                 .build();
         } catch (Exception e) {
             throw new RuntimeException("Erro ao converter UserGetByEmailView para UserByEmailResponseDTO: " + e.getMessage(), e);
@@ -496,7 +496,7 @@ public class UserAdapterMapper {
                 .roles(view.roles())
                 .companyId(view.companyId())
                 .companyCode(view.companyCode())
-                .xApplication(view.xApplication())
+                .tenantId(view.tenantId())
                 .build();
         } catch (Exception e) {
             throw new RuntimeException("Erro ao converter UserGetByUsernameView para UserByUsernameResponseDTO: " + e.getMessage(), e);
@@ -561,7 +561,7 @@ public class UserAdapterMapper {
                 .roles(view.roles())
                 .companyId(view.companyId())
                 .companyCode(view.companyCode())
-                .xApplication(view.xApplication())
+                .tenantId(view.tenantId())
                 .build();
         } catch (Exception e) {
             throw new RuntimeException("Erro ao converter UserSearchView para UserDetailsResponseDTO: " + e.getMessage(), e);

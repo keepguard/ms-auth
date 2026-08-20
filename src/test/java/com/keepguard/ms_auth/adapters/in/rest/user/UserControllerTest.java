@@ -49,14 +49,14 @@ class UserControllerTest {
     private UserGetByCodeView userGetByCodeView;
     private UserGetByIdExternalView userGetByIdExternalView;
     private UUID userId;
-    private UUID xApplicationUuid;
-    private String xApplication;
+    private UUID tenantId;
+    private String tenantIdStr;
     
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
-        xApplicationUuid = UUID.randomUUID();
-        xApplication = xApplicationUuid.toString();
+        tenantId = UUID.randomUUID();
+        tenantIdStr = tenantId.toString();
         
         userCreateDTO = UserTestBuilder.builder()
             .buildCreateRequestDTO();
@@ -80,7 +80,7 @@ class UserControllerTest {
             null, // roles
             UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID() // xApplication
+            UUID.randomUUID() // tenantId
         );
 
         userGetByUsernameView = UserTestBuilder.builder().withId(userId).buildGetByUsernameView();
@@ -94,19 +94,19 @@ class UserControllerTest {
     void shouldCreateUserSuccessfully() {
         // Given
         UserCreateCommandDTO command = UserTestBuilder.builder()
-            .withXApplication(xApplicationUuid)
+            .withTenantId(tenantId)
             .buildCreateCommand();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toCreateCommand(userCreateDTO, xApplicationUuid)).thenReturn(command);
+            when(mapper.toCreateCommand(userCreateDTO, tenantId)).thenReturn(command);
             when(userService.create(command)).thenReturn(userView);
             when(mapper.toResponseDTO(userView)).thenReturn(userResponseDTO);
             
             // When
-            ResponseEntity<UserResponseDTO> response = userController.create(userCreateDTO, xApplication);
+            ResponseEntity<UserResponseDTO> response = userController.create(userCreateDTO, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -117,7 +117,7 @@ class UserControllerTest {
             assertEquals("testuser", responseBody.getUsername());
             assertEquals("test@example.com", responseBody.getEmail());
             
-            verify(mapper, times(1)).toCreateCommand(userCreateDTO, xApplicationUuid);
+            verify(mapper, times(1)).toCreateCommand(userCreateDTO, tenantId);
             verify(userService, times(1)).create(command);
             verify(mapper, times(1)).toResponseDTO(userView);
         }
@@ -128,23 +128,23 @@ class UserControllerTest {
     void shouldHandleExceptionsDuringUserCreation() {
         // Given
         UserCreateCommandDTO command = UserTestBuilder.builder()
-            .withXApplication(xApplicationUuid)
+            .withTenantId(tenantId)
             .buildCreateCommand();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toCreateCommand(userCreateDTO, xApplicationUuid)).thenReturn(command);
+            when(mapper.toCreateCommand(userCreateDTO, tenantId)).thenReturn(command);
             when(userService.create(command))
                 .thenThrow(new RuntimeException("Service error"));
             
             // When & Then
             assertThrows(RuntimeException.class, () -> {
-                userController.create(userCreateDTO, xApplication);
+                userController.create(userCreateDTO, tenantIdStr);
             });
             
-            verify(mapper, times(1)).toCreateCommand(userCreateDTO, xApplicationUuid);
+            verify(mapper, times(1)).toCreateCommand(userCreateDTO, tenantId);
             verify(userService, times(1)).create(command);
         }
     }
@@ -157,22 +157,22 @@ class UserControllerTest {
             .buildValidateEmailRequestDTO();
         
         UserValidateEmailCommandDTO command = UserTestBuilder.builder()
-            .withXApplication(xApplicationUuid)
+            .withTenantId(tenantId)
             .buildValidateEmailCommand();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toValidateEmailCommand(validateEmailDTO, xApplicationUuid)).thenReturn(command);
+            when(mapper.toValidateEmailCommand(validateEmailDTO, tenantId)).thenReturn(command);
             doNothing().when(userService).validateEmailUser(command);
             
             // When
-            ResponseEntity<Void> response = userController.validateEmail(validateEmailDTO, xApplication);
+            ResponseEntity<Void> response = userController.validateEmail(validateEmailDTO, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            verify(mapper, times(1)).toValidateEmailCommand(validateEmailDTO, xApplicationUuid);
+            verify(mapper, times(1)).toValidateEmailCommand(validateEmailDTO, tenantId);
             verify(userService, times(1)).validateEmailUser(command);
         }
     }
@@ -185,23 +185,23 @@ class UserControllerTest {
             .buildValidateEmailRequestDTO();
         
         UserValidateEmailCommandDTO command = UserTestBuilder.builder()
-            .withXApplication(xApplicationUuid)
+            .withTenantId(tenantId)
             .buildValidateEmailCommand();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toValidateEmailCommand(validateEmailDTO, xApplicationUuid)).thenReturn(command);
+            when(mapper.toValidateEmailCommand(validateEmailDTO, tenantId)).thenReturn(command);
             doThrow(new RuntimeException("User not found"))
                 .when(userService).validateEmailUser(command);
             
             // When & Then
             assertThrows(RuntimeException.class, () -> {
-                userController.validateEmail(validateEmailDTO, xApplication);
+                userController.validateEmail(validateEmailDTO, tenantIdStr);
             });
             
-            verify(mapper, times(1)).toValidateEmailCommand(validateEmailDTO, xApplicationUuid);
+            verify(mapper, times(1)).toValidateEmailCommand(validateEmailDTO, tenantId);
             verify(userService, times(1)).validateEmailUser(command);
         }
     }
@@ -263,7 +263,7 @@ class UserControllerTest {
             .buildCreateRequestDTO();
         
         UserCreateCommandDTO expectedCommand = UserTestBuilder.builder()
-            .withXApplication(testUuid)
+            .withTenantId(testUuid)
             .buildCreateCommand();
         
         when(mapper.toCreateCommand(any(UserCreateRequestDTO.class), any(UUID.class))).thenReturn(expectedCommand);
@@ -299,7 +299,7 @@ class UserControllerTest {
             .size(10)
             .sortBy("username")
             .sortDirection("ASC")
-            .xApplicationUuid(testUuid)
+            .tenantId(testUuid)
             .build();
         
         // When
@@ -337,7 +337,7 @@ class UserControllerTest {
             List.of("ROLE_USER"),
             UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID() // xApplication
+            UUID.randomUUID() // tenantId
         );
         
         when(mapper.toResponseDTO(view)).thenReturn(userResponseDTO);
@@ -375,7 +375,7 @@ class UserControllerTest {
             List.of("ROLE_USER"),
             UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID() // xApplication
+            UUID.randomUUID() // tenantId
         );
         
         UserDetailsResponseDTO expectedDetails = UserDetailsResponseDTO.builder()
@@ -419,22 +419,22 @@ class UserControllerTest {
         UserDeleteCommandDTO command = UserDeleteCommandDTO.builder()
             .idUserExternal(idUserExternal)
             .reason("Test reason")
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toDeleteCommand(idUserExternal, "Test reason", xApplicationUuid)).thenReturn(command);
+            when(mapper.toDeleteCommand(idUserExternal, "Test reason", tenantId)).thenReturn(command);
             doNothing().when(userService).delete(command);
             
             // When
-            ResponseEntity<Void> response = userController.delete(idUserExternal, statusReasonDTO, xApplication);
+            ResponseEntity<Void> response = userController.delete(idUserExternal, statusReasonDTO, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-            verify(mapper, times(1)).toDeleteCommand(idUserExternal, "Test reason", xApplicationUuid);
+            verify(mapper, times(1)).toDeleteCommand(idUserExternal, "Test reason", tenantId);
             verify(userService, times(1)).delete(command);
         }
     }
@@ -450,22 +450,22 @@ class UserControllerTest {
         UserBlockCommandDTO command = UserBlockCommandDTO.builder()
             .idUserExternal(idUserExternal)
             .reason("Test reason")
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toBlockCommand(idUserExternal, "Test reason", xApplicationUuid)).thenReturn(command);
+            when(mapper.toBlockCommand(idUserExternal, "Test reason", tenantId)).thenReturn(command);
             doNothing().when(userService).block(command);
             
             // When
-            ResponseEntity<Void> response = userController.block(idUserExternal, statusReasonDTO, xApplication);
+            ResponseEntity<Void> response = userController.block(idUserExternal, statusReasonDTO, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            verify(mapper, times(1)).toBlockCommand(idUserExternal, "Test reason", xApplicationUuid);
+            verify(mapper, times(1)).toBlockCommand(idUserExternal, "Test reason", tenantId);
             verify(userService, times(1)).block(command);
         }
     }
@@ -481,22 +481,22 @@ class UserControllerTest {
         UserUnlockCommandDTO command = UserUnlockCommandDTO.builder()
             .idUserExternal(idUserExternal)
             .reason("Test reason")
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toUnlockCommand(idUserExternal, "Test reason", xApplicationUuid)).thenReturn(command);
+            when(mapper.toUnlockCommand(idUserExternal, "Test reason", tenantId)).thenReturn(command);
             doNothing().when(userService).unlock(command);
             
             // When
-            ResponseEntity<Void> response = userController.unlock(idUserExternal, statusReasonDTO, xApplication);
+            ResponseEntity<Void> response = userController.unlock(idUserExternal, statusReasonDTO, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            verify(mapper, times(1)).toUnlockCommand(idUserExternal, "Test reason", xApplicationUuid);
+            verify(mapper, times(1)).toUnlockCommand(idUserExternal, "Test reason", tenantId);
             verify(userService, times(1)).unlock(command);
         }
     }
@@ -509,7 +509,7 @@ class UserControllerTest {
         
         UserGetByCodeQueryDTO query = UserGetByCodeQueryDTO.builder()
             .codeUser(codeUser)
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         UserByCodeResponseDTO userByCodeResponseDTO = UserByCodeResponseDTO.builder()
@@ -521,15 +521,15 @@ class UserControllerTest {
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toGetByCodeQuery(codeUser, xApplicationUuid)).thenReturn(query);
+            when(mapper.toGetByCodeQuery(codeUser, tenantId)).thenReturn(query);
             when(userService.findByCodeUser(query)).thenReturn(userGetByCodeView);
             when(mapper.toUserByCodeResponseDTO(userGetByCodeView)).thenReturn(userByCodeResponseDTO);
             
             // When
-            ResponseEntity<UserByCodeResponseDTO> response = userController.getByCodeUser(codeUser, xApplication);
+            ResponseEntity<UserByCodeResponseDTO> response = userController.getByCodeUser(codeUser, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -540,7 +540,7 @@ class UserControllerTest {
             assertEquals("testuser", responseBody.getUsername());
             assertEquals("test@example.com", responseBody.getEmail());
             
-            verify(mapper, times(1)).toGetByCodeQuery(codeUser, xApplicationUuid);
+            verify(mapper, times(1)).toGetByCodeQuery(codeUser, tenantId);
             verify(userService, times(1)).findByCodeUser(query);
             verify(mapper, times(1)).toUserByCodeResponseDTO(userGetByCodeView);
         }
@@ -554,7 +554,7 @@ class UserControllerTest {
         
         UserGetByIdExternalQueryDTO query = UserGetByIdExternalQueryDTO.builder()
             .idUserExternal(idUserExternal)
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         UserByIdExternalResponseDTO userByIdExternalResponseDTO = UserByIdExternalResponseDTO.builder()
@@ -566,15 +566,15 @@ class UserControllerTest {
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toGetByIdExternalQuery(idUserExternal, xApplicationUuid)).thenReturn(query);
+            when(mapper.toGetByIdExternalQuery(idUserExternal, tenantId)).thenReturn(query);
             when(userService.findByIdUserExternal(query)).thenReturn(userGetByIdExternalView);
             when(mapper.toUserByIdExternalResponseDTO(userGetByIdExternalView)).thenReturn(userByIdExternalResponseDTO);
             
             // When
-            ResponseEntity<UserByIdExternalResponseDTO> response = userController.getByIdUserExternal(idUserExternal, xApplication);
+            ResponseEntity<UserByIdExternalResponseDTO> response = userController.getByIdUserExternal(idUserExternal, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -585,7 +585,7 @@ class UserControllerTest {
             assertEquals("testuser", responseBody.getUsername());
             assertEquals("test@example.com", responseBody.getEmail());
             
-            verify(mapper, times(1)).toGetByIdExternalQuery(idUserExternal, xApplicationUuid);
+            verify(mapper, times(1)).toGetByIdExternalQuery(idUserExternal, tenantId);
             verify(userService, times(1)).findByIdUserExternal(query);
             verify(mapper, times(1)).toUserByIdExternalResponseDTO(userGetByIdExternalView);
         }
@@ -599,7 +599,7 @@ class UserControllerTest {
         
         UserGetByEmailQueryDTO query = UserGetByEmailQueryDTO.builder()
             .email(email)
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         UserByEmailResponseDTO userByEmailResponseDTO = UserByEmailResponseDTO.builder()
@@ -611,15 +611,15 @@ class UserControllerTest {
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toGetByEmailQuery(email, xApplicationUuid)).thenReturn(query);
+            when(mapper.toGetByEmailQuery(email, tenantId)).thenReturn(query);
             when(userService.findByEmail(query)).thenReturn(userGetByEmailView);
             when(mapper.toUserByEmailResponseDTO(userGetByEmailView)).thenReturn(userByEmailResponseDTO);
             
             // When
-            ResponseEntity<UserByEmailResponseDTO> response = userController.getByEmail(email, xApplication);
+            ResponseEntity<UserByEmailResponseDTO> response = userController.getByEmail(email, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -630,7 +630,7 @@ class UserControllerTest {
             assertEquals("testuser", responseBody.getUsername());
             assertEquals("test@example.com", responseBody.getEmail());
             
-            verify(mapper, times(1)).toGetByEmailQuery(email, xApplicationUuid);
+            verify(mapper, times(1)).toGetByEmailQuery(email, tenantId);
             verify(userService, times(1)).findByEmail(query);
             verify(mapper, times(1)).toUserByEmailResponseDTO(userGetByEmailView);
         }
@@ -644,7 +644,7 @@ class UserControllerTest {
         
         UserGetByUsernameQueryDTO query = UserGetByUsernameQueryDTO.builder()
             .username(username)
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         UserByUsernameResponseDTO userByUsernameResponseDTO = UserByUsernameResponseDTO.builder()
@@ -656,15 +656,15 @@ class UserControllerTest {
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toGetByUsernameQuery(username, xApplicationUuid)).thenReturn(query);
+            when(mapper.toGetByUsernameQuery(username, tenantId)).thenReturn(query);
             when(userService.findByUsername(query)).thenReturn(userGetByUsernameView);
             when(mapper.toUserByUsernameResponseDTO(userGetByUsernameView)).thenReturn(userByUsernameResponseDTO);
             
             // When
-            ResponseEntity<UserByUsernameResponseDTO> response = userController.getByUsername(username, xApplication);
+            ResponseEntity<UserByUsernameResponseDTO> response = userController.getByUsername(username, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -675,7 +675,7 @@ class UserControllerTest {
             assertEquals("testuser", responseBody.getUsername());
             assertEquals("test@example.com", responseBody.getEmail());
             
-            verify(mapper, times(1)).toGetByUsernameQuery(username, xApplicationUuid);
+            verify(mapper, times(1)).toGetByUsernameQuery(username, tenantId);
             verify(userService, times(1)).findByUsername(query);
             verify(mapper, times(1)).toUserByUsernameResponseDTO(userGetByUsernameView);
         }
@@ -692,22 +692,22 @@ class UserControllerTest {
         UserAddRoleCommandDTO command = UserAddRoleCommandDTO.builder()
             .idUserExternal(idUserExternal)
             .role("ROLE_ADMIN")
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toAddRoleCommand(idUserExternal, "ROLE_ADMIN", xApplicationUuid)).thenReturn(command);
+            when(mapper.toAddRoleCommand(idUserExternal, "ROLE_ADMIN", tenantId)).thenReturn(command);
             doNothing().when(userService).addRoleToUser(command);
             
             // When
-            ResponseEntity<Void> response = userController.addRoleToUser(idUserExternal, addRoleDTO, xApplication);
+            ResponseEntity<Void> response = userController.addRoleToUser(idUserExternal, addRoleDTO, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
-            verify(mapper, times(1)).toAddRoleCommand(idUserExternal, "ROLE_ADMIN", xApplicationUuid);
+            verify(mapper, times(1)).toAddRoleCommand(idUserExternal, "ROLE_ADMIN", tenantId);
             verify(userService, times(1)).addRoleToUser(command);
         }
     }
@@ -722,22 +722,22 @@ class UserControllerTest {
         UserRemoveRoleCommandDTO command = UserRemoveRoleCommandDTO.builder()
             .idUserExternal(idUserExternal)
             .role(role)
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toRemoveRoleCommand(idUserExternal, role, xApplicationUuid)).thenReturn(command);
+            when(mapper.toRemoveRoleCommand(idUserExternal, role, tenantId)).thenReturn(command);
             doNothing().when(userService).removeRoleFromUser(command);
             
             // When
-            ResponseEntity<Void> response = userController.removeRoleFromUser(idUserExternal, role, xApplication);
+            ResponseEntity<Void> response = userController.removeRoleFromUser(idUserExternal, role, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-            verify(mapper, times(1)).toRemoveRoleCommand(idUserExternal, role, xApplicationUuid);
+            verify(mapper, times(1)).toRemoveRoleCommand(idUserExternal, role, tenantId);
             verify(userService, times(1)).removeRoleFromUser(command);
         }
     }
@@ -753,22 +753,22 @@ class UserControllerTest {
         UserUpdateEmailCommandDTO command = UserUpdateEmailCommandDTO.builder()
             .idUserExternal(idUserExternal)
             .newEmail("newemail@example.com")
-            .xApplicationUuid(xApplicationUuid)
+            .tenantId(tenantId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateXApplication(xApplication))
-                .thenReturn(xApplicationUuid);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
             
-            when(mapper.toUpdateEmailCommand(idUserExternal, "newemail@example.com", xApplicationUuid)).thenReturn(command);
+            when(mapper.toUpdateEmailCommand(idUserExternal, "newemail@example.com", tenantId)).thenReturn(command);
             doNothing().when(userService).updateUserEmail(command);
             
             // When
-            ResponseEntity<Void> response = userController.updateUserEmail(idUserExternal, updateEmailDTO, xApplication);
+            ResponseEntity<Void> response = userController.updateUserEmail(idUserExternal, updateEmailDTO, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            verify(mapper, times(1)).toUpdateEmailCommand(idUserExternal, "newemail@example.com", xApplicationUuid);
+            verify(mapper, times(1)).toUpdateEmailCommand(idUserExternal, "newemail@example.com", tenantId);
             verify(userService, times(1)).updateUserEmail(command);
         }
     }

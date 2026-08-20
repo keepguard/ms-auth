@@ -13,6 +13,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AuthorityGetAllQueryDTO {
 
-    private UUID xApplicationUuid;
+    private UUID tenantId;
 }
 

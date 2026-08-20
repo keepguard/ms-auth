@@ -71,7 +71,7 @@ public class AuthApplicationMapper {
                 null, // roles - será preenchido pelo UserQueryService
                 user.getCompanyId(),
                 user.getCompanyCode(),
-                user.getXApplication()
+                user.getTenantId()
             );
         } catch (Exception e) {
             log.error("Erro ao mapear User para UserView: {}", e.getMessage(), e);

@@ -14,6 +14,6 @@ import java.util.UUID;
 public class RoleDeleteCommandDTO {
 
     private UUID id;
-    private UUID xApplicationUuid;
+    private UUID tenantId;
 }
 

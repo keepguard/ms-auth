@@ -58,7 +58,7 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(post("/api/v1/authorities")
-                .header("X-Application", UUID.randomUUID().toString())
+                .header("X-Tenant-Id", UUID.randomUUID().toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"READ_USERS\"}"))
             .andExpect(status().isOk())
@@ -87,7 +87,7 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(put("/api/v1/authorities/" + id)
-                .header("X-Application", UUID.randomUUID().toString())
+                .header("X-Tenant-Id", UUID.randomUUID().toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"WRITE_USERS\"}"))
             .andExpect(status().isOk())
@@ -102,7 +102,7 @@ class AuthorityControllerTest {
         when(mapper.toDeleteCommand(eq(id), any())).thenReturn(cmd);
 
         mockMvc.perform(delete("/api/v1/authorities/" + id)
-                .header("X-Application", UUID.randomUUID().toString()))
+                .header("X-Tenant-Id", UUID.randomUUID().toString()))
             .andExpect(status().isNoContent());
 
         verify(authorityPort).delete(cmd);
@@ -127,7 +127,7 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(get("/api/v1/authorities/" + id)
-                .header("X-Application", UUID.randomUUID().toString()))
+                .header("X-Tenant-Id", UUID.randomUUID().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(id.toString()));
     }
@@ -141,7 +141,7 @@ class AuthorityControllerTest {
         when(authorityPort.findById(query)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/v1/authorities/" + id)
-                .header("X-Application", UUID.randomUUID().toString()))
+                .header("X-Tenant-Id", UUID.randomUUID().toString()))
             .andExpect(status().isNotFound());
     }
 
@@ -164,7 +164,7 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(get("/api/v1/authorities/name/" + name)
-                .header("X-Application", UUID.randomUUID().toString()))
+                .header("X-Tenant-Id", UUID.randomUUID().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.name").value(name));
     }
@@ -186,7 +186,7 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(get("/api/v1/authorities")
-                .header("X-Application", UUID.randomUUID().toString()))
+                .header("X-Tenant-Id", UUID.randomUUID().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].name").value("READ_USERS"));
     }
@@ -209,7 +209,7 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(get("/api/v1/authorities/search")
-                .header("X-Application", UUID.randomUUID().toString())
+                .header("X-Tenant-Id", UUID.randomUUID().toString())
                 .param("page", "0")
                 .param("size", "10"))
             .andExpect(status().isOk())

@@ -51,16 +51,16 @@ public class AuthorityController {
     )
     public ResponseEntity<AuthorityCreateResponseDTO> create(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Application") String xApplication,
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
             @Parameter(description = "Dados da authority a ser criada", required = true)
             @RequestBody @Valid AuthorityCreateRequestDTO dto) {
 
-        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);
-        log.info("Criando authority: {}, application={}", dto.getName(), xApplicationUuid);
-        var command = mapper.toCreateCommand(dto, xApplicationUuid);
+        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        log.info("Criando authority: {}, application={}", dto.getName(), tenantId);
+        var command = mapper.toCreateCommand(dto, tenantId);
         var authorityView = authorityService.create(command);
         var response = mapper.toCreateResponseDTO(authorityView);
-        log.info("Authority created: {} with application: {}", response.getId(), xApplicationUuid);
+        log.info("Authority created: {} with application: {}", response.getId(), tenantId);
         return ResponseEntity.ok(response);
     }
 
@@ -82,18 +82,18 @@ public class AuthorityController {
     )
     public ResponseEntity<AuthorityUpdateResponseDTO> update(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Application") String xApplication,
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
             @Parameter(description = "ID da authority", required = true)
             @PathVariable UUID id,
             @Parameter(description = "Dados da authority a ser atualizada", required = true)
             @RequestBody @Valid AuthorityUpdateRequestDTO dto) {
 
-        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);
-        log.info("Atualizando authority: {} com nome: {}, application={}", id, dto.getName(), xApplicationUuid);
-        var command = mapper.toUpdateCommand(id, dto, xApplicationUuid);
+        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        log.info("Atualizando authority: {} com nome: {}, application={}", id, dto.getName(), tenantId);
+        var command = mapper.toUpdateCommand(id, dto, tenantId);
         var authorityView = authorityService.update(command);
         var response = mapper.toUpdateResponseDTO(authorityView);
-        log.info("Authority updated: {} with application: {}", response.getId(), xApplicationUuid);
+        log.info("Authority updated: {} with application: {}", response.getId(), tenantId);
         return ResponseEntity.ok(response);
     }
 
@@ -113,15 +113,15 @@ public class AuthorityController {
     )
     public ResponseEntity<Void> delete(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Application") String xApplication,
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
             @Parameter(description = "ID da authority", required = true)
             @PathVariable UUID id) {
 
-        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);
-        log.info("Removendo authority: {}, application={}", id, xApplicationUuid);
-        var command = mapper.toDeleteCommand(id, xApplicationUuid);
+        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        log.info("Removendo authority: {}, application={}", id, tenantId);
+        var command = mapper.toDeleteCommand(id, tenantId);
         authorityService.delete(command);
-        log.info("Authority deleted: {} with application: {}", id, xApplicationUuid);
+        log.info("Authority deleted: {} with application: {}", id, tenantId);
         return ResponseEntity.noContent().build();
     }
 
@@ -142,20 +142,20 @@ public class AuthorityController {
     )
     public ResponseEntity<AuthorityGetByIdResponseDTO> getById(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Application") String xApplication,
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
             @Parameter(description = "ID da authority", required = true)
             @PathVariable UUID id) {
 
-        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);
-        log.info("Buscando authority por ID: {}, application={}", id, xApplicationUuid);
-        var query = mapper.toGetByIdQuery(id, xApplicationUuid);
+        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        log.info("Buscando authority por ID: {}, application={}", id, tenantId);
+        var query = mapper.toGetByIdQuery(id, tenantId);
         Optional<AuthorityGetByIdView> authorityView = authorityService.findById(query);
         if (authorityView.isPresent()) {
             var response = mapper.toGetByIdResponseDTO(authorityView.get());
-            log.info("Authority found: {} with application: {}", id, xApplicationUuid);
+            log.info("Authority found: {} with application: {}", id, tenantId);
             return ResponseEntity.ok(response);
         } else {
-            log.warn("Authority not found: {} with application: {}", id, xApplicationUuid);
+            log.warn("Authority not found: {} with application: {}", id, tenantId);
             return ResponseEntity.notFound().build();
         }
     }
@@ -177,20 +177,20 @@ public class AuthorityController {
     )
     public ResponseEntity<AuthorityGetByNameResponseDTO> getByName(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Application") String xApplication,
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
             @Parameter(description = "Nome da authority", required = true)
             @PathVariable String name) {
 
-        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);
-        log.info("Buscando authority por nome: {}, application={}", name, xApplicationUuid);
-        var query = mapper.toGetByNameQuery(name, xApplicationUuid);
+        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        log.info("Buscando authority por nome: {}, application={}", name, tenantId);
+        var query = mapper.toGetByNameQuery(name, tenantId);
         Optional<AuthorityGetByNameView> authorityView = authorityService.findByName(query);
         if (authorityView.isPresent()) {
             var response = mapper.toGetByNameResponseDTO(authorityView.get());
-            log.info("Authority found by name: {} with application: {}", name, xApplicationUuid);
+            log.info("Authority found by name: {} with application: {}", name, tenantId);
             return ResponseEntity.ok(response);
         } else {
-            log.warn("Authority not found by name: {} with application: {}", name, xApplicationUuid);
+            log.warn("Authority not found by name: {} with application: {}", name, tenantId);
             return ResponseEntity.notFound().build();
         }
     }
@@ -210,16 +210,16 @@ public class AuthorityController {
     )
     public ResponseEntity<List<AuthorityListResponseDTO>> listAll(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Application") String xApplication) {
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
 
-        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);
-        log.info("Listando todas as authorities, application={}", xApplicationUuid);
-        var query = mapper.toGetAllQuery(xApplicationUuid);
+        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        log.info("Listando todas as authorities, application={}", tenantId);
+        var query = mapper.toGetAllQuery(tenantId);
         List<AuthorityListView> authorityViews = authorityService.findAll(query);
         List<AuthorityListResponseDTO> response = authorityViews.stream()
                 .map(mapper::toListResponseDTO)
                 .toList();
-        log.info("Authorities listed: {} total with application: {}", response.size(), xApplicationUuid);
+        log.info("Authorities listed: {} total with application: {}", response.size(), tenantId);
         return ResponseEntity.ok(response);
     }
 
@@ -238,14 +238,14 @@ public class AuthorityController {
     )
     public ResponseEntity<PageResultView<AuthoritySearchResponseDTO>> search(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Application") String xApplication,
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
             @Valid @ModelAttribute AuthoritySearchRequestDTO searchRequest) {
 
-        var xApplicationUuid = ValidationUtils.validateXApplication(xApplication);
+        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         log.info("Buscando authorities com paginação: página {}, tamanho {}, application={}", 
-                searchRequest.getPage(), searchRequest.getSize(), xApplicationUuid);
+                searchRequest.getPage(), searchRequest.getSize(), tenantId);
         
-        var query = mapper.toSearchQuery(searchRequest, xApplicationUuid);
+        var query = mapper.toSearchQuery(searchRequest, tenantId);
         PageResultView<AuthoritySearchView> pageResultView = authorityService.findAll(query);
         
         List<AuthoritySearchResponseDTO> content = pageResultView.getContent().stream()
@@ -263,7 +263,7 @@ public class AuthorityController {
                 pageResultView.hasNext(),
                 pageResultView.hasPrevious()
         );
-        log.info("Authorities searched: {} total with application: {}", response.getTotalElements(), xApplicationUuid);
+        log.info("Authorities searched: {} total with application: {}", response.getTotalElements(), tenantId);
         return ResponseEntity.ok(response);
     }
 }

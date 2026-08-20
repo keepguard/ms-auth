@@ -17,7 +17,7 @@ public class UserGetByUsernameQueryDTO {
     @NotBlank(message = "Username é obrigatório")
     private String username;
 
-    @NotBlank(message = "O header X-Application é obrigatório")
-    private UUID xApplicationUuid;
+    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
+    private UUID tenantId;
 }
 

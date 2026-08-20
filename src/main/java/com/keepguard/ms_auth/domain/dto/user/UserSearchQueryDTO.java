@@ -40,6 +40,6 @@ public class UserSearchQueryDTO {
 
     private Integer size;
 
-    private UUID xApplicationUuid;
+    private UUID tenantId;
 }
 

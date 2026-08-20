@@ -23,6 +23,6 @@ public record UserGetByEmailView(
     List<String> roles,
     UUID companyId,
     UUID companyCode,
-    UUID xApplication
+    UUID tenantId
 ) {}
 

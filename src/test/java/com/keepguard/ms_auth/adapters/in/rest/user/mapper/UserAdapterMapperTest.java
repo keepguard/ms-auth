@@ -85,10 +85,10 @@ class UserAdapterMapperTest {
         // Given
         String idUserExternal = "ext-123";
         String role = "ADMIN";
-        UUID xApplicationUuid = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
         
         // When
-        var command = userAdapterMapper.toAddRoleCommand(idUserExternal, role, xApplicationUuid);
+        var command = userAdapterMapper.toAddRoleCommand(idUserExternal, role, tenantId);
         
         // Then
         assertNotNull(command);
@@ -102,10 +102,10 @@ class UserAdapterMapperTest {
         // Given
         String idUserExternal = "ext-123";
         String reason = "Violação de políticas";
-        UUID xApplicationUuid = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
         
         // When
-        var command = userAdapterMapper.toBlockCommand(idUserExternal, reason, xApplicationUuid);
+        var command = userAdapterMapper.toBlockCommand(idUserExternal, reason, tenantId);
         
         // Then
         assertNotNull(command);
@@ -119,10 +119,10 @@ class UserAdapterMapperTest {
         // Given
         String idUserExternal = "ext-123";
         String newEmail = "newemail@example.com";
-        UUID xApplicationUuid = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
         
         // When
-        var command = userAdapterMapper.toUpdateEmailCommand(idUserExternal, newEmail, xApplicationUuid);
+        var command = userAdapterMapper.toUpdateEmailCommand(idUserExternal, newEmail, tenantId);
         
         // Then
         assertNotNull(command);
@@ -169,7 +169,7 @@ class UserAdapterMapperTest {
             null, // roles
             null, // companyId
             null, // companyCode
-            null  // xApplication
+            null  // tenantId
         );
 
         // When
@@ -251,7 +251,7 @@ class UserAdapterMapperTest {
             List.of("ROLE_USER"),
             UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID() // xApplication
+            UUID.randomUUID() // tenantId
         );
 
         // When
@@ -291,7 +291,7 @@ class UserAdapterMapperTest {
             List.of("ROLE_USER"),
             UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID() // xApplication
+            UUID.randomUUID() // tenantId
         );
 
         PageResultView<UserSearchView> pageResultView = new PageResultView<>(

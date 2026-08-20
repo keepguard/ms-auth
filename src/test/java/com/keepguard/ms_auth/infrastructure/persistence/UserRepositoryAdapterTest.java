@@ -363,38 +363,38 @@ class UserRepositoryAdapterTest {
     }
     
     @Test
-    @DisplayName("Deve buscar usuário por email e xApplication com sucesso")
-    void shouldFindUserByEmailAndXApplicationSuccessfully() {
+    @DisplayName("Deve buscar usuário por email e tenantId com sucesso")
+    void shouldFindUserByEmailAndTenantIdSuccessfully() {
         // Given
         String email = "test@example.com";
-        UUID xApplication = UUID.randomUUID();
-        when(jpaRepository.findByEmailAndXApplication(email, xApplication)).thenReturn(Optional.of(userJpaEntity));
+        UUID tenantId = UUID.randomUUID();
+        when(jpaRepository.findByEmailAndTenantId(email, tenantId)).thenReturn(Optional.of(userJpaEntity));
         when(userJpaMapper.toDomain(userJpaEntity)).thenReturn(user);
         
         // When
-        Optional<User> result = userRepositoryAdapter.findByEmailAndXApplication(email, xApplication);
+        Optional<User> result = userRepositoryAdapter.findByEmailAndTenantId(email, tenantId);
         
         // Then
         assertTrue(result.isPresent());
         assertEquals(user, result.get());
-        verify(jpaRepository, times(1)).findByEmailAndXApplication(email, xApplication);
+        verify(jpaRepository, times(1)).findByEmailAndTenantId(email, tenantId);
         verify(userJpaMapper, times(1)).toDomain(userJpaEntity);
     }
     
     @Test
-    @DisplayName("Deve retornar Optional vazio quando usuário não encontrado por email e xApplication")
-    void shouldReturnEmptyOptionalWhenUserNotFoundByEmailAndXApplication() {
+    @DisplayName("Deve retornar Optional vazio quando usuário não encontrado por email e tenantId")
+    void shouldReturnEmptyOptionalWhenUserNotFoundByEmailAndTenantId() {
         // Given
         String email = "test@example.com";
-        UUID xApplication = UUID.randomUUID();
-        when(jpaRepository.findByEmailAndXApplication(email, xApplication)).thenReturn(Optional.empty());
+        UUID tenantId = UUID.randomUUID();
+        when(jpaRepository.findByEmailAndTenantId(email, tenantId)).thenReturn(Optional.empty());
         
         // When
-        Optional<User> result = userRepositoryAdapter.findByEmailAndXApplication(email, xApplication);
+        Optional<User> result = userRepositoryAdapter.findByEmailAndTenantId(email, tenantId);
         
         // Then
         assertTrue(result.isEmpty());
-        verify(jpaRepository, times(1)).findByEmailAndXApplication(email, xApplication);
+        verify(jpaRepository, times(1)).findByEmailAndTenantId(email, tenantId);
     }
     
     @Test

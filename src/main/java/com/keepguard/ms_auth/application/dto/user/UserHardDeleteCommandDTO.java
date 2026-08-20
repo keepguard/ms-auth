@@ -9,7 +9,7 @@ public record UserHardDeleteCommandDTO(
     @NotBlank(message = "idUserExternal é obrigatório")
     String idUserExternal,
     
-    @NotNull(message = "xApplication é obrigatório")
-    UUID xApplicationUuid
+    @NotNull(message = "tenantId é obrigatório")
+    UUID tenantId
 ) {
 }
