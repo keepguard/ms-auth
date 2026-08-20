@@ -88,23 +88,23 @@ public class UserCommandService {
 
         User savedUser = userRepository.save(user);
 
-        if (command.getRoles() != null) {
+        if (command.getRoles() != null && !command.getRoles().isEmpty()) {
             for (String roleName : command.getRoles()) {
                 Role role = roleRepository.findByName(roleName)
                     .orElseThrow(() -> new NotFoundException("Role não encontrada: " + roleName));
                 userRoleRepository.save(UserRole.assign(savedUser.getId(), role.getId()));
             }
+        } else {
+            // Buscar e adicionar role USER se existir (Fallback)
+            roleRepository.findByName(DEFAULT_USER_ROLE).ifPresent(role -> {
+                userRoleRepository.save(UserRole.assign(savedUser.getId(), role.getId()));
+                log.info("Role {} added to user with ID: {}", DEFAULT_USER_ROLE, savedUser.getId());
+            });
         }
 
         userStatusHistoryRepository.save(
             UserStatusHistory.create(savedUser.getId(), UserStatusEventType.CREATED, "Usuário criado")
         );
-
-        // Buscar e adicionar role USER se existir
-        roleRepository.findByName(DEFAULT_USER_ROLE).ifPresent(role -> {
-            userRoleRepository.save(UserRole.assign(savedUser.getId(), role.getId()));
-            log.info("Role {} added to user with ID: {}", DEFAULT_USER_ROLE, savedUser.getId());
-        });
 
         metricsPort.incrementCounter("user_created_total",
             Map.of("status", "success"));

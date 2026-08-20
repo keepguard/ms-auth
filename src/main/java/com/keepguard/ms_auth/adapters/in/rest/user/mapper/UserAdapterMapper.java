@@ -16,10 +16,6 @@ import java.util.UUID;
 @Slf4j
 public class UserAdapterMapper {
 
-    // Conversões internas movidas para UserApplicationMapper
-
-    // Conversões internas movidas para UserApplicationMapper
-
     public UserCreateCommandDTO toCreateCommand(UserCreateRequestDTO dto, UUID tenantId) {
         if (dto == null) {
             return null;
