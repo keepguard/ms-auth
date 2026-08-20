@@ -34,7 +34,7 @@ import java.util.UUID;
 @Slf4j
 public class UserCommandService {
 
-    private static final String DEFAULT_USER_ROLE = "USER";
+    private static final String DEFAULT_USER_ROLE = "ROLE_USER";
 
     private final UserRepositoryPort userRepository;
     private final RoleRepositoryPort roleRepository;

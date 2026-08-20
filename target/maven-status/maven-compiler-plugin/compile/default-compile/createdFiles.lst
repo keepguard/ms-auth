@@ -46,6 +46,7 @@ com/keepguard/ms_auth/adapters/in/rest/authority/dto/AuthorityUpdateRequestDTO.c
 com/keepguard/ms_auth/domain/dto/role/RoleGetAllQueryDTO$RoleGetAllQueryDTOBuilder.class
 com/keepguard/ms_auth/application/service/role/RoleUseCaseService.class
 com/keepguard/ms_auth/application/service/exception/QueryOperationException.class
+com/keepguard/ms_auth/infrastructure/config/RoleSeeder.class
 com/keepguard/ms_auth/adapters/in/rest/role/dto/RoleUpdateResponseDTO.class
 com/keepguard/ms_auth/application/dto/user/UserGetByIdExternalView.class
 com/keepguard/ms_auth/application/dto/authority/AuthorityUpdateView.class

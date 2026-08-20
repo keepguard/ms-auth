@@ -189,6 +189,7 @@
 /Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/src/main/java/com/keepguard/ms_auth/domain/enums/UserStatusEventType.java
 /Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/src/main/java/com/keepguard/ms_auth/infrastructure/config/FeignConfig.java
 /Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/src/main/java/com/keepguard/ms_auth/infrastructure/config/JacksonConfig.java
+/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/src/main/java/com/keepguard/ms_auth/infrastructure/config/RoleSeeder.java
 /Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/src/main/java/com/keepguard/ms_auth/infrastructure/config/SwaggerConfig.java
 /Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/src/main/java/com/keepguard/ms_auth/infrastructure/config/resilience/ResilienceConfig.java
 /Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/src/main/java/com/keepguard/ms_auth/infrastructure/config/security/JwtConfig.java

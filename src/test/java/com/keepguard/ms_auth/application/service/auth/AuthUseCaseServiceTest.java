@@ -58,13 +58,13 @@ class AuthUseCaseServiceTest {
             .username("testuser")
             .password("password123")
             .tenantId(UUID.randomUUID())
-            .userAgent("Mozilla/5.0")
+            .clientId("test-client-id")
             .build();
         
         refreshTokenRequest = AuthRefreshTokenCommandDTO.builder()
             .token(token)
             .tenantId(UUID.randomUUID())
-            .userAgent("Mozilla/5.0")
+            .clientId("test-client-id")
             .build();
         
         changePasswordRequest = AuthChangePasswordCommandDTO.builder()
