@@ -14,8 +14,9 @@ import java.util.UUID;
 @Builder
 public class UserStatusHistoryJpaEntity {
     @Id
-    @GeneratedValue(generator = "UUID")
+
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "user_id", nullable = false)

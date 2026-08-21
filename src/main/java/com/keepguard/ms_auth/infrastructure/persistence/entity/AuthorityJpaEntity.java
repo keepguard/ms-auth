@@ -13,8 +13,9 @@ import java.util.UUID;
 @Builder
 public class AuthorityJpaEntity {
     @Id
-    @GeneratedValue(generator = "UUID")
+
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(unique = true, nullable = false, length = 50)
