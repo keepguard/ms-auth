@@ -4,7 +4,7 @@ set -e
 
 SERVICE_NAME="ms-auth"
 POM_FILE="/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/${SERVICE_NAME}/pom.xml"
-DOCKER_COMPOSE_FILE="/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/docker/infra/api/docker-compose.yml"
+DOCKER_COMPOSE_FILE="/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/docker/docker-compose.yml"
 DOCKERFILE_PATH="/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/${SERVICE_NAME}/Dockerfile"
 TARGET_DIR="/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/${SERVICE_NAME}/target"
 
@@ -149,7 +149,7 @@ log_success "docker-compose.yml atualizado"
 # 7. Deploy no Docker Compose (se parâmetro "up")
 if [ "$DEPLOY_DOCKER" = true ]; then
     log_info "Fazendo deploy no Docker Compose..."
-    cd "/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/docker/infra/api"
+    cd "/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/docker"
     docker-compose up -d ${SERVICE_NAME}
     
     if [ $? -eq 0 ]; then

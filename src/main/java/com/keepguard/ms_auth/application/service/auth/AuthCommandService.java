@@ -109,7 +109,11 @@ public class AuthCommandService {
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
-        // Salvar token
+        // Single session: invalida todas as sessões anteriores antes de criar a nova
+        tokenCachePort.removeAllTokens(user.getCodeUser().toString());
+        log.info("Sessões anteriores invalidadas | codeUser={}", user.getCodeUser());
+
+        // Salvar novo token
         tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getExpiration());
 
         metricsPort.incrementCounter("auth_login_success_total",
@@ -173,7 +177,11 @@ public class AuthCommandService {
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
-        // Salvar token
+        // Single session: invalida todas as sessões anteriores antes de criar a nova
+        tokenCachePort.removeAllTokens(user.getCodeUser().toString());
+        log.info("Sessões anteriores invalidadas | codeUser={}", user.getCodeUser());
+
+        // Salvar novo token
         tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getExpiration());
 
         metricsPort.incrementCounter("auth_register_login_success_total",

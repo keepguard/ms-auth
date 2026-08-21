@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.712" tests="21" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.711" tests="21" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="25"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -13,7 +13,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="BR"/>
     <property name="sun.boot.library.path" value="/Users/rafaelnogueirasoares/.sdkman/candidates/java/25.0.4-amzn/lib"/>
-    <property name="sun.java.command" value="/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/target/surefire/surefirebooter-20260821004338698_3.jar /Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/target/surefire 2026-08-21T00-43-38_656-jvmRun1 surefire-20260821004338698_1tmp surefire_0-20260821004338698_2tmp"/>
+    <property name="sun.java.command" value="/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/target/surefire/surefirebooter-20260821010041361_3.jar /Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/target/surefire 2026-08-21T01-00-41_327-jvmRun1 surefire-20260821010041361_1tmp surefire_0-20260821010041361_2tmp"/>
     <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="jdk.debug" value="release"/>
     <property name="test" value="AuthCommandServiceTest"/>
@@ -31,7 +31,7 @@
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="apple.awt.application.name" value="ForkedBooter"/>
-    <property name="surefire.real.class.path" value="/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/target/surefire/surefirebooter-20260821004338698_3.jar"/>
+    <property name="surefire.real.class.path" value="/Users/rafaelnogueirasoares/Projetos/keepguard/keepguard-core/backend/ms/ms-auth/target/surefire/surefirebooter-20260821010041361_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.runtime.version" value="25.0.4+7-LTS"/>
@@ -61,9 +61,9 @@
     <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.class.version" value="69.0"/>
   </properties>
-  <testcase name="shouldThrowExceptionWhenTokenNotValidInRedis" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.626">
-    <system-out><![CDATA[00:43:39.633 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing token validation request - application=a1b2240e-8701-4da0-a30b-24eac44a8928
-00:43:39.637 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Token inválido ou expirado - Código: INVALID_TOKEN - Contexto: {application=a1b2240e-8701-4da0-a30b-24eac44a8928, codeUser=8b8410e0-8791-43c6-9a7f-f2cad76b87e4}
+  <testcase name="shouldThrowExceptionWhenTokenNotValidInRedis" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.634">
+    <system-out><![CDATA[01:00:42.345 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing token validation request - application=247e9068-bf83-43c2-8f3d-9fcbc29540d9
+01:00:42.349 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Token inválido ou expirado - Código: INVALID_TOKEN - Contexto: {application=247e9068-bf83-43c2-8f3d-9fcbc29540d9, codeUser=0c6e74c1-07bf-4175-9d4e-8e17a8e2885f}
 ]]></system-out>
     <system-err><![CDATA[Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
 WARNING: A Java agent has been loaded dynamically (/Users/rafaelnogueirasoares/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.6/byte-buddy-agent-1.17.6.jar)
@@ -72,104 +72,106 @@ WARNING: If a serviceability tool is not in use, please run with -Djdk.instrumen
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
 ]]></system-err>
   </testcase>
-  <testcase name="shouldThrowExceptionWhenTokenAlreadyRotated" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.011">
-    <system-out><![CDATA[00:43:39.656 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing refresh token request - application=a6ec19fc-3cfa-47ea-843b-dd7e1b82dabc, clientId=null
-00:43:39.657 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Refresh token failed - Token revogado ou já rotacionado: codeUser=9e032309-6770-46f8-a2f8-6b0cda893290, application=a6ec19fc-3cfa-47ea-843b-dd7e1b82dabc
-00:43:39.657 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Token revogado ou sessão encerrada - Código: TOKEN_REVOKED - Contexto: {application=a6ec19fc-3cfa-47ea-843b-dd7e1b82dabc, codeUser=9e032309-6770-46f8-a2f8-6b0cda893290}
+  <testcase name="shouldThrowExceptionWhenTokenAlreadyRotated" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.005">
+    <system-out><![CDATA[01:00:42.364 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing refresh token request - application=83d7c8c4-15b7-428f-9459-f148dd98c47d, clientId=null
+01:00:42.365 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Refresh token failed - Token revogado ou já rotacionado: codeUser=51729cf8-1b8d-43b2-b264-bdf144850683, application=83d7c8c4-15b7-428f-9459-f148dd98c47d
+01:00:42.365 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Token revogado ou sessão encerrada - Código: TOKEN_REVOKED - Contexto: {application=83d7c8c4-15b7-428f-9459-f148dd98c47d, codeUser=51729cf8-1b8d-43b2-b264-bdf144850683}
 ]]></system-out>
   </testcase>
-  <testcase name="shouldValidateTokenSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.01">
-    <system-out><![CDATA[00:43:39.667 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing token validation request - application=b4849f90-e866-401a-be86-77f00a7b5434
+  <testcase name="shouldValidateTokenSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.004">
+    <system-out><![CDATA[01:00:42.369 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing token validation request - application=94de0eba-f5fc-49fb-825f-d2dc17c8879d
 ]]></system-out>
   </testcase>
-  <testcase name="shouldHandleExceptionsDuringLogin" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.006">
-    <system-out><![CDATA[00:43:39.676 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
+  <testcase name="shouldHandleExceptionsDuringLogin" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.005">
+    <system-out><![CDATA[01:00:42.375 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
 ]]></system-out>
   </testcase>
   <testcase name="shouldThrowExceptionWhenEmailNotVerified" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.004">
-    <system-out><![CDATA[00:43:39.680 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
-00:43:39.681 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Login failed - Email not verified: username=testuser, userId=8dd2722e-edb2-4724-8c7b-ebd7d1192cd6, application=6c6c02e4-742c-46ea-8c11-c4acfbccf136
-00:43:39.681 [main] WARN  c.k.m.a.s.e.EmailNotVerifiedException - E-mail não verificado: Email not verified - Código: EMAIL_NOT_VERIFIED - Contexto: {userId=8dd2722e-edb2-4724-8c7b-ebd7d1192cd6, application=6c6c02e4-742c-46ea-8c11-c4acfbccf136, username=testuser}
+    <system-out><![CDATA[01:00:42.378 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
+01:00:42.379 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Login failed - Email not verified: username=testuser, userId=c67dc4a7-0cb3-4643-ac3d-2017eee57e66, application=81c590e0-4537-41db-a65d-cacc24c5feae
+01:00:42.379 [main] WARN  c.k.m.a.s.e.EmailNotVerifiedException - E-mail não verificado: Email not verified - Código: EMAIL_NOT_VERIFIED - Contexto: {userId=c67dc4a7-0cb3-4643-ac3d-2017eee57e66, application=81c590e0-4537-41db-a65d-cacc24c5feae, username=testuser}
 ]]></system-out>
   </testcase>
-  <testcase name="shouldResetPasswordSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.004">
-    <system-out><![CDATA[00:43:39.684 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing password reset request - codeUser=df4dcc2c-b465-4ea8-86b3-0ce77c01ea2c, application=88526163-7652-46c2-a5bf-46d4ada23529, messageType=EMAIL, templateType=RECUPERACAO_SENHA, resetToken=reset-token
-00:43:39.685 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Senha resetada com sucesso | codeUser=df4dcc2c-b465-4ea8-86b3-0ce77c01ea2c | messageType=EMAIL | templateType=RECUPERACAO_SENHA
+  <testcase name="shouldResetPasswordSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.005">
+    <system-out><![CDATA[01:00:42.383 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing password reset request - codeUser=24c2678c-7312-4386-b81a-27e5fd7db0d5, application=6a04e5bf-7505-40a5-b56f-8a475ee070fe, messageType=EMAIL, templateType=RECUPERACAO_SENHA, resetToken=reset-token
+01:00:42.384 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Senha resetada com sucesso | codeUser=24c2678c-7312-4386-b81a-27e5fd7db0d5 | messageType=EMAIL | templateType=RECUPERACAO_SENHA
 ]]></system-out>
   </testcase>
-  <testcase name="shouldLogoutSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.003">
-    <system-out><![CDATA[00:43:39.688 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing logout request - application=6652db13-860b-4842-ba3b-612d64a01975
+  <testcase name="shouldLogoutSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.004">
+    <system-out><![CDATA[01:00:42.387 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing logout request - application=cc4d85cc-1eb7-45df-86f0-627d5a9d94c5
 ]]></system-out>
   </testcase>
   <testcase name="shouldThrowExceptionWhenJwtTokenIsInvalid" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.003">
-    <system-out><![CDATA[00:43:39.690 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing token validation request - application=acb23ee1-406c-4301-9315-cec0abb7084d
-00:43:39.692 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Token inválido ou expirado - Código: INVALID_TOKEN - Contexto: {application=acb23ee1-406c-4301-9315-cec0abb7084d}
+    <system-out><![CDATA[01:00:42.391 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing token validation request - application=285d3d93-ad6d-4418-8960-61959a97b299
+01:00:42.391 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Token inválido ou expirado - Código: INVALID_TOKEN - Contexto: {application=285d3d93-ad6d-4418-8960-61959a97b299}
 ]]></system-out>
   </testcase>
-  <testcase name="shouldThrowExceptionWhenTokenInvalid" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.002">
-    <system-out><![CDATA[00:43:39.694 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing refresh token request - application=8329f2bb-2f1c-4a72-aa96-f49360cc4723, clientId=null
-00:43:39.694 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Invalid token - Código: INVALID_TOKEN - Contexto: {application=8329f2bb-2f1c-4a72-aa96-f49360cc4723}
+  <testcase name="shouldThrowExceptionWhenTokenInvalid" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.003">
+    <system-out><![CDATA[01:00:42.394 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing refresh token request - application=088110d8-4b7d-4172-a1c9-1e3608125d4f, clientId=null
+01:00:42.394 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Invalid token - Código: INVALID_TOKEN - Contexto: {application=088110d8-4b7d-4172-a1c9-1e3608125d4f}
 ]]></system-out>
   </testcase>
-  <testcase name="shouldLoginSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.004">
-    <system-out><![CDATA[00:43:39.697 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
+  <testcase name="shouldLoginSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.005">
+    <system-out><![CDATA[01:00:42.397 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
+01:00:42.399 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Sessões anteriores invalidadas | codeUser=046f37d4-6d05-4be3-bddc-acaee49ad5ef
 ]]></system-out>
   </testcase>
   <testcase name="shouldThrowExceptionWhenPasswordsDoNotMatchInChangePassword" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.002">
-    <system-out><![CDATA[00:43:39.701 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing password change request - codeUser=code-123, application=0606abb9-e76b-44a4-8967-7788a087bcd4
+    <system-out><![CDATA[01:00:42.402 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing password change request - codeUser=code-123, application=5068acf9-12c0-45fb-b533-b9aeceaf4245
 ]]></system-out>
   </testcase>
-  <testcase name="shouldChangePasswordSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.003">
-    <system-out><![CDATA[00:43:39.704 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing password change request - codeUser=83e543c0-c4cf-43a4-99e5-f7676ae686f8, application=fee3b5c5-d305-4e16-806e-b492e05ec68c
+  <testcase name="shouldChangePasswordSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.002">
+    <system-out><![CDATA[01:00:42.404 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing password change request - codeUser=807af060-58bf-43ef-b439-2885aac21d4f, application=a22a058d-eb85-40fa-b457-2587608c577b
 ]]></system-out>
   </testcase>
   <testcase name="shouldThrowExceptionWhenUserNotActiveInRefresh" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.003">
-    <system-out><![CDATA[00:43:39.706 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing refresh token request - application=1d4a57eb-2be6-4c49-ac7f-e4c8a4e8e110, clientId=null
-00:43:39.707 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: User is not active - Código: USER_NOT_ACTIVE - Contexto: {application=1d4a57eb-2be6-4c49-ac7f-e4c8a4e8e110, status=BLOCKED, codeUser=48714bea-c309-4363-9e83-f275de8800e3}
+    <system-out><![CDATA[01:00:42.407 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing refresh token request - application=fb1d20aa-3882-4cd4-a09c-f706246cbf42, clientId=null
+01:00:42.408 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: User is not active - Código: USER_NOT_ACTIVE - Contexto: {application=fb1d20aa-3882-4cd4-a09c-f706246cbf42, status=BLOCKED, codeUser=78d1315b-6780-4705-886e-213d58165f28}
 ]]></system-out>
   </testcase>
   <testcase name="shouldThrowExceptionWhenUserNotFound" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.002">
-    <system-out><![CDATA[00:43:39.709 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
-00:43:39.709 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Login failed - User not found: username=testuser, application=52a52eaa-425e-4956-8a48-9a2d90dacd13
-00:43:39.709 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: User not found - Código: USER_NOT_FOUND - Contexto: {username=testuser, application=52a52eaa-425e-4956-8a48-9a2d90dacd13}
+    <system-out><![CDATA[01:00:42.410 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
+01:00:42.410 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Login failed - User not found: username=testuser, application=5852d845-a58a-422a-9390-1d8a6d46e9c9
+01:00:42.410 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: User not found - Código: USER_NOT_FOUND - Contexto: {username=testuser, application=5852d845-a58a-422a-9390-1d8a6d46e9c9}
 ]]></system-out>
   </testcase>
   <testcase name="shouldThrowExceptionWhenUserNotFoundInRefresh" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.002">
-    <system-out><![CDATA[00:43:39.711 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing refresh token request - application=68d7bd80-4b49-4dbc-8d20-cf1764210d1b, clientId=null
-00:43:39.712 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Refresh token failed - User not found: codeUser=3f93f6a3-db2d-4efb-b99e-8c53b15ecce4, application=68d7bd80-4b49-4dbc-8d20-cf1764210d1b
-00:43:39.712 [main] WARN  c.k.m.a.s.e.NotFoundException - Recurso não encontrado: User not found - Código: USER_NOT_FOUND - Contexto: {application=68d7bd80-4b49-4dbc-8d20-cf1764210d1b, codeUser=3f93f6a3-db2d-4efb-b99e-8c53b15ecce4}
+    <system-out><![CDATA[01:00:42.412 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing refresh token request - application=a42ecb6b-0402-48a0-8602-18d9e083bb5f, clientId=null
+01:00:42.412 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Refresh token failed - User not found: codeUser=a8d6a41a-7d86-49aa-b1f4-4eb1597d92d0, application=a42ecb6b-0402-48a0-8602-18d9e083bb5f
+01:00:42.413 [main] WARN  c.k.m.a.s.e.NotFoundException - Recurso não encontrado: User not found - Código: USER_NOT_FOUND - Contexto: {application=a42ecb6b-0402-48a0-8602-18d9e083bb5f, codeUser=a8d6a41a-7d86-49aa-b1f4-4eb1597d92d0}
 ]]></system-out>
   </testcase>
-  <testcase name="shouldThrowExceptionWhenPasswordIncorrect" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.002">
-    <system-out><![CDATA[00:43:39.714 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
-00:43:39.714 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Login failed - Invalid password: username=testuser, userId=401fb9da-8231-4f52-9024-078db399c2d4, application=1f9a81e8-6507-4a42-94af-0e67ae0712a4
-00:43:39.714 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Invalid password - Código: INVALID_PASSWORD - Contexto: {userId=401fb9da-8231-4f52-9024-078db399c2d4, application=1f9a81e8-6507-4a42-94af-0e67ae0712a4, username=testuser}
+  <testcase name="shouldThrowExceptionWhenPasswordIncorrect" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.001">
+    <system-out><![CDATA[01:00:42.415 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
+01:00:42.415 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Login failed - Invalid password: username=testuser, userId=caa0d60e-94b9-45b8-ba17-0f69372d9fd5, application=d40cd43f-4d8d-41ca-b3d1-4d1dd4b648fb
+01:00:42.415 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Invalid password - Código: INVALID_PASSWORD - Contexto: {userId=caa0d60e-94b9-45b8-ba17-0f69372d9fd5, application=d40cd43f-4d8d-41ca-b3d1-4d1dd4b648fb, username=testuser}
 ]]></system-out>
   </testcase>
-  <testcase name="shouldThrowExceptionWhenUserNotActive" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.002">
-    <system-out><![CDATA[00:43:39.716 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
-00:43:39.716 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Login failed - User not active: username=testuser, userId=ea56f775-f2a6-4925-b42c-eee376239b69, status=BLOCKED, application=d5b111a6-4d5a-435e-8caf-6ae7e4178c7b
-00:43:39.716 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: User is not active - Código: USER_NOT_ACTIVE - Contexto: {username=testuser, status=BLOCKED, application=d5b111a6-4d5a-435e-8caf-6ae7e4178c7b, userId=ea56f775-f2a6-4925-b42c-eee376239b69}
+  <testcase name="shouldThrowExceptionWhenUserNotActive" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.003">
+    <system-out><![CDATA[01:00:42.418 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
+01:00:42.418 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Login failed - User not active: username=testuser, userId=38d81d7a-4b11-4d9a-bb0a-083d9309d3b0, status=BLOCKED, application=78e864e8-062a-428e-ac19-f8eebbc6b88c
+01:00:42.418 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: User is not active - Código: USER_NOT_ACTIVE - Contexto: {username=testuser, status=BLOCKED, application=78e864e8-062a-428e-ac19-f8eebbc6b88c, userId=38d81d7a-4b11-4d9a-bb0a-083d9309d3b0}
 ]]></system-out>
   </testcase>
-  <testcase name="shouldRefreshTokenSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.002">
-    <system-out><![CDATA[00:43:39.718 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing refresh token request - application=27749895-de36-4008-abee-4e5f7e9809fa, clientId=null
+  <testcase name="shouldRefreshTokenSuccessfully" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.003">
+    <system-out><![CDATA[01:00:42.421 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing refresh token request - application=3d21420c-e6e6-40b2-9438-73f74d8e614e, clientId=null
 ]]></system-out>
   </testcase>
   <testcase name="shouldThrowExceptionOnLogoutWhenTokenInvalid" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.002">
-    <system-out><![CDATA[00:43:39.721 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing logout request - application=893bd649-c77e-4b72-9fdc-bd4d80f0f1e1
-00:43:39.721 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Logout failed - Token com assinatura inválida: application=893bd649-c77e-4b72-9fdc-bd4d80f0f1e1
-00:43:39.721 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Token inválido - Código: INVALID_TOKEN - Contexto: {application=893bd649-c77e-4b72-9fdc-bd4d80f0f1e1}
+    <system-out><![CDATA[01:00:42.423 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing logout request - application=3b3c3631-b848-4288-9278-8af75b8bdf31
+01:00:42.423 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Logout failed - Token com assinatura inválida: application=3b3c3631-b848-4288-9278-8af75b8bdf31
+01:00:42.424 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Token inválido - Código: INVALID_TOKEN - Contexto: {application=3b3c3631-b848-4288-9278-8af75b8bdf31}
 ]]></system-out>
   </testcase>
-  <testcase name="shouldThrowExceptionOnLogoutWhenSessionAlreadyTerminated" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.002">
-    <system-out><![CDATA[00:43:39.723 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing logout request - application=fc4227d3-2a3f-4449-aa56-accd2490fd62
-00:43:39.723 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Logout failed - Sessão já encerrada ou token revogado: codeUser=82d909a0-f0fe-48c9-aa90-8d49c24ba365, application=fc4227d3-2a3f-4449-aa56-accd2490fd62
-00:43:39.723 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Sessão já encerrada - Código: SESSION_ALREADY_TERMINATED - Contexto: {application=fc4227d3-2a3f-4449-aa56-accd2490fd62, codeUser=82d909a0-f0fe-48c9-aa90-8d49c24ba365}
+  <testcase name="shouldThrowExceptionOnLogoutWhenSessionAlreadyTerminated" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.003">
+    <system-out><![CDATA[01:00:42.426 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing logout request - application=1d01ac71-5c90-4292-a48f-202febf66cdd
+01:00:42.426 [main] WARN  c.k.m.a.s.auth.AuthCommandService - Logout failed - Sessão já encerrada ou token revogado: codeUser=4e0b89c0-93c6-41d5-9e51-b6bf039d593c, application=1d01ac71-5c90-4292-a48f-202febf66cdd
+01:00:42.426 [main] ERROR c.k.m.a.s.e.InvalidCredentialsException - Erro de credenciais: Sessão já encerrada - Código: SESSION_ALREADY_TERMINATED - Contexto: {application=1d01ac71-5c90-4292-a48f-202febf66cdd, codeUser=4e0b89c0-93c6-41d5-9e51-b6bf039d593c}
 ]]></system-out>
   </testcase>
   <testcase name="shouldUpdateUserLastLogin" classname="com.keepguard.ms_auth.application.service.auth.AuthCommandServiceTest" time="0.002">
-    <system-out><![CDATA[00:43:39.724 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
+    <system-out><![CDATA[01:00:42.428 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Processing login for username: testuser
+01:00:42.429 [main] INFO  c.k.m.a.s.auth.AuthCommandService - Sessões anteriores invalidadas | codeUser=50316394-686a-4295-b705-65c07a2d0246
 ]]></system-out>
   </testcase>
 </testsuite>
