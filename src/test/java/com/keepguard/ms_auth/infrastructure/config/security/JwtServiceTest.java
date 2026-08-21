@@ -224,27 +224,27 @@ class JwtServiceTest {
         List<String> roles = List.of("ADMIN", "USER");
         List<String> authorities = List.of("CREATE_USER", "DELETE_USER", "READ_USER");
         String application = "test-app";
-        String token = jwtService.generateToken(user, roles, authorities, application, "UnknownClient/1.0");
-
+        String token = jwtService.generateToken(user, roles, authorities, application, "test-client");
+ 
         // When
         Claims claims = Jwts.parser()
             .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
             .build()
             .parseSignedClaims(token)
             .getPayload();
-
+ 
         // Then
         assertEquals("ms-auth", claims.getIssuer());
-        assertEquals(application, claims.getAudience().iterator().next());
+        assertEquals("test-client", claims.getAudience().iterator().next());
         assertEquals(user.getCodeUser().toString(), claims.getSubject());
         assertEquals(roles, claims.get("roles", List.class));
         assertNotNull(claims.get("authorities", List.class));
-        assertEquals("unknown", claims.get("client_id"));
+        assertEquals("test-client", claims.get("client_id"));
         assertEquals("password", claims.get("login_method"));
         assertNotNull(claims.getIssuedAt());
         assertNotNull(claims.getExpiration());
     }
-
+ 
     @Test
     @DisplayName("Deve detectar cliente Postman")
     void shouldDetectPostmanClient() {
@@ -252,10 +252,10 @@ class JwtServiceTest {
         List<String> roles = List.of("ADMIN");
         List<String> authorities = List.of("READ_USER");
         String application = "test-app";
-
+ 
         // When
-        String token = jwtService.generateToken(user, roles, authorities, application, "PostmanRuntime/7.28.4");
-
+        String token = jwtService.generateToken(user, roles, authorities, application, "postman");
+ 
         // Then
         Claims claims = Jwts.parser()
             .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
@@ -265,7 +265,7 @@ class JwtServiceTest {
         
         assertEquals("postman", claims.get("client_id"));
     }
-
+ 
     @Test
     @DisplayName("Deve detectar cliente web")
     void shouldDetectWebClient() {
@@ -273,10 +273,10 @@ class JwtServiceTest {
         List<String> roles = List.of("ADMIN");
         List<String> authorities = List.of("READ_USER");
         String application = "test-app";
-
+ 
         // When
-        String token = jwtService.generateToken(user, roles, authorities, application, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-
+        String token = jwtService.generateToken(user, roles, authorities, application, "web-app");
+ 
         // Then
         Claims claims = Jwts.parser()
             .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
@@ -286,7 +286,7 @@ class JwtServiceTest {
         
         assertEquals("web-app", claims.get("client_id"));
     }
-
+ 
     @Test
     @DisplayName("Deve detectar cliente mobile")
     void shouldDetectMobileClient() {
@@ -294,10 +294,10 @@ class JwtServiceTest {
         List<String> roles = List.of("ADMIN");
         List<String> authorities = List.of("READ_USER");
         String application = "test-app";
-
+ 
         // When
-        String token = jwtService.generateToken(user, roles, authorities, application, "Mobile App/1.0.0");
-
+        String token = jwtService.generateToken(user, roles, authorities, application, "mobile-app");
+ 
         // Then
         Claims claims = Jwts.parser()
             .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
@@ -307,18 +307,18 @@ class JwtServiceTest {
         
         assertEquals("mobile-app", claims.get("client_id"));
     }
-
+ 
     @Test
-    @DisplayName("Deve retornar unknown para User-Agent nulo")
-    void shouldReturnUnknownForNullUserAgent() {
+    @DisplayName("Deve retornar default para Client ID nulo")
+    void shouldReturnDefaultClientForNullClientId() {
         // Given
         List<String> roles = List.of("ADMIN");
         List<String> authorities = List.of("READ_USER");
         String application = "test-app";
-
+ 
         // When
         String token = jwtService.generateToken(user, roles, authorities, application, null);
-
+ 
         // Then
         Claims claims = Jwts.parser()
             .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
@@ -326,20 +326,20 @@ class JwtServiceTest {
             .parseSignedClaims(token)
             .getPayload();
         
-        assertEquals("unknown", claims.get("client_id"));
+        assertEquals("keepguard-default-client", claims.get("client_id"));
     }
-
+ 
     @Test
-    @DisplayName("Deve retornar unknown para User-Agent desconhecido")
+    @DisplayName("Deve retornar unknown para Client ID desconhecido")
     void shouldReturnUnknownForUnknownUserAgent() {
         // Given
         List<String> roles = List.of("ADMIN");
         List<String> authorities = List.of("READ_USER");
         String application = "test-app";
-
+ 
         // When
-        String token = jwtService.generateToken(user, roles, authorities, application, "UnknownClient/1.0");
-
+        String token = jwtService.generateToken(user, roles, authorities, application, "unknown");
+ 
         // Then
         Claims claims = Jwts.parser()
             .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))

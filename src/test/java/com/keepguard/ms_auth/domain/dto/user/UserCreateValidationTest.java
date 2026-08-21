@@ -1,6 +1,6 @@
 package com.keepguard.ms_auth.domain.dto.user;
 
-import com.keepguard.ms_auth.adapters.in.rest.user.dto.request.UserCreateRequestDTO;
+import com.keepguard.ms_auth.domain.dto.user.UserCreateCommandDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -25,58 +25,62 @@ class UserCreateValidationTest {
     }
 
     @Test
-    @DisplayName("UserCreateRequestDTO deve invalidar username curto, caracteres inválidos e palavras proibidas")
+    @DisplayName("UserCreateCommandDTO deve invalidar username curto, caracteres inválidos e palavras proibidas")
     void requestDTO_shouldInvalidateUsername() {
-        UserCreateRequestDTO dto = UserCreateRequestDTO.builder()
+        UserCreateCommandDTO dto = UserCreateCommandDTO.builder()
                 .username("ab") // curto
                 .email("test@example.com")
                 .password("password123")
+                .name("Test User")
                 .idUserExternal("EXT")
-                .codeUser("USR")
-                .companyId(UUID.randomUUID().toString())
-                .companyCode(UUID.randomUUID().toString())
-                .tenantId(UUID.randomUUID().toString())
+                .codeUser(UUID.randomUUID())
+                .companyId(UUID.randomUUID())
+                .companyCode(UUID.randomUUID())
+                .tenantId(UUID.randomUUID())
                 .build();
-        Set<ConstraintViolation<UserCreateRequestDTO>> v1 = validator.validate(dto);
+        Set<ConstraintViolation<UserCreateCommandDTO>> v1 = validator.validate(dto);
         assertFalse(v1.isEmpty());
 
-        dto = UserCreateRequestDTO.builder()
+        dto = UserCreateCommandDTO.builder()
                 .username("invalid-$")
                 .email("test@example.com")
                 .password("password123")
+                .name("Test User")
                 .idUserExternal("EXT")
-                .codeUser("USR")
-                .companyId(UUID.randomUUID().toString())
-                .companyCode(UUID.randomUUID().toString())
-                .tenantId(UUID.randomUUID().toString())
+                .codeUser(UUID.randomUUID())
+                .companyId(UUID.randomUUID())
+                .companyCode(UUID.randomUUID())
+                .tenantId(UUID.randomUUID())
                 .build();
-        Set<ConstraintViolation<UserCreateRequestDTO>> v2 = validator.validate(dto);
+        Set<ConstraintViolation<UserCreateCommandDTO>> v2 = validator.validate(dto);
         assertFalse(v2.isEmpty());
 
-        dto = UserCreateRequestDTO.builder()
+        dto = UserCreateCommandDTO.builder()
                 .username("user_test") // contém 'user'
                 .email("test@example.com")
                 .password("password123")
+                .name("Test User")
                 .idUserExternal("EXT")
-                .codeUser("USR")
-                .companyId(UUID.randomUUID().toString())
-                .companyCode(UUID.randomUUID().toString())
-                .tenantId(UUID.randomUUID().toString())
+                .codeUser(UUID.randomUUID())
+                .companyId(UUID.randomUUID())
+                .companyCode(UUID.randomUUID())
+                .tenantId(UUID.randomUUID())
                 .build();
-        Set<ConstraintViolation<UserCreateRequestDTO>> v3 = validator.validate(dto);
+        Set<ConstraintViolation<UserCreateCommandDTO>> v3 = validator.validate(dto);
         assertFalse(v3.isEmpty());
 
-        dto = UserCreateRequestDTO.builder()
+        dto = UserCreateCommandDTO.builder()
                 .username("abc.def_123")
                 .email("test@example.com")
                 .password("password123")
+                .name("Test User")
                 .idUserExternal("EXT")
-                .codeUser("USR")
-                .companyId(UUID.randomUUID().toString())
-                .companyCode(UUID.randomUUID().toString())
-                .tenantId(UUID.randomUUID().toString())
+                .codeUser(UUID.randomUUID())
+                .companyId(UUID.randomUUID())
+                .companyCode(UUID.randomUUID())
+                .tenantId(UUID.randomUUID())
                 .build();
-        Set<ConstraintViolation<UserCreateRequestDTO>> v4 = validator.validate(dto);
+        Set<ConstraintViolation<UserCreateCommandDTO>> v4 = validator.validate(dto);
         assertTrue(v4.isEmpty());
     }
 }

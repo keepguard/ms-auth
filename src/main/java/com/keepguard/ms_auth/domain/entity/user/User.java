@@ -38,7 +38,7 @@ public class User {
                                   UUID idUserExternal, UUID codeUser, UUID companyId, UUID companyCode, UUID tenantId) {
 
         String normalizedUsername = username != null ? username.trim().toLowerCase() : null;
-        if (normalizedUsername == null) {
+        if (normalizedUsername == null || !normalizedUsername.matches("^[a-z0-9._]{3,50}$")) {
             throw new IllegalArgumentException("Username inválido. Deve ter 3-50 caracteres e conter apenas letras minúsculas, números, ponto e underline.");
         }
 

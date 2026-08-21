@@ -28,7 +28,7 @@ class UserAdapterMapperNormalizationTest {
                 .email("test@example.com")
                 .password("password123")
                 .idUserExternal("EXT123")
-                .codeUser("USR123")
+                .codeUser(UUID.randomUUID().toString())
                 .companyId(UUID.randomUUID().toString())
                 .companyCode(UUID.randomUUID().toString())
                 .tenantId(UUID.randomUUID().toString())

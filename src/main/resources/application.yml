@@ -2,6 +2,9 @@ server:
   port: 8581
 
 spring:
+  threads:
+    virtual:
+      enabled: true
   application:
     name: ms-auth
   datasource:
