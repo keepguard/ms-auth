@@ -37,10 +37,10 @@ public class RoleCacheService implements RoleCachePort {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${cache.redis.ttl.role:604800}")
+    @Value("${cache.redis.ttl.role}")
     private long roleTtlSeconds;
 
-    @Value("${cache.redis.prefix.role:role_cache}")
+    @Value("${cache.redis.prefix.role}")
     private String roleCachePrefix;
 
     @CircuitBreaker(name = "redisCache")

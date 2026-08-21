@@ -159,15 +159,9 @@ if [ "$DEPLOY_DOCKER" = true ]; then
     fi
 fi
 
-# 8. Auto-incrementa versão do POM
-log_info "Incrementando versão do POM..."
-NEXT_VERSION=$(increment_version "$VERSION")
-update_pom_version "$NEXT_VERSION"
-
 log_success "============================================"
 log_success "  Deploy concluído com sucesso!"
 log_success "============================================"
 log_info "Imagem: ${IMAGE_TAG}"
 log_info "Latest: ${IMAGE_LATEST}"
-log_info "Próxima versão: ${NEXT_VERSION}"
 log_success "============================================"

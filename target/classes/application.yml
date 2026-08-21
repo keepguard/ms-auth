@@ -61,16 +61,17 @@ cache:
       reset-token: 600  # 10 minutos para tokens de reset
     # Prefixos para as chaves do Redis
     prefix:
-      user: "user_cache:"
-      user-roles: "user_roles_cache:"
-      role: "role_cache:"
-      token: "tokenlogin:"
-      reset-token: "resetpassword:"
+      user: "user_cache"
+      user-roles: "user_roles_cache"
+      role: "role_cache"
+      token: "tokenlogin"
+      reset-token: "resetpassword"
 
 # Configurações de Segurança e Rate Limiting
 security:
   jwt:
     secret: ${JWT_SECRET:Q2FjaG9ycm8gU2VndXJhbmNhIFByb2pldG8gS2VlcEd1YXJkIQ==}
+    expiration: 3600000
   rate-limiting:
     max-attempts: 5  # Máximo de tentativas de login
     lockout-duration-minutes: 15  # Duração do bloqueio em minutos

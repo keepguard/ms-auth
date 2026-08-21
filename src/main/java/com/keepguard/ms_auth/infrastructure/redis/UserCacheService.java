@@ -23,16 +23,16 @@ public class UserCacheService implements UserCachePort {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${cache.redis.ttl.user:604800}")
+    @Value("${cache.redis.ttl.user}")
     private long userTtlSeconds;
 
-    @Value("${cache.redis.ttl.user-roles:604800}")
+    @Value("${cache.redis.ttl.user-roles}")
     private long userRolesTtlSeconds;
 
-    @Value("${cache.redis.prefix.user:user_cache}")
+    @Value("${cache.redis.prefix.user}")
     private String userCachePrefix;
 
-    @Value("${cache.redis.prefix.user-roles:user_roles_cache}")
+    @Value("${cache.redis.prefix.user-roles}")
     private String userRolesCachePrefix;
 
     @CircuitBreaker(name = "redisCache")

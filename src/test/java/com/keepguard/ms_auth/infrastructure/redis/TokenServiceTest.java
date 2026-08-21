@@ -43,11 +43,11 @@ class TokenServiceTest {
         try {
             var field = TokenCacheService.class.getDeclaredField("tokenPrefix");
             field.setAccessible(true);
-            field.set(tokenCacheService, "tokenlogin:");
+            field.set(tokenCacheService, "tokenlogin");
             
             field = TokenCacheService.class.getDeclaredField("resetTokenPrefix");
             field.setAccessible(true);
-            field.set(tokenCacheService, "resetpassword:");
+            field.set(tokenCacheService, "resetpassword");
             
             field = TokenCacheService.class.getDeclaredField("tokenTtlSeconds");
             field.setAccessible(true);

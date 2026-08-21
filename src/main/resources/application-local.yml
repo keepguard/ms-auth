@@ -39,6 +39,11 @@ spring:
 security:
   jwt:
     secret: Q2FjaG9ycm8gU2VndXJhbmNhIFByb2pldG8gS2VlcEd1YXJkIQ==
+    expiration: 3600000
+  rate-limiting:
+    max-attempts: 5
+    lockout-duration-minutes: 15
+    attempts-ttl-hours: 1
 
 management:
   endpoints:
@@ -65,8 +70,8 @@ cache:
       user: "user_cache"
       user-roles: "user_roles_cache"
       role: "role_cache"
-      token: "token_cache"
-      reset-token: "resetpassword:"
+      token: "tokenlogin"
+      reset-token: "resetpassword"
         
 springdoc:
   swagger-ui:

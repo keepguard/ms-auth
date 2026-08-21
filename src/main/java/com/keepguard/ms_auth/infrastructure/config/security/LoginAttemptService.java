@@ -18,13 +18,13 @@ public class LoginAttemptService {
     private final StringRedisTemplate redisTemplate;
 
     // Configurações de Rate Limiting via @Value
-    @Value("${security.rate-limiting.max-attempts:5}")
+    @Value("${security.rate-limiting.max-attempts}")
     private int maxAttempts;
 
-    @Value("${security.rate-limiting.lockout-duration-minutes:15}")
+    @Value("${security.rate-limiting.lockout-duration-minutes}")
     private int lockoutDurationMinutes;
 
-    @Value("${security.rate-limiting.attempts-ttl-hours:1}")
+    @Value("${security.rate-limiting.attempts-ttl-hours}")
     private int attemptsTtlHours;
 
     private static final String LOGIN_ATTEMPTS_PREFIX = "login_attempts:";

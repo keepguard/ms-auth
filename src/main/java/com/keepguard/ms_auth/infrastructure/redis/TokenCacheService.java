@@ -23,23 +23,23 @@ public class TokenCacheService implements TokenCachePort {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${cache.redis.prefix.token:tokenlogin:}")
+    @Value("${cache.redis.prefix.token}")
     private String tokenPrefix;
 
-    @Value("${cache.redis.prefix.reset-token:resetpassword:}")
+    @Value("${cache.redis.prefix.reset-token}")
     private String resetTokenPrefix;
 
-    @Value("${cache.redis.ttl.token:3600}")
+    @Value("${cache.redis.ttl.token}")
     private long tokenTtlSeconds;
 
-    @Value("${cache.redis.ttl.reset-token:900}")
+    @Value("${cache.redis.ttl.reset-token}")
     private long resetTokenTtlSeconds;
 
     @Override
     @CircuitBreaker(name = "redisCache")
     public void saveToken(String codeUser, String token, long ttlMillis) {
         try {
-            String key = tokenPrefix + codeUser + ":" + token;
+            String key = tokenPrefix + ":" + codeUser + ":" + token;
             Instant now = Instant.now();
             Instant expiresAt = now.plusMillis(ttlMillis);
             
@@ -57,7 +57,7 @@ public class TokenCacheService implements TokenCachePort {
     @Retry(name = "redisCache")
     public boolean isTokenValid(String codeUser, String token) {
         try {
-            String key = tokenPrefix + codeUser + ":" + token;
+            String key = tokenPrefix + ":" + codeUser + ":" + token;
             return Boolean.TRUE.equals(redisTemplate.hasKey(key));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -74,7 +74,7 @@ public class TokenCacheService implements TokenCachePort {
     @CircuitBreaker(name = "redisCache")
     public void removeAllTokens(String codeUser) {
         try {
-            Set<String> keys = redisTemplate.keys(tokenPrefix + codeUser + ":*");
+            Set<String> keys = redisTemplate.keys(tokenPrefix + ":" + codeUser + ":*");
             if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
                 log.info("Tokens removidos | codeUser={} | quantidade={}", codeUser, keys.size());
@@ -88,7 +88,7 @@ public class TokenCacheService implements TokenCachePort {
     @CircuitBreaker(name = "redisCache")
     public void removeToken(String codeUser, String token) {
         try {
-            String key = tokenPrefix + codeUser + ":" + token;
+            String key = tokenPrefix + ":" + codeUser + ":" + token;
             redisTemplate.delete(key);
         } catch (Exception e) {
             log.warn("Falha ao remover token | codeUser={} | erro={}", codeUser, e.getMessage());
@@ -184,7 +184,7 @@ public class TokenCacheService implements TokenCachePort {
      * Formato: resetpassword:codeUser:messageType:templateType
      */
     private String buildResetTokenKey(String codeUser, String messageType, String templateType) {
-        return String.format("%s%s:%s:%s", resetTokenPrefix, codeUser, messageType, templateType);
+        return String.format("%s:%s:%s:%s", resetTokenPrefix, codeUser, messageType, templateType);
     }
 
     public record TokenInfo(

@@ -52,7 +52,7 @@ public class AuthCommandService {
     private final RoleRepositoryPort roleRepository;
     private final UserClient userClient;
 
-    @Value("${cache.redis.ttl.reset-token:900}")
+    @Value("${cache.redis.ttl.reset-token}")
     private long resetTokenTtlSeconds;
 
     @LogOperation(
