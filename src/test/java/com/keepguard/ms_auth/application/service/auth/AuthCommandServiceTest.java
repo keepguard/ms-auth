@@ -260,6 +260,7 @@ class AuthCommandServiceTest {
         
         when(jwtService.validateToken(token)).thenReturn(true);
         when(jwtService.extractUserId(token)).thenReturn(codeUser);
+        when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
         when(userRepository.findByCodeUserAndTenantId(codeUser, tenantId)).thenReturn(Optional.of(user));
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
         when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn("new-token");
@@ -272,6 +273,7 @@ class AuthCommandServiceTest {
         assertEquals("new-token", result);
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
+        verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
         verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUser, tenantId);
         verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any());
         verify(tokenCachePort, times(1)).removeToken(codeUser.toString(), token);
@@ -301,6 +303,32 @@ class AuthCommandServiceTest {
     }
     
     @Test
+    @DisplayName("Deve lançar exceção quando token já foi rotacionado (revogado no Redis)")
+    void shouldThrowExceptionWhenTokenAlreadyRotated() {
+        // Given
+        AuthRefreshTokenCommandDTO refreshRequest = AuthRefreshTokenCommandDTO.builder()
+            .token(token)
+            .tenantId(tenantId)
+            .build();
+        
+        when(jwtService.validateToken(token)).thenReturn(true);
+        when(jwtService.extractUserId(token)).thenReturn(codeUser);
+        when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(false);
+        
+        // When & Then
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> {
+            authCommandService.refreshToken(refreshRequest);
+        });
+        
+        assertEquals("Token revogado ou sessão encerrada", exception.getMessage());
+        verify(jwtService, times(1)).validateToken(token);
+        verify(jwtService, times(1)).extractUserId(token);
+        verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
+        verify(userRepository, never()).findByCodeUserAndTenantId(any(), any());
+        verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any());
+    }
+    
+    @Test
     @DisplayName("Deve lançar exceção quando usuário não encontrado no refresh")
     void shouldThrowExceptionWhenUserNotFoundInRefresh() {
         // Given
@@ -311,6 +339,7 @@ class AuthCommandServiceTest {
         
         when(jwtService.validateToken(token)).thenReturn(true);
         when(jwtService.extractUserId(token)).thenReturn(codeUser);
+        when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
         when(userRepository.findByCodeUserAndTenantId(codeUser, tenantId)).thenReturn(Optional.empty());
         
         // When & Then
@@ -321,6 +350,7 @@ class AuthCommandServiceTest {
         assertEquals("User not found", exception.getMessage());
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
+        verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
         verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUser, tenantId);
         verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any());
     }
@@ -340,6 +370,7 @@ class AuthCommandServiceTest {
         
         when(jwtService.validateToken(token)).thenReturn(true);
         when(jwtService.extractUserId(token)).thenReturn(codeUser);
+        when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
         when(userRepository.findByCodeUserAndTenantId(codeUser, tenantId)).thenReturn(Optional.of(blockedUser));
         
         // When & Then
@@ -350,6 +381,7 @@ class AuthCommandServiceTest {
         assertEquals("User is not active", exception.getMessage());
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
+        verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
         verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUser, tenantId);
         verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any());
     }
@@ -363,15 +395,68 @@ class AuthCommandServiceTest {
             .tenantId(tenantId)
             .build();
         
+        when(jwtService.validateToken(token)).thenReturn(true);
         when(jwtService.extractUserId(token)).thenReturn(codeUser);
+        when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
         
         // When
         authCommandService.logout(logoutRequest);
         
         // Then
+        verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
+        verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
         verify(tokenCachePort, times(1)).removeAllTokens(codeUser.toString());
         verify(metricsPort, times(1)).incrementCounter(anyString(), any());
+    }
+    
+    @Test
+    @DisplayName("Deve lançar exceção no logout quando token JWT é inválido")
+    void shouldThrowExceptionOnLogoutWhenTokenInvalid() {
+        // Given
+        AuthLogoutCommandDTO logoutRequest = AuthLogoutCommandDTO.builder()
+            .token(token)
+            .tenantId(tenantId)
+            .build();
+        
+        when(jwtService.validateToken(token)).thenReturn(false);
+        
+        // When & Then
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> {
+            authCommandService.logout(logoutRequest);
+        });
+        
+        assertEquals("Token inválido", exception.getMessage());
+        verify(jwtService, times(1)).validateToken(token);
+        verify(jwtService, never()).extractUserId(anyString());
+        verify(tokenCachePort, never()).removeAllTokens(anyString());
+        verify(metricsPort, never()).incrementCounter(anyString(), any());
+    }
+    
+    @Test
+    @DisplayName("Deve lançar exceção no logout quando sessão já está encerrada")
+    void shouldThrowExceptionOnLogoutWhenSessionAlreadyTerminated() {
+        // Given
+        AuthLogoutCommandDTO logoutRequest = AuthLogoutCommandDTO.builder()
+            .token(token)
+            .tenantId(tenantId)
+            .build();
+        
+        when(jwtService.validateToken(token)).thenReturn(true);
+        when(jwtService.extractUserId(token)).thenReturn(codeUser);
+        when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(false);
+        
+        // When & Then
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> {
+            authCommandService.logout(logoutRequest);
+        });
+        
+        assertEquals("Sessão já encerrada", exception.getMessage());
+        verify(jwtService, times(1)).validateToken(token);
+        verify(jwtService, times(1)).extractUserId(token);
+        verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
+        verify(tokenCachePort, never()).removeAllTokens(anyString());
+        verify(metricsPort, never()).incrementCounter(anyString(), any());
     }
     
     @Test

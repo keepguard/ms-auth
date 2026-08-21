@@ -201,6 +201,13 @@ public class AuthCommandService {
         }
 
         UUID codeUser = jwtService.extractUserId(request.getToken());
+
+        // Valida se o token ainda está ativo no Redis (Refresh Token Rotation - RTR)
+        if (!tokenCachePort.isTokenValid(codeUser.toString(), request.getToken())) {
+            log.warn("Refresh token failed - Token revogado ou já rotacionado: codeUser={}, application={}", codeUser, request.getTenantId());
+            throw new InvalidCredentialsException("Token revogado ou sessão encerrada", "TOKEN_REVOKED", 
+                Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
+        }
         
         User user = userRepository.findByCodeUserAndTenantId(codeUser, request.getTenantId())
                 .orElseThrow(() -> {
@@ -225,6 +232,7 @@ public class AuthCommandService {
 
         String newToken = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), displayHandle);
 
+        // Remove o token antigo e salva o novo (rotação de token)
         tokenCachePort.removeToken(codeUser.toString(), request.getToken());
         tokenCachePort.saveToken(user.getCodeUser().toString(), newToken, jwtService.getExpiration());
 
@@ -242,7 +250,21 @@ public class AuthCommandService {
     public void logout(AuthLogoutCommandDTO request) {
         log.info("Processing logout request - application={}", request.getTenantId());
 
+        if (!jwtService.validateToken(request.getToken())) {
+            log.warn("Logout failed - Token com assinatura inválida: application={}", request.getTenantId());
+            throw new InvalidCredentialsException("Token inválido", "INVALID_TOKEN",
+                Map.of("application", request.getTenantId().toString()));
+        }
+
         UUID codeUser = jwtService.extractUserId(request.getToken());
+
+        // Garante que o token ainda está ativo no Redis antes de encerrar a sessão
+        if (!tokenCachePort.isTokenValid(codeUser.toString(), request.getToken())) {
+            log.warn("Logout failed - Sessão já encerrada ou token revogado: codeUser={}, application={}", codeUser, request.getTenantId());
+            throw new InvalidCredentialsException("Sessão já encerrada", "SESSION_ALREADY_TERMINATED",
+                Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
+        }
+
         tokenCachePort.removeAllTokens(codeUser.toString());
 
         metricsPort.incrementCounter("auth_logouts_total",
