@@ -69,6 +69,8 @@ cache:
 
 # Configurações de Segurança e Rate Limiting
 security:
+  jwt:
+    secret: ${JWT_SECRET:Q2FjaG9ycm8gU2VndXJhbmNhIFByb2pldG8gS2VlcEd1YXJkIQ==}
   rate-limiting:
     max-attempts: 5  # Máximo de tentativas de login
     lockout-duration-minutes: 15  # Duração do bloqueio em minutos
