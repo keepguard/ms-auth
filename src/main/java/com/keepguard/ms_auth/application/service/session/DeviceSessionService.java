@@ -83,10 +83,12 @@ public class DeviceSessionService {
 
         try {
             Map<String, Object> msgPayload = Map.of(
-                    "recipient", recipient != null ? recipient : challenge.getEmail(),
-                    "codeUser", challenge.getCodeUser(),
+                    "recipient", recipient != null ? recipient : (challenge.getEmail() != null ? challenge.getEmail() : ""),
+                    "codeUser", challenge.getCodeUser() != null ? challenge.getCodeUser() : "",
                     "templateType", templateType,
                     "messageType", messageType,
+                    "communicationType", messageType,
+                    "subject", "Código de Verificação de Dispositivo",
                     "variables", variables
             );
             communicationClient.sendMessage(msgPayload, challenge.getTenantId());
