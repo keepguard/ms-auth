@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 @FeignClient(
     name = "user-service",
-    url = "${feign.client.user.url:http://localhost:8580}",
+    url = "${USER_SERVICE_URL:http://localhost:8085}",
     configuration = UserClientConfig.class
 )
 public interface UserClient {

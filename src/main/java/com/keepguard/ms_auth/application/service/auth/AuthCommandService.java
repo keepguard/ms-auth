@@ -216,10 +216,9 @@ public class AuthCommandService {
                 List<Map<String, Object>> mfaList = (List<Map<String, Object>>) company.get("mfaChannels");
                 for (Map<String, Object> ch : mfaList) {
                     Boolean enabled = (Boolean) ch.get("enabled");
-                    Boolean required = (Boolean) ch.get("required");
                     String channelName = (String) ch.get("channel");
 
-                    if (Boolean.TRUE.equals(enabled) && Boolean.TRUE.equals(required) && channelName != null) {
+                    if (Boolean.TRUE.equals(enabled) && channelName != null) {
                         String upper = channelName.toUpperCase();
                         if ("EMAIL".equals(upper)) {
                             channels.add(new AvailableMfaChannelDTO("EMAIL", maskEmail(user.getEmail()), "Receber código por E-mail"));

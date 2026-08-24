@@ -8,7 +8,7 @@ import java.util.Map;
 
 @FeignClient(
     name = "company-service",
-    url = "${feign.client.company.url:http://localhost:8583}",
+    url = "${COMPANY_SERVICE_URL:http://localhost:8083}",
     configuration = UserClientConfig.class
 )
 public interface CompanyClient {
