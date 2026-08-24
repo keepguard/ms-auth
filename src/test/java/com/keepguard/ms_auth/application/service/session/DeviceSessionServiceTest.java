@@ -1,12 +1,15 @@
 package com.keepguard.ms_auth.application.service.session;
 
 import com.keepguard.ms_auth.adapters.out.feign.CommunicationClient;
+import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
 import com.keepguard.ms_auth.adapters.out.feign.UserClient;
 import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
 import com.keepguard.ms_auth.application.dto.session.SendDeviceChallengeCommandDTO;
 import com.keepguard.ms_auth.application.dto.session.VerifyDeviceChallengeCommandDTO;
 import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
 import com.keepguard.ms_auth.application.port.out.cache.TokenCachePort;
+import com.keepguard.ms_auth.application.port.out.persistence.DeviceBlacklistRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.persistence.UserDeviceRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRoleRepositoryPort;
@@ -56,7 +59,16 @@ class DeviceSessionServiceTest {
     private RoleRepositoryPort roleRepository;
 
     @Mock
+    private UserDeviceRepositoryPort userDeviceRepository;
+
+    @Mock
+    private DeviceBlacklistRepositoryPort deviceBlacklistRepository;
+
+    @Mock
     private UserClient userClient;
+
+    @Mock
+    private CompanyClient companyClient;
 
     @Mock
     private JwtService jwtService;
@@ -202,7 +214,44 @@ class DeviceSessionServiceTest {
 
         verify(tokenCachePort, times(1)).saveToken(eq(codeUser), eq("mock-jwt-token"), eq(3600L));
         verify(sessionCachePort, times(1)).saveUserSession(any(), eq(2592000L));
+        verify(sessionCachePort, times(1)).saveQuickRevokeToken(any(), eq(172800L));
         verify(sessionCachePort, times(1)).removeDeviceChallenge(challengeSessionId);
+    }
+
+    @Test
+    @DisplayName("Deve processar quickRevoke com sucesso e adicionar à blacklist se solicitado")
+    void shouldQuickRevokeSuccessfully() {
+        String token = "quick_token_123";
+        com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken qrt = com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken.builder()
+                .token(token)
+                .codeUser(codeUser)
+                .deviceId("device_abc")
+                .deviceName("Chrome Web")
+                .build();
+
+        when(sessionCachePort.getQuickRevokeToken(token)).thenReturn(Optional.of(qrt));
+
+        Map<String, Object> response = deviceSessionService.quickRevoke(token, true);
+
+        assertNotNull(response);
+        assertEquals("device_abc", response.get("deviceId"));
+        assertEquals(true, response.get("blacklisted"));
+
+        verify(sessionCachePort, times(1)).removeUserSession(codeUser, "device_abc");
+        verify(sessionCachePort, times(1)).addToBlacklist(any(), eq(0L));
+        verify(sessionCachePort, times(1)).removeQuickRevokeToken(token);
+    }
+
+    @Test
+    @DisplayName("Deve adicionar e remover dispositivo da blacklist")
+    void shouldAddAndRemoveFromBlacklist() {
+        deviceSessionService.addDeviceToBlacklist(codeUser, "device_xyz", "iPhone", "Perdido");
+
+        verify(sessionCachePort, times(1)).removeUserSession(codeUser, "device_xyz");
+        verify(sessionCachePort, times(1)).addToBlacklist(any(), eq(0L));
+
+        deviceSessionService.removeDeviceFromBlacklist(codeUser, "device_xyz");
+        verify(sessionCachePort, times(1)).removeFromBlacklist(codeUser, "device_xyz");
     }
 
     @Test
@@ -220,5 +269,41 @@ class DeviceSessionServiceTest {
         assertThrows(InvalidCredentialsException.class, () -> deviceSessionService.verifyChallenge(command));
         assertEquals(1, mockChallenge.getAttempts());
         verify(sessionCachePort, times(1)).saveDeviceChallenge(eq(mockChallenge), eq(600L));
+    }
+
+    @Test
+    @DisplayName("Deve salvar dispositivo no PostgreSQL ao verificar desafio com sucesso")
+    void shouldPersistUserDeviceInPostgresOnVerifyChallengeSuccess() {
+        mockChallenge.setActiveCode("123456");
+        when(sessionCachePort.getDeviceChallenge(challengeSessionId)).thenReturn(Optional.of(mockChallenge));
+
+        User mockUser = User.builder()
+                .id(UUID.randomUUID())
+                .codeUser(UUID.fromString(codeUser))
+                .tenantId(UUID.fromString(tenantId))
+                .username("testuser")
+                .email("test@example.com")
+                .status(UserStatus.ACTIVE)
+                .build();
+
+        when(userRepository.findByCodeUserAndTenantId(UUID.fromString(codeUser), UUID.fromString(tenantId)))
+                .thenReturn(Optional.of(mockUser));
+        when(jwtService.generateToken(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn("mock_jwt_token");
+        when(jwtService.getExpiration()).thenReturn(3600L);
+        when(userRoleRepository.findByUserId(any())).thenReturn(Collections.emptyList());
+
+        VerifyDeviceChallengeCommandDTO command = VerifyDeviceChallengeCommandDTO.builder()
+                .challengeSessionId(challengeSessionId)
+                .code("123456")
+                .tenantId(tenantId)
+                .trustDevice(true)
+                .build();
+
+        AuthLoginView result = deviceSessionService.verifyChallenge(command);
+
+        assertNotNull(result);
+        assertEquals("AUTHENTICATED", result.status());
+        verify(userDeviceRepository, times(1)).save(any());
     }
 }

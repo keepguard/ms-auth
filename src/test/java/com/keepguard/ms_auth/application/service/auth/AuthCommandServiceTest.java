@@ -2,6 +2,8 @@ package com.keepguard.ms_auth.application.service.auth;
 
 import com.keepguard.lib_common.communication.enums.MessageTypeEnum;
 import com.keepguard.lib_common.communication.enums.TemplateTypeEnum;
+import com.keepguard.ms_auth.application.port.out.persistence.DeviceBlacklistRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.persistence.UserDeviceRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.PasswordHistoryRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRoleRepositoryPort;
@@ -49,6 +51,12 @@ class AuthCommandServiceTest {
     
     @Mock
     private UserRepositoryPort userRepository;
+    
+    @Mock
+    private UserDeviceRepositoryPort userDeviceRepository;
+    
+    @Mock
+    private DeviceBlacklistRepositoryPort deviceBlacklistRepository;
     
     @Mock
     private JwtService jwtService;
@@ -147,6 +155,29 @@ class AuthCommandServiceTest {
         verify(sessionCachePort, times(1)).saveUserSession(any(), eq(2592000L));
         verify(metricsPort, times(1)).incrementCounter(anyString(), any());
         verify(loginAttemptService, times(1)).recordSuccessfulAttempt(username);
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar login quando dispositivo está na blacklist")
+    void shouldRejectLoginWhenDeviceIsBlacklisted() {
+        // Given
+        when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(password, user.getPasswordHash())).thenReturn(true);
+        when(sessionCachePort.isDeviceBlacklisted(codeUser.toString(), "dev_blacklisted")).thenReturn(true);
+
+        // When & Then
+        AuthLoginCommandDTO loginRequest = AuthLoginCommandDTO.builder()
+            .username(username)
+            .password(password)
+            .tenantId(tenantId)
+            .deviceId("dev_blacklisted")
+            .build();
+
+        assertThrows(com.keepguard.ms_auth.application.service.exception.DeviceBlacklistedException.class, () -> {
+            authCommandService.login(loginRequest);
+        });
+
+        verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any(), any());
     }
 
     @Test

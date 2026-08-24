@@ -241,6 +241,12 @@ feign:
     company:
       url: ${COMPANY_SERVICE_URL:http://localhost:8583}
 
+# Configurações de URLs da aplicação
+app:
+  urls:
+    frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:3000}
+    api-base-url: ${API_BASE_URL:http://localhost:8381}
+
 ---
 spring:
   config:

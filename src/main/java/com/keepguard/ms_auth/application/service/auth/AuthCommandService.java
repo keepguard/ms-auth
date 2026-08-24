@@ -15,6 +15,8 @@ import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.PasswordHistoryRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRoleRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.persistence.DeviceBlacklistRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.persistence.UserDeviceRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.domain.entity.user.PasswordHistory;
 import com.keepguard.ms_auth.domain.entity.user.User;
@@ -50,6 +52,8 @@ import java.util.stream.Collectors;
 public class AuthCommandService {
 
     private final UserRepositoryPort userRepository;
+    private final UserDeviceRepositoryPort userDeviceRepository;
+    private final DeviceBlacklistRepositoryPort deviceBlacklistRepository;
     private final JwtService jwtService;
     private final TokenCachePort tokenCachePort;
     private final SessionCachePort sessionCachePort;
@@ -123,6 +127,20 @@ public class AuthCommandService {
         String deviceId = (request.getDeviceId() != null && !request.getDeviceId().isBlank())
                 ? request.getDeviceId()
                 : "dev_default_" + user.getCodeUser().toString().substring(0, 8);
+
+        // Verificar se o dispositivo está na Blacklist do usuário (Redis com fallback no PostgreSQL)
+        boolean isBlacklisted = sessionCachePort.isDeviceBlacklisted(user.getCodeUser().toString(), deviceId)
+                || deviceBlacklistRepository.isBlacklisted(user.getCodeUser(), deviceId);
+
+        if (isBlacklisted) {
+            log.warn("Tentativa de login rejeitada - Dispositivo bloqueado na blacklist: codeUser={}, deviceId={}",
+                    user.getCodeUser(), deviceId);
+            throw new com.keepguard.ms_auth.application.service.exception.DeviceBlacklistedException(
+                    "Este dispositivo foi bloqueado para acesso a esta conta.",
+                    "DEVICE_BLACKLISTED",
+                    Map.of("codeUser", user.getCodeUser().toString(), "deviceId", deviceId)
+            );
+        }
 
         Optional<UserSession> existingSession = sessionCachePort.getUserSession(user.getCodeUser().toString(), deviceId);
         boolean isDeviceTrusted = existingSession.map(UserSession::getIsTrusted).orElse(false);
@@ -200,6 +218,32 @@ public class AuthCommandService {
                 .build();
 
         sessionCachePort.saveUserSession(session, 2592000L); // 30 dias
+
+        // Atualiza atividade do dispositivo no PostgreSQL
+        try {
+            userDeviceRepository.findByCodeUserAndDeviceId(user.getCodeUser(), deviceId)
+                    .ifPresentOrElse(dev -> {
+                        dev.updateActivity(request.getIpAddress(), request.getUserAgent(), LocalDateTime.now());
+                        userDeviceRepository.save(dev);
+                    }, () -> {
+                        com.keepguard.ms_auth.domain.entity.session.UserDevice newDevice = com.keepguard.ms_auth.domain.entity.session.UserDevice.builder()
+                                .codeUser(user.getCodeUser())
+                                .tenantId(request.getTenantId())
+                                .deviceId(deviceId)
+                                .deviceName(request.getDeviceName() != null ? request.getDeviceName() : "Navegador Web")
+                                .deviceType(request.getDeviceType() != null ? request.getDeviceType() : "DESKTOP")
+                                .ipAddress(request.getIpAddress())
+                                .userAgent(request.getUserAgent())
+                                .isTrusted(true)
+                                .firstSeenAt(LocalDateTime.now())
+                                .lastActiveAt(LocalDateTime.now())
+                                .build();
+                        userDeviceRepository.save(newDevice);
+                    });
+        } catch (Exception e) {
+            log.warn("Falha ao registrar atividade do dispositivo no banco | codeUser={} | deviceId={} | erro={}",
+                    user.getCodeUser(), deviceId, e.getMessage());
+        }
 
         metricsPort.incrementCounter("auth_login_success_total",
             Map.of("application", request.getTenantId().toString()));

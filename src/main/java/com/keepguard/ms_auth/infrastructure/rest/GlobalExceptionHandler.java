@@ -11,6 +11,7 @@ import com.keepguard.ms_auth.application.service.exception.ResourceNotFoundExcep
 import com.keepguard.ms_auth.application.service.exception.QueryOperationException;
 import com.keepguard.ms_auth.application.service.exception.AccountLockedException;
 import com.keepguard.ms_auth.application.service.exception.CommandOperationException;
+import com.keepguard.ms_auth.application.service.exception.DeviceBlacklistedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -39,6 +40,27 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         problemDetail.setProperty("path", request.getDescription(false).replace("uri=", ""));
         problemDetail.setProperty("errorCode", "EMAIL_NOT_VERIFIED");
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problemDetail);
+    }
+
+    @ExceptionHandler(DeviceBlacklistedException.class)
+    public ResponseEntity<ProblemDetail> handleDeviceBlacklisted(DeviceBlacklistedException ex, WebRequest request) {
+        String path = request.getDescription(false).replace("uri=", "");
+        String clientId = request.getHeader("X-Client-ID");
+        String correlationId = request.getHeader("X-Correlation-ID");
+
+        log.warn("Dispositivo bloqueado na blacklist: message={}, path={}, correlationId={}, clientId={}",
+                ex.getMessage(), path, correlationId, clientId);
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problemDetail.setType(URI.create("https://keepguard.com/problems/device-blacklisted"));
+        problemDetail.setTitle("Dispositivo bloqueado");
+        problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        problemDetail.setProperty("path", path);
+        problemDetail.setProperty("errorCode", "DEVICE_BLACKLISTED");
+        problemDetail.setProperty("correlationId", correlationId);
+        problemDetail.setProperty("userAgent", clientId);
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problemDetail);
     }

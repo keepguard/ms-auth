@@ -23,6 +23,8 @@ public class SessionCacheService implements SessionCachePort {
 
     private static final String USER_SESSIONS_PREFIX = "user:sessions:";
     private static final String DEVICE_CHALLENGE_PREFIX = "mfa:device_challenge:";
+    private static final String DEVICE_BLACKLIST_PREFIX = "device:blacklist:";
+    private static final String QUICK_REVOKE_PREFIX = "auth:quick_revoke:";
 
     @Override
     @CircuitBreaker(name = "redisCache")
@@ -157,6 +159,112 @@ public class SessionCacheService implements SessionCachePort {
             log.info("Desafio de dispositivo removido do Redis | challengeSessionId={}", challengeSessionId);
         } catch (Exception e) {
             log.warn("Falha ao remover desafio de dispositivo | challengeSessionId={} | erro={}", challengeSessionId, e.getMessage());
+        }
+    }
+
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public void addToBlacklist(com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry entry, long ttlSeconds) {
+        try {
+            String key = DEVICE_BLACKLIST_PREFIX + entry.getCodeUser() + ":" + entry.getDeviceId();
+            String json = objectMapper.writeValueAsString(entry);
+            if (ttlSeconds > 0) {
+                redisTemplate.opsForValue().set(key, json, ttlSeconds, TimeUnit.SECONDS);
+            } else {
+                redisTemplate.opsForValue().set(key, json);
+            }
+            log.info("Dispositivo adicionado à blacklist | codeUser={} | deviceId={}", entry.getCodeUser(), entry.getDeviceId());
+        } catch (Exception e) {
+            log.warn("Falha ao adicionar dispositivo à blacklist | codeUser={} | deviceId={} | erro={}", entry.getCodeUser(), entry.getDeviceId(), e.getMessage());
+        }
+    }
+
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public boolean isDeviceBlacklisted(String codeUser, String deviceId) {
+        if (codeUser == null || deviceId == null) {
+            return false;
+        }
+        try {
+            String key = DEVICE_BLACKLIST_PREFIX + codeUser + ":" + deviceId;
+            Boolean hasKey = redisTemplate.hasKey(key);
+            return Boolean.TRUE.equals(hasKey);
+        } catch (Exception e) {
+            log.warn("Falha ao verificar blacklist de dispositivo | codeUser={} | deviceId={} | erro={}", codeUser, deviceId, e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public List<com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry> listBlacklistedDevices(String codeUser) {
+        List<com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry> list = new ArrayList<>();
+        try {
+            String pattern = DEVICE_BLACKLIST_PREFIX + codeUser + ":*";
+            Set<String> keys = redisTemplate.keys(pattern);
+            if (keys != null && !keys.isEmpty()) {
+                for (String key : keys) {
+                    String json = redisTemplate.opsForValue().get(key);
+                    if (json != null && !json.isBlank()) {
+                        list.add(objectMapper.readValue(json, com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry.class));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Falha ao listar dispositivos da blacklist | codeUser={} | erro={}", codeUser, e.getMessage());
+        }
+        return list;
+    }
+
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public void removeFromBlacklist(String codeUser, String deviceId) {
+        try {
+            String key = DEVICE_BLACKLIST_PREFIX + codeUser + ":" + deviceId;
+            redisTemplate.delete(key);
+            log.info("Dispositivo removido da blacklist | codeUser={} | deviceId={}", codeUser, deviceId);
+        } catch (Exception e) {
+            log.warn("Falha ao remover dispositivo da blacklist | codeUser={} | deviceId={} | erro={}", codeUser, deviceId, e.getMessage());
+        }
+    }
+
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public void saveQuickRevokeToken(com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken quickRevokeToken, long ttlSeconds) {
+        try {
+            String key = QUICK_REVOKE_PREFIX + quickRevokeToken.getToken();
+            String json = objectMapper.writeValueAsString(quickRevokeToken);
+            redisTemplate.opsForValue().set(key, json, ttlSeconds, TimeUnit.SECONDS);
+            log.info("Token de revogação rápida salvo | token={} | codeUser={} | deviceId={}", quickRevokeToken.getToken(), quickRevokeToken.getCodeUser(), quickRevokeToken.getDeviceId());
+        } catch (Exception e) {
+            log.warn("Falha ao salvar token de revogação rápida | erro={}", e.getMessage());
+        }
+    }
+
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public Optional<com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken> getQuickRevokeToken(String token) {
+        try {
+            String key = QUICK_REVOKE_PREFIX + token;
+            String json = redisTemplate.opsForValue().get(key);
+            if (json != null && !json.isBlank()) {
+                return Optional.of(objectMapper.readValue(json, com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken.class));
+            }
+        } catch (Exception e) {
+            log.warn("Falha ao buscar token de revogação rápida | token={} | erro={}", token, e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public void removeQuickRevokeToken(String token) {
+        try {
+            String key = QUICK_REVOKE_PREFIX + token;
+            redisTemplate.delete(key);
+            log.info("Token de revogação rápida removido | token={}", token);
+        } catch (Exception e) {
+            log.warn("Falha ao remover token de revogação rápida | token={} | erro={}", token, e.getMessage());
         }
     }
 }

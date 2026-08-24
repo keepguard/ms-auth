@@ -100,4 +100,63 @@ public class DeviceSessionController {
         deviceSessionService.revokeAllOtherSessions(codeUser, deviceId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/auth/device/quick-revoke")
+    @PostMapping("/auth/device/quick-revoke")
+    @Operation(summary = "Revogação rápida de dispositivo via link/token de e-mail",
+               description = "Permite revogar a sessão de um dispositivo conectado usando o token assinado enviado por e-mail, com opção de adicionar à blacklist")
+    @MetricsEndpoint(endpoint = "auth_device_quick_revoke")
+    public ResponseEntity<Map<String, Object>> quickRevoke(
+            @RequestParam("token") String token,
+            @RequestParam(value = "blacklist", defaultValue = "true") boolean blacklist) {
+
+        Map<String, Object> result = deviceSessionService.quickRevoke(token, blacklist);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/users/me/devices/blacklist")
+    @Operation(summary = "Listar dispositivos na blacklist do usuário",
+               description = "Retorna todos os dispositivos bloqueados para o usuário autenticado")
+    @MetricsEndpoint(endpoint = "users_list_device_blacklist")
+    public ResponseEntity<List<com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry>> listBlacklist(
+            @AuthenticationPrincipal Jwt jwt) {
+
+        String codeUser = jwt.getSubject();
+        List<com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry> list = deviceSessionService.listBlacklist(codeUser);
+        return ResponseEntity.ok(list);
+    }
+
+    @PostMapping("/users/me/devices/blacklist")
+    @Operation(summary = "Adicionar dispositivo à blacklist",
+               description = "Bloqueia um dispositivo para impedir novos logins e encerra sessão ativa se houver")
+    @MetricsEndpoint(endpoint = "users_add_device_blacklist")
+    public ResponseEntity<Void> addDeviceToBlacklist(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody Map<String, String> request) {
+
+        String codeUser = jwt.getSubject();
+        String deviceId = request.get("deviceId");
+        String deviceName = request.get("deviceName");
+        String reason = request.get("reason");
+
+        if (deviceId == null || deviceId.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        deviceSessionService.addDeviceToBlacklist(codeUser, deviceId, deviceName, reason);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/users/me/devices/blacklist/{deviceId}")
+    @Operation(summary = "Remover dispositivo da blacklist",
+               description = "Desbloqueia um dispositivo previamente colocado na blacklist")
+    @MetricsEndpoint(endpoint = "users_remove_device_blacklist")
+    public ResponseEntity<Void> removeDeviceFromBlacklist(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("deviceId") String deviceId) {
+
+        String codeUser = jwt.getSubject();
+        deviceSessionService.removeDeviceFromBlacklist(codeUser, deviceId);
+        return ResponseEntity.noContent().build();
+    }
 }
