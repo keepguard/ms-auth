@@ -76,6 +76,8 @@ security:
     max-attempts: 5  # Máximo de tentativas de login
     lockout-duration-minutes: 15  # Duração do bloqueio em minutos
     attempts-ttl-hours: 1  # TTL das tentativas em horas
+    reset-token-max-attempts: 3  # Máximo de tentativas incorretas para o token de reset
+    reset-token-cooldown-seconds: 60  # Cooldown em segundos entre gerações de tokens de reset
   oauth2:
     resourceserver:
       jwt:
@@ -236,6 +238,8 @@ feign:
       url: ${COMMUNICATION_SERVICE_URL:http://localhost:8082}
     user:
       url: ${USER_SERVICE_URL:http://localhost:8580}
+    company:
+      url: ${COMPANY_SERVICE_URL:http://localhost:8583}
 
 ---
 spring:

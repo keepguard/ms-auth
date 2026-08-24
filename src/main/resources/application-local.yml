@@ -44,6 +44,8 @@ security:
     max-attempts: 5
     lockout-duration-minutes: 15
     attempts-ttl-hours: 1
+    reset-token-max-attempts: 3
+    reset-token-cooldown-seconds: 60
 
 management:
   endpoints:

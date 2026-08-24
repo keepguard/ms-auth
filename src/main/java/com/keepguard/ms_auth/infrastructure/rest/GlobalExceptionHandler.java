@@ -234,6 +234,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.LOCKED).body(problemDetail);
     }
 
+    @ExceptionHandler(com.keepguard.ms_auth.application.service.exception.ResetTokenCooldownException.class)
+    public ResponseEntity<ProblemDetail> handleResetTokenCooldownException(
+            com.keepguard.ms_auth.application.service.exception.ResetTokenCooldownException ex, WebRequest request) {
+        String path = request.getDescription(false).replace("uri=", "");
+        String clientId = request.getHeader("X-Client-ID");
+        String correlationId = request.getHeader("X-Correlation-ID");
+        
+        log.warn("Cooldown de reset de token ativo: message={}, path={}, correlationId={}, clientId={}", 
+            ex.getMessage(), path, correlationId, clientId);
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+        problemDetail.setType(URI.create("https://keepguard.com/problems/rate-limit-exceeded"));
+        problemDetail.setTitle("Muitas solicitações");
+        problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        problemDetail.setProperty("path", path);
+        problemDetail.setProperty("errorCode", "TOO_MANY_REQUESTS");
+        problemDetail.setProperty("correlationId", correlationId);
+        problemDetail.setProperty("userAgent", clientId);
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(problemDetail);
+    }
+
     @ExceptionHandler(CommandOperationException.class)
     public ResponseEntity<ProblemDetail> handleCommandOperationException(CommandOperationException ex, WebRequest request) {
         log.error("Falha na operação de comando: {}", ex.getMessage());

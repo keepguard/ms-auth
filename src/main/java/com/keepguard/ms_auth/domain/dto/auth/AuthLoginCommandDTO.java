@@ -25,5 +25,11 @@ public class AuthLoginCommandDTO {
 
     @NotBlank(message = "O header User-Agent é obrigatório")
     private String clientId;
+
+    private String deviceId;
+    private String deviceName;
+    private String deviceType;
+    private String ipAddress;
+    private String userAgent;
 }
 

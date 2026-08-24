@@ -32,6 +32,12 @@ import java.util.UUID;
 public class AuthAdapterMapper {
 
     public AuthLoginCommandDTO toLoginCommand(AuthLoginRequestDTO dto, UUID tenantId, String clientId) {
+        return toLoginCommand(dto, tenantId, clientId, null, null, null, null, null);
+    }
+
+    public AuthLoginCommandDTO toLoginCommand(AuthLoginRequestDTO dto, UUID tenantId, String clientId,
+                                              String deviceId, String deviceName, String deviceType,
+                                              String ipAddress, String userAgent) {
         if (dto == null) {
             return null;
         }
@@ -42,6 +48,11 @@ public class AuthAdapterMapper {
                     .password(dto.getPassword())
                     .tenantId(tenantId)
                     .clientId(clientId)
+                    .deviceId(deviceId)
+                    .deviceName(deviceName)
+                    .deviceType(deviceType)
+                    .ipAddress(ipAddress)
+                    .userAgent(userAgent)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthLoginRequestDTO para AuthLoginCommandDTO: {}", e.getMessage(), e);
@@ -165,6 +176,10 @@ public class AuthAdapterMapper {
             return AuthLoginResponseDTO.builder()
                     .token(view.token())
                     .expiresIn(view.expiresIn())
+                    .status(view.status())
+                    .challengeSessionId(view.challengeSessionId())
+                    .isTrusted(view.isTrusted())
+                    .availableChannels(view.availableChannels())
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthLoginView para AuthLoginResponseDTO: {}", e.getMessage(), e);

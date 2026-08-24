@@ -32,6 +32,10 @@ public class JwtService {
     }
 
     public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId, String clientId, String displayHandle) {
+        return generateToken(user, roles, authorities, tenantId, clientId, displayHandle, null);
+    }
+
+    public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId, String clientId, String displayHandle, String deviceId) {
         String finalClientId = (clientId == null || clientId.isBlank()) ? "keepguard-default-client" : clientId;
         var builder = Jwts.builder()
                 .issuer("ms-auth")
@@ -46,6 +50,10 @@ public class JwtService {
         
         if (displayHandle != null && !displayHandle.isEmpty()) {
             builder.claim("display_handle", displayHandle);
+        }
+
+        if (deviceId != null && !deviceId.isBlank()) {
+            builder.claim("device_id", deviceId);
         }
         
         return builder

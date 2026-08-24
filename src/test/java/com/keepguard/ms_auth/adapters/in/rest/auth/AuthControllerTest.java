@@ -80,7 +80,7 @@ class AuthControllerTest {
         String expectedToken = "jwt-token";
         var expectedView = new com.keepguard.ms_auth.application.dto.auth.AuthLoginView(expectedToken, 3600L);
         
-        when(authAdapterMapper.toLoginCommand(any(), any(), any())).thenReturn(AuthLoginCommandDTO.builder().build());
+        when(authAdapterMapper.toLoginCommand(any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(AuthLoginCommandDTO.builder().build());
         when(authService.login(any(AuthLoginCommandDTO.class))).thenReturn(expectedView);
         when(authAdapterMapper.toLoginResponseDTO(any(com.keepguard.ms_auth.application.dto.auth.AuthLoginView.class))).thenReturn(AuthLoginResponseDTO.builder()
             .token(expectedToken)
@@ -88,7 +88,7 @@ class AuthControllerTest {
             .build());
         
         // When
-        ResponseEntity<AuthLoginResponseDTO> response = authController.login(authRequest, "550e8400-e29b-41d4-a716-446655440000", "Mozilla/5.0");
+        ResponseEntity<AuthLoginResponseDTO> response = authController.login(authRequest, "550e8400-e29b-41d4-a716-446655440000", "Mozilla/5.0", null, null, null, null, null);
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -160,13 +160,13 @@ class AuthControllerTest {
     @DisplayName("Deve lidar com exceções durante o login")
     void shouldHandleExceptionsDuringLogin() {
         // Given
-        when(authAdapterMapper.toLoginCommand(any(), any(), any())).thenReturn(AuthLoginCommandDTO.builder().build());
+        when(authAdapterMapper.toLoginCommand(any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(AuthLoginCommandDTO.builder().build());
         when(authService.login(any(AuthLoginCommandDTO.class)))
             .thenThrow(new RuntimeException("Service error"));
         
         // When & Then
         assertThrows(RuntimeException.class, () -> {
-            authController.login(authRequest, "550e8400-e29b-41d4-a716-446655440000", "Mozilla/5.0");
+            authController.login(authRequest, "550e8400-e29b-41d4-a716-446655440000", "Mozilla/5.0", null, null, null, null, null);
         });
         
         verify(authService, times(1)).login(any(AuthLoginCommandDTO.class));

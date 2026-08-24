@@ -66,18 +66,23 @@ public class AuthController {
             @RequestBody @Valid AuthLoginRequestDTO request,
             @Parameter(description = "UUID da aplicação", required = true)
             @RequestHeader("X-Tenant-Id") String tenantIdHeader,
-            @RequestHeader(value = "X-Client-ID", defaultValue = "keepguard-default-client") String clientId) {
+            @RequestHeader(value = "X-Client-ID", defaultValue = "keepguard-default-client") String clientId,
+            @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
+            @RequestHeader(value = "X-Device-Name", required = false) String deviceName,
+            @RequestHeader(value = "X-Device-Type", required = false) String deviceType,
+            @RequestHeader(value = "X-Forwarded-For", required = false) String ipAddress,
+            @RequestHeader(value = "User-Agent", required = false) String userAgent) {
 
-        log.info("Realizando login para usuário: {}, tenantIdHeader={}, clientId={}", 
-            request.getUsername(), tenantIdHeader, clientId);
+        log.info("Realizando login para usuário: {}, tenantIdHeader={}, clientId={}, deviceId={}", 
+            request.getUsername(), tenantIdHeader, clientId, deviceId);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toLoginCommand(request, tenantId, clientId);
+        var command = mapper.toLoginCommand(request, tenantId, clientId, deviceId, deviceName, deviceType, ipAddress, userAgent);
         var view = authService.login(command);
         var response = mapper.toLoginResponseDTO(view);
         
-        log.info("Login successful for user: {} with application: {}", request.getUsername(), tenantId);
+        log.info("Login processado para user: {} status: {}", request.getUsername(), view.status());
         return ResponseEntity.ok(response);
     }
 

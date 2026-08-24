@@ -86,4 +86,49 @@ public interface TokenCachePort {
      */
     String generateAndSaveResetToken(String codeUser, String messageType, String templateType);
 
+    /**
+     * Verifica se o cooldown para geração de novo token está ativo.
+     * 
+     * @param codeUser Código do usuário
+     * @return true se o cooldown está ativo, false caso contrário
+     */
+    boolean isResetTokenCooldownActive(String codeUser);
+
+    /**
+     * Retorna o tempo restante de cooldown em segundos.
+     * 
+     * @param codeUser Código do usuário
+     * @return Segundos restantes de cooldown
+     */
+    long getResetTokenCooldownRemaining(String codeUser);
+
+    /**
+     * Registra uma tentativa falha de validação do token de reset.
+     * 
+     * @param codeUser Código do usuário
+     * @param messageType Tipo da mensagem
+     * @param templateType Tipo do template
+     * @return Número total de tentativas falhas registradas
+     */
+    long recordResetTokenFailedAttempt(String codeUser, String messageType, String templateType);
+
+    /**
+     * Verifica se o limite de tentativas falhas de token de reset foi excedido.
+     * 
+     * @param codeUser Código do usuário
+     * @param messageType Tipo da mensagem
+     * @param templateType Tipo do template
+     * @return true se excedeu o limite, false caso contrário
+     */
+    boolean isResetTokenAttemptsExceeded(String codeUser, String messageType, String templateType);
+
+    /**
+     * Limpa o contador de tentativas falhas do token de reset.
+     * 
+     * @param codeUser Código do usuário
+     * @param messageType Tipo da mensagem
+     * @param templateType Tipo do template
+     */
+    void clearResetTokenAttempts(String codeUser, String messageType, String templateType);
+
 }

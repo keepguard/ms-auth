@@ -35,6 +35,15 @@ public class TokenCacheService implements TokenCachePort {
     @Value("${cache.redis.ttl.reset-token}")
     private long resetTokenTtlSeconds;
 
+    @Value("${security.rate-limiting.reset-token-max-attempts}")
+    private int resetTokenMaxAttempts;
+
+    @Value("${security.rate-limiting.reset-token-cooldown-seconds}")
+    private int resetTokenCooldownSeconds;
+
+    private static final String RESET_TOKEN_COOLDOWN_PREFIX = "reset_token_cooldown:";
+    private static final String RESET_TOKEN_ATTEMPTS_PREFIX = "reset_token_attempts:";
+
     @Override
     @CircuitBreaker(name = "redisCache")
     public void saveToken(String codeUser, String token, long ttlMillis) {
@@ -167,9 +176,16 @@ public class TokenCacheService implements TokenCachePort {
             
             // Salva o token no cache
             saveToken(codeUser, messageType, templateType, token, ttlMillis);
+
+            // Define o cooldown para novas gerações
+            String cooldownKey = RESET_TOKEN_COOLDOWN_PREFIX + codeUser;
+            redisTemplate.opsForValue().set(cooldownKey, Instant.now().toString(), resetTokenCooldownSeconds, TimeUnit.SECONDS);
+
+            // Limpa tentativas anteriores
+            clearResetTokenAttempts(codeUser, messageType, templateType);
             
-            log.info("Token de reset gerado e salvo com sucesso | codeUser={} | messageType={} | templateType={} | ttl={}s", 
-                codeUser, messageType, templateType, resetTokenTtlSeconds);
+            log.info("Token de reset gerado e salvo com sucesso | codeUser={} | messageType={} | templateType={} | ttl={}s | cooldown={}s", 
+                codeUser, messageType, templateType, resetTokenTtlSeconds, resetTokenCooldownSeconds);
             
             return token;
         } catch (Exception e) {
@@ -179,12 +195,96 @@ public class TokenCacheService implements TokenCachePort {
         }
     }
 
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public boolean isResetTokenCooldownActive(String codeUser) {
+        try {
+            String cooldownKey = RESET_TOKEN_COOLDOWN_PREFIX + codeUser;
+            return Boolean.TRUE.equals(redisTemplate.hasKey(cooldownKey));
+        } catch (Exception e) {
+            log.warn("Falha ao verificar cooldown | codeUser={} | erro={}", codeUser, e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public long getResetTokenCooldownRemaining(String codeUser) {
+        try {
+            String cooldownKey = RESET_TOKEN_COOLDOWN_PREFIX + codeUser;
+            Long ttl = redisTemplate.getExpire(cooldownKey, TimeUnit.SECONDS);
+            return ttl != null && ttl > 0 ? ttl : 0;
+        } catch (Exception e) {
+            log.warn("Falha ao obter tempo restante de cooldown | codeUser={} | erro={}", codeUser, e.getMessage());
+            return 0;
+        }
+    }
+
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public long recordResetTokenFailedAttempt(String codeUser, String messageType, String templateType) {
+        try {
+            String attemptsKey = buildResetTokenAttemptsKey(codeUser, messageType, templateType);
+            Long attempts = redisTemplate.opsForValue().increment(attemptsKey);
+            if (attempts != null && attempts == 1) {
+                // TTL sincronizado com a validade do reset token
+                redisTemplate.expire(attemptsKey, resetTokenTtlSeconds, TimeUnit.SECONDS);
+            }
+            log.warn("Tentativa incorreta de token de reset registrada | codeUser={} | messageType={} | templateType={} | tentativa={}/{}", 
+                codeUser, messageType, templateType, attempts, resetTokenMaxAttempts);
+            
+            if (attempts != null && attempts >= resetTokenMaxAttempts) {
+                log.warn("Limite de tentativas de token de reset excedido. Invalidando token | codeUser={}", codeUser);
+                removeResetToken(codeUser, messageType, templateType);
+            }
+            return attempts != null ? attempts : 0;
+        } catch (Exception e) {
+            log.warn("Falha ao registrar tentativa incorreta de token | codeUser={} | erro={}", codeUser, e.getMessage());
+            return 0;
+        }
+    }
+
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public boolean isResetTokenAttemptsExceeded(String codeUser, String messageType, String templateType) {
+        try {
+            String attemptsKey = buildResetTokenAttemptsKey(codeUser, messageType, templateType);
+            String value = redisTemplate.opsForValue().get(attemptsKey);
+            if (value == null) {
+                return false;
+            }
+            return Integer.parseInt(value) >= resetTokenMaxAttempts;
+        } catch (Exception e) {
+            log.warn("Falha ao verificar limite de tentativas | codeUser={} | erro={}", codeUser, e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    @CircuitBreaker(name = "redisCache")
+    public void clearResetTokenAttempts(String codeUser, String messageType, String templateType) {
+        try {
+            String attemptsKey = buildResetTokenAttemptsKey(codeUser, messageType, templateType);
+            redisTemplate.delete(attemptsKey);
+        } catch (Exception e) {
+            log.warn("Falha ao limpar tentativas de reset token | codeUser={} | erro={}", codeUser, e.getMessage());
+        }
+    }
+
     /**
      * Constrói a chave composta para o token de reset no Redis.
      * Formato: resetpassword:codeUser:messageType:templateType
      */
     private String buildResetTokenKey(String codeUser, String messageType, String templateType) {
         return String.format("%s:%s:%s:%s", resetTokenPrefix, codeUser, messageType, templateType);
+    }
+
+    /**
+     * Constrói a chave para contagem de tentativas do token de reset no Redis.
+     * Formato: reset_token_attempts:codeUser:messageType:templateType
+     */
+    private String buildResetTokenAttemptsKey(String codeUser, String messageType, String templateType) {
+        return String.format("%s%s:%s:%s", RESET_TOKEN_ATTEMPTS_PREFIX, codeUser, messageType, templateType);
     }
 
     public record TokenInfo(

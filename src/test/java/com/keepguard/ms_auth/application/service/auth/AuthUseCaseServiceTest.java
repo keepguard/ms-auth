@@ -116,7 +116,7 @@ class AuthUseCaseServiceTest {
     void shouldLoginSuccessfully() {
         // Given
         when(authCommandService.login(loginRequest))
-            .thenReturn(token);
+            .thenReturn(new AuthLoginView(token, 3600L));
         
         // When
         AuthLoginView response = authUseCaseService.login(loginRequest);

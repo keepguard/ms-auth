@@ -20,7 +20,10 @@ import com.keepguard.ms_auth.domain.dto.auth.AuthLogoutCommandDTO;
 import com.keepguard.ms_auth.domain.dto.auth.AuthValidateTokenQueryDTO;
 import com.keepguard.ms_auth.domain.dto.auth.AuthChangePasswordCommandDTO;
 import com.keepguard.ms_auth.domain.dto.auth.AuthResetPasswordCommandDTO;
+import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
 import com.keepguard.ms_auth.adapters.out.feign.UserClient;
+import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
+import com.keepguard.ms_auth.infrastructure.config.security.LoginAttemptService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,6 +74,15 @@ class AuthCommandServiceTest {
     @Mock
     private UserClient userClient;
     
+    @Mock
+    private CompanyClient companyClient;
+
+    @Mock
+    private SessionCachePort sessionCachePort;
+
+    @Mock
+    private LoginAttemptService loginAttemptService;
+    
     @InjectMocks
     private AuthCommandService authCommandService;
     
@@ -104,26 +116,60 @@ class AuthCommandServiceTest {
         when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPasswordHash())).thenReturn(true);
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
-        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn(token);
+        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any(), any())).thenReturn(token);
         when(jwtService.getExpiration()).thenReturn(3600L);
+        when(sessionCachePort.getUserSession(anyString(), anyString())).thenReturn(Optional.of(
+                com.keepguard.ms_auth.domain.entity.session.UserSession.builder()
+                        .isTrusted(true)
+                        .createdAt("2026-08-24T10:00:00")
+                        .build()
+        ));
         
         // When
         AuthLoginCommandDTO loginRequest = AuthLoginCommandDTO.builder()
             .username(username)
             .password(password)
             .tenantId(tenantId)
+            .deviceId("dev_test_123")
             .build();
-        String result = authCommandService.login(loginRequest);
+        var result = authCommandService.login(loginRequest);
         
         // Then
-        assertEquals(token, result);
+        assertNotNull(result);
+        assertEquals(token, result.token());
+        assertEquals("AUTHENTICATED", result.status());
         verify(userRepository, times(1)).findByUsernameAndTenantId(username, tenantId);
         verify(passwordEncoder, times(1)).matches(password, user.getPasswordHash());
         verify(userRoleRepository, times(2)).findByUserId(user.getId()); // Chamado 2x: getUserRoles e getUserAuthorities
-        verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any());
+        verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any(), any());
         verify(userRepository, times(1)).save(user);
         verify(tokenCachePort, times(1)).saveToken(codeUser.toString(), token, 3600L);
+        verify(sessionCachePort, times(1)).saveUserSession(any(), eq(2592000L));
         verify(metricsPort, times(1)).incrementCounter(anyString(), any());
+        verify(loginAttemptService, times(1)).recordSuccessfulAttempt(username);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando a conta está bloqueada")
+    void shouldThrowExceptionWhenAccountIsLocked() {
+        // Given
+        when(loginAttemptService.isAccountLocked(username)).thenReturn(true);
+        when(loginAttemptService.getRemainingLockoutTime(username)).thenReturn(15L);
+
+        // When & Then
+        AuthLoginCommandDTO loginRequest = AuthLoginCommandDTO.builder()
+            .username(username)
+            .password(password)
+            .tenantId(tenantId)
+            .build();
+        
+        com.keepguard.ms_auth.application.service.exception.AccountLockedException exception =
+            assertThrows(com.keepguard.ms_auth.application.service.exception.AccountLockedException.class, () -> {
+                authCommandService.login(loginRequest);
+            });
+
+        assertTrue(exception.getMessage().contains("Conta temporariamente bloqueada"));
+        verify(userRepository, never()).findByUsernameAndTenantId(anyString(), any());
     }
     
     @Test
@@ -233,14 +279,18 @@ class AuthCommandServiceTest {
         when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPasswordHash())).thenReturn(true);
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
-        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn(token);
+        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any(), any())).thenReturn(token);
         when(jwtService.getExpiration()).thenReturn(3600L);
+        when(sessionCachePort.getUserSession(anyString(), anyString())).thenReturn(Optional.of(
+                com.keepguard.ms_auth.domain.entity.session.UserSession.builder().isTrusted(true).build()
+        ));
         
         // When
         AuthLoginCommandDTO loginRequest = AuthLoginCommandDTO.builder()
             .username(username)
             .password(password)
             .tenantId(tenantId)
+            .deviceId("dev_test_123")
             .build();
         authCommandService.login(loginRequest);
         
@@ -635,5 +685,61 @@ class AuthCommandServiceTest {
         verify(userRepository, times(1)).save(user);
         verify(passwordHistoryRepository, times(1)).save(any());
         verify(tokenCachePort, times(1)).removeResetToken(codeUserString, "EMAIL", "RECUPERACAO_SENHA");
+        verify(tokenCachePort, times(1)).clearResetTokenAttempts(codeUserString, "EMAIL", "RECUPERACAO_SENHA");
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando cooldown para geração de reset token está ativo")
+    void shouldThrowExceptionWhenResetTokenCooldownIsActive() {
+        // Given
+        String codeUserString = codeUser.toString();
+        com.keepguard.ms_auth.domain.dto.auth.AuthGenerateResetTokenCommandDTO request =
+            com.keepguard.ms_auth.domain.dto.auth.AuthGenerateResetTokenCommandDTO.builder()
+                .codeUser(codeUserString)
+                .tenantId(tenantId)
+                .messageType(MessageTypeEnum.EMAIL)
+                .templateType(TemplateTypeEnum.RECUPERACAO_SENHA)
+                .build();
+
+        when(tokenCachePort.isResetTokenCooldownActive(codeUserString)).thenReturn(true);
+        when(tokenCachePort.getResetTokenCooldownRemaining(codeUserString)).thenReturn(45L);
+
+        // When & Then
+        com.keepguard.ms_auth.application.service.exception.ResetTokenCooldownException exception =
+            assertThrows(com.keepguard.ms_auth.application.service.exception.ResetTokenCooldownException.class, () -> {
+                authCommandService.generateResetToken(request);
+            });
+
+        assertTrue(exception.getMessage().contains("Aguarde 45 segundos"));
+        verify(userRepository, never()).findByCodeUserAndTenantId(any(), any());
+    }
+
+    @Test
+    @DisplayName("Deve registrar tentativa incorreta de token de reset quando token inválido")
+    void shouldRecordFailedAttemptWhenResetTokenIsInvalid() {
+        // Given
+        String codeUserString = codeUser.toString();
+        UUID codeUserUuid = codeUser;
+        AuthResetPasswordCommandDTO resetPasswordRequest = AuthResetPasswordCommandDTO.builder()
+            .codeUser(codeUserString)
+            .resetToken("wrong-token")
+            .newPassword("newpassword123")
+            .confirmNewPassword("newpassword123")
+            .messageType(MessageTypeEnum.EMAIL)
+            .templateType(TemplateTypeEnum.RECUPERACAO_SENHA)
+            .tenantId(tenantId)
+            .build();
+
+        when(userRepository.findByCodeUserAndTenantId(codeUserUuid, tenantId)).thenReturn(Optional.of(user));
+        when(tokenCachePort.isResetTokenValid(codeUserString, "EMAIL", "RECUPERACAO_SENHA", "wrong-token")).thenReturn(false);
+        when(tokenCachePort.recordResetTokenFailedAttempt(codeUserString, "EMAIL", "RECUPERACAO_SENHA")).thenReturn(1L);
+
+        // When & Then
+        assertThrows(InvalidCredentialsException.class, () -> {
+            authCommandService.resetPassword(resetPasswordRequest);
+        });
+
+        verify(tokenCachePort, times(1)).recordResetTokenFailedAttempt(codeUserString, "EMAIL", "RECUPERACAO_SENHA");
+        verify(userRepository, never()).save(any());
     }
 }

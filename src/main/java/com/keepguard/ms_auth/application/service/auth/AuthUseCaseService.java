@@ -77,10 +77,10 @@ public class AuthUseCaseService implements AuthPort {
         log.info("Processando login | username={} | application={} | clientId={}", 
             request.getUsername(), request.getTenantId(), request.getClientId());
         
-        String token = authCommandService.login(request);
+        AuthLoginView view = authCommandService.login(request);
         
-        log.info("Login bem-sucedido | username={}", request.getUsername());
-        return new AuthLoginView(token, 3600L);
+        log.info("Login processado | username={} | status={}", request.getUsername(), view.status());
+        return view;
     }
 
     @Override
