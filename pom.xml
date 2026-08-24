@@ -165,7 +165,7 @@
 		<dependency>
 			<groupId>com.keepguard</groupId>
 			<artifactId>lib-common</artifactId>
-			<version>1.0.28-SNAPSHOT</version>
+			<version>1.0.31-SNAPSHOT</version>
 		</dependency>
 		
 		<!-- Spring AOP para aspectos -->
