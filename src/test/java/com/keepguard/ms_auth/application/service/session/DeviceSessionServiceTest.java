@@ -4,6 +4,7 @@ import com.keepguard.ms_auth.adapters.out.feign.CommunicationClient;
 import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
 import com.keepguard.ms_auth.adapters.out.feign.UserClient;
 import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
+import com.keepguard.ms_auth.application.dto.session.PasswordChangedNotifyCommand;
 import com.keepguard.ms_auth.application.dto.session.SendDeviceChallengeCommandDTO;
 import com.keepguard.ms_auth.application.dto.session.VerifyDeviceChallengeCommandDTO;
 import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
@@ -306,4 +307,61 @@ class DeviceSessionServiceTest {
         assertEquals("AUTHENTICATED", result.status());
         verify(userDeviceRepository, times(1)).save(any());
     }
+
+    @Test
+    @DisplayName("Deve notificar senha alterada com quick-revoke quando deviceId presente")
+    void shouldNotifyPasswordChangedWithRevokeWhenDevicePresent() {
+        PasswordChangedNotifyCommand command = PasswordChangedNotifyCommand.builder()
+                .codeUser(codeUser)
+                .tenantId(tenantId)
+                .email("test@example.com")
+                .username("testuser")
+                .deviceId("device_abc")
+                .deviceName("Chrome Web")
+                .deviceType("DESKTOP")
+                .ipAddress("127.0.0.1")
+                .userAgent("Mozilla")
+                .build();
+
+        deviceSessionService.notifyPasswordChanged(command);
+
+        verify(sessionCachePort, times(1)).saveQuickRevokeToken(any(), eq(172800L));
+
+        ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(communicationClient, times(1)).sendMessage(payloadCaptor.capture(), eq(tenantId));
+
+        Map<String, Object> payload = payloadCaptor.getValue();
+        assertEquals("SENHA_ALTERADA_SUCESSO", payload.get("templateType"));
+        assertEquals("test@example.com", payload.get("recipient"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> vars = (Map<String, Object>) payload.get("variables");
+        assertNotNull(vars.get("revokeUrl"));
+        assertFalse(((String) vars.get("revokeUrl")).isBlank());
+        assertTrue(((String) vars.get("revokeUrl")).contains("quick-revoke"));
+        assertEquals("Chrome Web", vars.get("deviceName"));
+    }
+
+    @Test
+    @DisplayName("Deve notificar senha alterada sem revoke quando deviceId ausente")
+    void shouldNotifyPasswordChangedWithoutRevokeWhenDeviceMissing() {
+        PasswordChangedNotifyCommand command = PasswordChangedNotifyCommand.builder()
+                .codeUser(codeUser)
+                .tenantId(tenantId)
+                .email("test@example.com")
+                .username("testuser")
+                .build();
+
+        deviceSessionService.notifyPasswordChanged(command);
+
+        verify(sessionCachePort, never()).saveQuickRevokeToken(any(), anyLong());
+
+        ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(communicationClient, times(1)).sendMessage(payloadCaptor.capture(), eq(tenantId));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> vars = (Map<String, Object>) payloadCaptor.getValue().get("variables");
+        assertEquals("", vars.get("revokeUrl"));
+    }
 }
+

@@ -111,7 +111,14 @@ public class AuthAdapterMapper {
         }
     }
 
-    public AuthChangePasswordCommandDTO toChangePasswordCommand(AuthChangePasswordRequestDTO dto, UUID tenantId) {
+    public AuthChangePasswordCommandDTO toChangePasswordCommand(
+            AuthChangePasswordRequestDTO dto,
+            UUID tenantId,
+            String deviceId,
+            String deviceName,
+            String deviceType,
+            String ipAddress,
+            String userAgent) {
         if (dto == null) {
             return null;
         }
@@ -123,6 +130,11 @@ public class AuthAdapterMapper {
                     .newPassword(dto.getNewPassword())
                     .confirmNewPassword(dto.getConfirmNewPassword())
                     .tenantId(tenantId)
+                    .deviceId(deviceId)
+                    .deviceName(deviceName)
+                    .deviceType(deviceType)
+                    .ipAddress(ipAddress)
+                    .userAgent(userAgent)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthChangePasswordRequestDTO para AuthChangePasswordCommandDTO: {}", e.getMessage(), e);
@@ -130,7 +142,14 @@ public class AuthAdapterMapper {
         }
     }
 
-    public AuthResetPasswordCommandDTO toResetPasswordCommand(AuthResetPasswordRequestDTO dto, UUID tenantId) {
+    public AuthResetPasswordCommandDTO toResetPasswordCommand(
+            AuthResetPasswordRequestDTO dto,
+            UUID tenantId,
+            String deviceId,
+            String deviceName,
+            String deviceType,
+            String ipAddress,
+            String userAgent) {
         if (dto == null) {
             return null;
         }
@@ -144,6 +163,11 @@ public class AuthAdapterMapper {
                     .messageType(dto.getMessageType())
                     .templateType(dto.getTemplateType())
                     .tenantId(tenantId)
+                    .deviceId(deviceId)
+                    .deviceName(deviceName)
+                    .deviceType(deviceType)
+                    .ipAddress(ipAddress)
+                    .userAgent(userAgent)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthResetPasswordRequestDTO para AuthResetPasswordCommandDTO: {}", e.getMessage(), e);

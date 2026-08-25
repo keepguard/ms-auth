@@ -240,11 +240,11 @@ class AuthControllerTest {
     @DisplayName("Deve alterar senha com sucesso")
     void shouldChangePasswordSuccessfully() {
         // Given
-        when(authAdapterMapper.toChangePasswordCommand(any(), any())).thenReturn(AuthChangePasswordCommandDTO.builder().build());
+        when(authAdapterMapper.toChangePasswordCommand(any(), any(), any(), any(), any(), any(), any())).thenReturn(AuthChangePasswordCommandDTO.builder().build());
         doNothing().when(authService).changePassword(any(AuthChangePasswordCommandDTO.class));
         
         // When
-        ResponseEntity<Void> response = authController.changePassword(changePasswordRequest, "550e8400-e29b-41d4-a716-446655440000");
+        ResponseEntity<Void> response = authController.changePassword(changePasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, null);
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -257,11 +257,11 @@ class AuthControllerTest {
     @DisplayName("Deve resetar senha com sucesso")
     void shouldResetPasswordSuccessfully() {
         // Given
-        when(authAdapterMapper.toResetPasswordCommand(any(), any())).thenReturn(AuthResetPasswordCommandDTO.builder().build());
+        when(authAdapterMapper.toResetPasswordCommand(any(), any(), any(), any(), any(), any(), any())).thenReturn(AuthResetPasswordCommandDTO.builder().build());
         doNothing().when(authService).resetPassword(any(AuthResetPasswordCommandDTO.class));
         
         // When
-        ResponseEntity<Void> response = authController.resetPassword(resetPasswordRequest, "550e8400-e29b-41d4-a716-446655440000");
+        ResponseEntity<Void> response = authController.resetPassword(resetPasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, null);
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -274,12 +274,12 @@ class AuthControllerTest {
     @DisplayName("Deve lidar com exceções durante alteração de senha")
     void shouldHandleExceptionsDuringChangePassword() {
         // Given
-        when(authAdapterMapper.toChangePasswordCommand(any(), any())).thenReturn(AuthChangePasswordCommandDTO.builder().build());
+        when(authAdapterMapper.toChangePasswordCommand(any(), any(), any(), any(), any(), any(), any())).thenReturn(AuthChangePasswordCommandDTO.builder().build());
         doThrow(new RuntimeException("Service error")).when(authService).changePassword(any(AuthChangePasswordCommandDTO.class));
         
         // When & Then
         assertThrows(RuntimeException.class, () -> {
-            authController.changePassword(changePasswordRequest, "550e8400-e29b-41d4-a716-446655440000");
+            authController.changePassword(changePasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, null);
         });
         
         verify(authService, times(1)).changePassword(any(AuthChangePasswordCommandDTO.class));
@@ -289,12 +289,12 @@ class AuthControllerTest {
     @DisplayName("Deve lidar com exceções durante reset de senha")
     void shouldHandleExceptionsDuringResetPassword() {
         // Given
-        when(authAdapterMapper.toResetPasswordCommand(any(), any())).thenReturn(AuthResetPasswordCommandDTO.builder().build());
+        when(authAdapterMapper.toResetPasswordCommand(any(), any(), any(), any(), any(), any(), any())).thenReturn(AuthResetPasswordCommandDTO.builder().build());
         doThrow(new RuntimeException("Service error")).when(authService).resetPassword(any(AuthResetPasswordCommandDTO.class));
         
         // When & Then
         assertThrows(RuntimeException.class, () -> {
-            authController.resetPassword(resetPasswordRequest, "550e8400-e29b-41d4-a716-446655440000");
+            authController.resetPassword(resetPasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, null);
         });
         
         verify(authService, times(1)).resetPassword(any(AuthResetPasswordCommandDTO.class));

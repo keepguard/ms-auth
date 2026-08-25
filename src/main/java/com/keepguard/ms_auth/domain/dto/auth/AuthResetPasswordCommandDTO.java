@@ -37,5 +37,11 @@ public class AuthResetPasswordCommandDTO {
 
     @NotNull(message = "Template Type é obrigatório")
     private TemplateTypeEnum templateType;
+
+    private String deviceId;
+    private String deviceName;
+    private String deviceType;
+    private String ipAddress;
+    private String userAgent;
 }
 

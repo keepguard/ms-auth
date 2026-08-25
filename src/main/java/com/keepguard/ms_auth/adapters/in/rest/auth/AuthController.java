@@ -244,12 +244,19 @@ public class AuthController {
             @Parameter(description = "Dados para alteração de senha", required = true)
             @RequestBody @Valid AuthChangePasswordRequestDTO request,
             @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
+            @RequestHeader(value = "X-Device-Name", required = false) String deviceName,
+            @RequestHeader(value = "X-Device-Type", required = false) String deviceType,
+            @RequestHeader(value = "X-Forwarded-For", required = false) String ipAddress,
+            @RequestHeader(value = "User-Agent", required = false) String userAgent) {
 
-        log.info("Alterando senha para usuário: {}, tenantIdHeader={}", request.getCodeUser(), tenantIdHeader);
+        log.info("Alterando senha para usuário: {}, tenantIdHeader={}, deviceId={}",
+                request.getCodeUser(), tenantIdHeader, deviceId);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        var command = mapper.toChangePasswordCommand(request, tenantId);
+        var command = mapper.toChangePasswordCommand(
+                request, tenantId, deviceId, deviceName, deviceType, ipAddress, userAgent);
         authService.changePassword(command);
         
         log.info("Password changed successfully for user: {} with application: {}", request.getCodeUser(), tenantId);
@@ -274,13 +281,19 @@ public class AuthController {
             @Parameter(description = "Dados para reset de senha", required = true)
             @RequestBody @Valid AuthResetPasswordRequestDTO request,
             @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
+            @RequestHeader(value = "X-Device-Name", required = false) String deviceName,
+            @RequestHeader(value = "X-Device-Type", required = false) String deviceType,
+            @RequestHeader(value = "X-Forwarded-For", required = false) String ipAddress,
+            @RequestHeader(value = "User-Agent", required = false) String userAgent) {
 
-        log.info("Resetando senha para usuário: {}, tenantIdHeader={}, resetToken={}", 
-            request.getCodeUser(), tenantIdHeader, request.getResetToken());
+        log.info("Resetando senha para usuário: {}, tenantIdHeader={}, deviceId={}, resetToken={}", 
+            request.getCodeUser(), tenantIdHeader, deviceId, request.getResetToken());
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        var command = mapper.toResetPasswordCommand(request, tenantId);
+        var command = mapper.toResetPasswordCommand(
+                request, tenantId, deviceId, deviceName, deviceType, ipAddress, userAgent);
         authService.resetPassword(command);
         
         log.info("Password reset successfully for user: {} with application: {}", request.getCodeUser(), tenantId);

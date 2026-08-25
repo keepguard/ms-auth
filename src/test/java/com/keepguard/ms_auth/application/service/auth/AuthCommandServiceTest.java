@@ -25,6 +25,7 @@ import com.keepguard.ms_auth.domain.dto.auth.AuthResetPasswordCommandDTO;
 import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
 import com.keepguard.ms_auth.adapters.out.feign.UserClient;
 import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
+import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
 import com.keepguard.ms_auth.infrastructure.config.security.LoginAttemptService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -90,6 +91,9 @@ class AuthCommandServiceTest {
 
     @Mock
     private LoginAttemptService loginAttemptService;
+
+    @Mock
+    private DeviceSessionService deviceSessionService;
     
     @InjectMocks
     private AuthCommandService authCommandService;
@@ -663,6 +667,7 @@ class AuthCommandServiceTest {
         verify(userRepository, times(1)).save(user);
         verify(passwordHistoryRepository, times(1)).save(any());
         verify(metricsPort, times(1)).incrementCounter(anyString(), any());
+        verify(deviceSessionService, times(1)).notifyPasswordChanged(any());
     }
     
     @Test
@@ -717,6 +722,7 @@ class AuthCommandServiceTest {
         verify(passwordHistoryRepository, times(1)).save(any());
         verify(tokenCachePort, times(1)).removeResetToken(codeUserString, "EMAIL", "RECUPERACAO_SENHA");
         verify(tokenCachePort, times(1)).clearResetTokenAttempts(codeUserString, "EMAIL", "RECUPERACAO_SENHA");
+        verify(deviceSessionService, times(1)).notifyPasswordChanged(any());
     }
 
     @Test

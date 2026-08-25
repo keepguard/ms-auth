@@ -6,6 +6,7 @@ import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
 import com.keepguard.ms_auth.adapters.out.feign.UserClient;
 import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
 import com.keepguard.ms_auth.application.dto.session.DeviceSessionView;
+import com.keepguard.ms_auth.application.dto.session.PasswordChangedNotifyCommand;
 import com.keepguard.ms_auth.application.dto.session.SendDeviceChallengeCommandDTO;
 import com.keepguard.ms_auth.application.dto.session.VerifyDeviceChallengeCommandDTO;
 import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
@@ -263,6 +264,77 @@ public class DeviceSessionService {
                     challenge.getCodeUser(), challenge.getEmail(), revokeUrl);
         } catch (Exception e) {
             log.error("Falha ao enviar notificação de novo dispositivo conectado: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Envia e-mail de alerta após troca/reset de senha, com link de quick-revoke
+     * do dispositivo que executou a operação (quando deviceId estiver presente).
+     */
+    public void notifyPasswordChanged(PasswordChangedNotifyCommand command) {
+        if (command == null || command.getEmail() == null || command.getEmail().isBlank()) {
+            log.warn("Notificação de senha alterada ignorada - e-mail ausente | codeUser={}",
+                    command != null ? command.getCodeUser() : null);
+            return;
+        }
+
+        try {
+            String quickRevokeTokenStr = null;
+            String revokeUrl = "";
+
+            if (command.getDeviceId() != null && !command.getDeviceId().isBlank()) {
+                quickRevokeTokenStr = UUID.randomUUID().toString().replace("-", "")
+                        + UUID.randomUUID().toString().replace("-", "");
+                com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken quickRevokeToken =
+                        com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken.builder()
+                                .token(quickRevokeTokenStr)
+                                .codeUser(command.getCodeUser())
+                                .tenantId(command.getTenantId())
+                                .deviceId(command.getDeviceId())
+                                .deviceName(command.getDeviceName())
+                                .ipAddress(command.getIpAddress())
+                                .userAgent(command.getUserAgent())
+                                .createdAt(LocalDateTime.now().toString())
+                                .expiresAt(System.currentTimeMillis() + (172800L * 1000L))
+                                .build();
+                sessionCachePort.saveQuickRevokeToken(quickRevokeToken, 172800L);
+
+                String baseUrl = resolveBaseUrl(command.getTenantId());
+                revokeUrl = baseUrl + "/api/v1/auth/device/quick-revoke?token="
+                        + quickRevokeTokenStr + "&blacklist=true";
+            }
+
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("userName", command.getUsername() != null ? command.getUsername() : "");
+            variables.put("appName", "KeepGuard");
+            variables.put("updatedAt", LocalDateTime.now()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
+            variables.put("deviceName", command.getDeviceName() != null && !command.getDeviceName().isBlank()
+                    ? command.getDeviceName() : "Dispositivo Desconhecido");
+            variables.put("deviceType", command.getDeviceType() != null && !command.getDeviceType().isBlank()
+                    ? command.getDeviceType() : "DESKTOP");
+            variables.put("ipAddress", command.getIpAddress() != null && !command.getIpAddress().isBlank()
+                    ? command.getIpAddress() : "IP não identificado");
+            variables.put("userAgent", command.getUserAgent() != null && !command.getUserAgent().isBlank()
+                    ? command.getUserAgent() : "N/A");
+            variables.put("quickRevokeToken", quickRevokeTokenStr != null ? quickRevokeTokenStr : "");
+            variables.put("revokeUrl", revokeUrl);
+
+            Map<String, Object> msgPayload = Map.of(
+                    "recipient", command.getEmail(),
+                    "codeUser", command.getCodeUser() != null ? command.getCodeUser() : "",
+                    "templateType", "SENHA_ALTERADA_SUCESSO",
+                    "messageType", "EMAIL",
+                    "communicationType", "EMAIL",
+                    "subject", "Alerta de Segurança: Senha da sua conta foi alterada",
+                    "variables", variables
+            );
+
+            communicationClient.sendMessage(msgPayload, command.getTenantId());
+            log.info("Notificação de senha alterada enviada | codeUser={} | email={} | hasRevokeUrl={}",
+                    command.getCodeUser(), command.getEmail(), !revokeUrl.isBlank());
+        } catch (Exception e) {
+            log.error("Falha ao enviar notificação de senha alterada: {}", e.getMessage(), e);
         }
     }
 

@@ -29,6 +29,11 @@ public class AuthChangePasswordCommandDTO {
 
     @NotBlank(message = "O header X-Tenant-Id é obrigatório")
     private UUID tenantId;
-    
+
+    private String deviceId;
+    private String deviceName;
+    private String deviceType;
+    private String ipAddress;
+    private String userAgent;
 }
 

@@ -33,6 +33,8 @@ import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
 import com.keepguard.ms_auth.application.dto.auth.AvailableMfaChannelDTO;
 import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
 import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
+import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
+import com.keepguard.ms_auth.application.dto.session.PasswordChangedNotifyCommand;
 import com.keepguard.ms_auth.domain.entity.session.DeviceChallengeSession;
 import com.keepguard.ms_auth.domain.entity.session.UserSession;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +67,7 @@ public class AuthCommandService {
     private final UserClient userClient;
     private final CompanyClient companyClient;
     private final LoginAttemptService loginAttemptService;
+    private final DeviceSessionService deviceSessionService;
 
     @Value("${cache.redis.ttl.reset-token}")
     private long resetTokenTtlSeconds;
@@ -553,6 +556,10 @@ public class AuthCommandService {
 
         metricsPort.incrementCounter("user_password_changes_total",
             Map.of("codeUser", request.getCodeUser()));
+
+        notifyPasswordChanged(user, request.getTenantId().toString(),
+                request.getDeviceId(), request.getDeviceName(), request.getDeviceType(),
+                request.getIpAddress(), request.getUserAgent());
     }
 
     @LogOperation(
@@ -701,6 +708,26 @@ public class AuthCommandService {
 
         log.info("Senha resetada com sucesso | codeUser={} | messageType={} | templateType={}", 
             request.getCodeUser(), request.getMessageType(), request.getTemplateType());
+
+        notifyPasswordChanged(user, request.getTenantId().toString(),
+                request.getDeviceId(), request.getDeviceName(), request.getDeviceType(),
+                request.getIpAddress(), request.getUserAgent());
+    }
+
+    private void notifyPasswordChanged(User user, String tenantId,
+                                       String deviceId, String deviceName, String deviceType,
+                                       String ipAddress, String userAgent) {
+        deviceSessionService.notifyPasswordChanged(PasswordChangedNotifyCommand.builder()
+                .codeUser(user.getCodeUser() != null ? user.getCodeUser().toString() : null)
+                .tenantId(tenantId)
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .deviceId(deviceId)
+                .deviceName(deviceName)
+                .deviceType(deviceType)
+                .ipAddress(ipAddress)
+                .userAgent(userAgent)
+                .build());
     }
 
     /**
