@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-auth
+  labels:
+    app: ms-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-auth
+  template:
+    metadata:
+      labels:
+        app: ms-auth
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: ms-auth
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: {{ .Values.env.springProfilesActive | quote }}
+        - name: SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED
+          value: "false"
+        - name: SERVER_PORT
+          value: {{ .Values.env.serverPort | quote }}
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: keepguard-secret
+              key: JWT_SECRET
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/{{ .Values.env.postgresDb }}"
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: keepguard-config
+              key: POSTGRES_USER
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keepguard-secret
+              key: POSTGRES_PASSWORD
+        - name: SPRING_DATA_REDIS_HOST
+          value: {{ .Values.env.redisHost | quote }}
+        - name: SPRING_DATA_REDIS_PORT
+          value: {{ .Values.env.redisPort | quote }}
+        - name: COMPANY_SERVICE_URL
+          value: {{ .Values.env.companyServiceUrl | quote }}
+        - name: USER_SERVICE_URL
+          value: {{ .Values.env.userServiceUrl | quote }}
+        - name: COMMUNICATION_SERVICE_URL
+          value: {{ .Values.env.communicationServiceUrl | quote }}
+        - name: APP_URLS_API_BASE_URL
+          value: {{ .Values.env.apiBaseUrl | quote }}
+        - name: APP_URLS_FRONTEND_BASE_URL
+          value: {{ .Values.env.frontendBaseUrl | quote }}
+        - name: KEEPGUARD_VALIDATION_MODERATION_ENABLED
+          value: "false"
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
