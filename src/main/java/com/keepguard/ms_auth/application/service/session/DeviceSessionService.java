@@ -171,6 +171,7 @@ public class DeviceSessionService {
                 .isTrusted(Boolean.TRUE.equals(command.getTrustDevice()))
                 .lastActiveAt(LocalDateTime.now().toString())
                 .createdAt(LocalDateTime.now().toString())
+                .refreshToken(token)
                 .build();
 
         sessionCachePort.saveUserSession(session, 2592000L); // 30 dias
@@ -414,6 +415,13 @@ public class DeviceSessionService {
     }
 
     public void revokeSession(String codeUser, String deviceId) {
+        // Remove token JWT correspondente do Redis se existir
+        sessionCachePort.getUserSession(codeUser, deviceId).ifPresent(s -> {
+            if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
+                tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+            }
+        });
+
         sessionCachePort.removeUserSession(codeUser, deviceId);
         try {
             userDeviceRepository.findByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId)
@@ -429,6 +437,16 @@ public class DeviceSessionService {
     }
 
     public void revokeAllOtherSessions(String codeUser, String currentDeviceId) {
+        // Localiza e remove os tokens de todas as outras sessões do Redis
+        List<UserSession> activeSessions = sessionCachePort.listUserSessions(codeUser);
+        for (UserSession s : activeSessions) {
+            if (s.getDeviceId() != null && !s.getDeviceId().equals(currentDeviceId)) {
+                if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
+                    tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+                }
+            }
+        }
+
         sessionCachePort.removeAllUserSessionsExceptCurrent(codeUser, currentDeviceId);
         try {
             UUID codeUserUuid = UUID.fromString(codeUser);

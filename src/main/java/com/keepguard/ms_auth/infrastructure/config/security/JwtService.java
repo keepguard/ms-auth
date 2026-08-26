@@ -86,6 +86,19 @@ public class JwtService {
         return UUID.fromString(claims.getSubject());
     }
 
+    public String extractDeviceId(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+            return claims.get("device_id", String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public long getExpiration() {
         return expiration;
     }

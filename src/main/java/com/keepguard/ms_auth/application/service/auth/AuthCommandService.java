@@ -218,6 +218,7 @@ public class AuthCommandService {
                 .isTrusted(true)
                 .lastActiveAt(LocalDateTime.now().toString())
                 .createdAt(existingSession.map(UserSession::getCreatedAt).orElse(LocalDateTime.now().toString()))
+                .refreshToken(token)
                 .build();
 
         sessionCachePort.saveUserSession(session, 2592000L); // 30 dias
@@ -427,14 +428,22 @@ public class AuthCommandService {
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
 
-        // Buscar displayHandle do ms-user (com fallback gracioso)
         String displayHandle = getDisplayHandle(user.getCodeUser(), request.getTenantId().toString());
-
-        String newToken = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), displayHandle);
+        String deviceId = jwtService.extractDeviceId(request.getToken());
+        String newToken = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), displayHandle, deviceId);
 
         // Remove o token antigo e salva o novo (rotação de token)
         tokenCachePort.removeToken(codeUser.toString(), request.getToken());
         tokenCachePort.saveToken(user.getCodeUser().toString(), newToken, jwtService.getExpiration());
+
+        // Atualiza a sessão correspondente no Redis com o novo token
+        if (deviceId != null) {
+            sessionCachePort.getUserSession(codeUser.toString(), deviceId).ifPresent(s -> {
+                s.setRefreshToken(newToken);
+                s.setLastActiveAt(LocalDateTime.now().toString());
+                sessionCachePort.saveUserSession(s, 2592000L);
+            });
+        }
 
         return newToken;
     }

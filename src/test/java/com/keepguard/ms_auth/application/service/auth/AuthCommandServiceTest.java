@@ -348,7 +348,7 @@ class AuthCommandServiceTest {
         when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
         when(userRepository.findByCodeUserAndTenantId(codeUser, tenantId)).thenReturn(Optional.of(user));
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
-        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn("new-token");
+        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any(), any())).thenReturn("new-token");
         when(jwtService.getExpiration()).thenReturn(3600L);
         
         // When
@@ -360,7 +360,7 @@ class AuthCommandServiceTest {
         verify(jwtService, times(1)).extractUserId(token);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
         verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUser, tenantId);
-        verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any());
+        verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any(), any());
         verify(tokenCachePort, times(1)).removeToken(codeUser.toString(), token);
         verify(tokenCachePort, times(1)).saveToken(codeUser.toString(), "new-token", 3600L);
     }
