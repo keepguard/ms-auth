@@ -34,7 +34,6 @@ public class AdminDeviceBlacklistController {
     private final DeviceSessionService deviceSessionService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @Operation(summary = "Consultar e filtrar blacklist de dispositivos",
                description = "Permite a administradores e gestores pesquisar o histórico de dispositivos bloqueados no Tenant com filtros dinâmicos e paginação")
     @MetricsEndpoint(endpoint = "admin_search_device_blacklist")
@@ -51,6 +50,7 @@ public class AdminDeviceBlacklistController {
             @RequestParam(value = "size", defaultValue = "20") int size,
             @RequestParam(value = "sort", defaultValue = "blockedAt,desc") String sort) {
 
+        validateAdminOrManagerRole(jwt);
         UUID tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
         // Limita o tamanho máximo da página a 100 registros (boas práticas)
@@ -70,7 +70,6 @@ public class AdminDeviceBlacklistController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @Operation(summary = "Bloquear dispositivo administrativamente",
                description = "Permite bloquear o dispositivo de um usuário específico, encerrando suas sessões ativas")
     @MetricsEndpoint(endpoint = "admin_add_device_blacklist")
@@ -79,8 +78,9 @@ public class AdminDeviceBlacklistController {
             @RequestHeader("X-Tenant-Id") String tenantIdHeader,
             @RequestBody Map<String, Object> request) {
 
+        validateAdminOrManagerRole(jwt);
         UUID tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        String blockedBy = jwt.getClaimAsString("email") != null ? jwt.getClaimAsString("email") : jwt.getSubject();
+        String blockedBy = jwt != null && jwt.getClaimAsString("email") != null ? jwt.getClaimAsString("email") : (jwt != null ? jwt.getSubject() : "ADMIN");
 
         String userId = (String) request.get("userId");
         String deviceId = (String) request.get("deviceId");
@@ -104,7 +104,6 @@ public class AdminDeviceBlacklistController {
     }
 
     @DeleteMapping("/{deviceId}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @Operation(summary = "Desbloquear dispositivo administrativamente",
                description = "Remove o dispositivo da blacklist de determinado usuário")
     @MetricsEndpoint(endpoint = "admin_remove_device_blacklist")
@@ -114,6 +113,7 @@ public class AdminDeviceBlacklistController {
             @PathVariable("deviceId") String deviceId,
             @RequestParam("userId") String userId) {
 
+        validateAdminOrManagerRole(jwt);
         UUID tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
 
         if (userId == null || userId.isBlank() || deviceId == null || deviceId.isBlank()) {
@@ -122,5 +122,21 @@ public class AdminDeviceBlacklistController {
 
         deviceSessionService.adminRemoveDeviceFromBlacklist(tenantId, userId, deviceId);
         return ResponseEntity.noContent().build();
+    }
+
+    private void validateAdminOrManagerRole(Jwt jwt) {
+        if (jwt == null) {
+            throw new org.springframework.security.access.AccessDeniedException("Token JWT não informado ou inválido.");
+        }
+        java.util.List<String> roles = jwt.getClaimAsStringList("roles");
+        if (roles == null || roles.isEmpty()) {
+            String roleSingle = jwt.getClaimAsString("roles");
+            if (roleSingle != null) {
+                roles = java.util.List.of(roleSingle);
+            }
+        }
+        if (roles == null || roles.stream().noneMatch(r -> r.equalsIgnoreCase("ROLE_ADMIN") || r.equalsIgnoreCase("ROLE_MANAGER") || r.equalsIgnoreCase("ADMIN") || r.equalsIgnoreCase("MANAGER"))) {
+            throw new org.springframework.security.access.AccessDeniedException("Acesso restrito a administradores e gestores.");
+        }
     }
 }
