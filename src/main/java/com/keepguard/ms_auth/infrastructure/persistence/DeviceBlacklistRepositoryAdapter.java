@@ -10,6 +10,7 @@ import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +28,7 @@ public class DeviceBlacklistRepositoryAdapter implements DeviceBlacklistReposito
     private final DeviceBlacklistJpaMapper mapper;
 
     @Override
+    @Transactional
     public DeviceBlacklistEntry save(DeviceBlacklistEntry entry) {
         DeviceBlacklistJpaEntity jpaEntity = mapper.toJpaEntity(entry);
         DeviceBlacklistJpaEntity saved = springRepository.save(jpaEntity);
@@ -34,12 +36,14 @@ public class DeviceBlacklistRepositoryAdapter implements DeviceBlacklistReposito
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<DeviceBlacklistEntry> findByCodeUserAndDeviceId(UUID codeUser, String deviceId) {
         return springRepository.findByCodeUserAndDeviceId(codeUser, deviceId)
                 .map(mapper::toDomain);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DeviceBlacklistEntry> listByCodeUser(UUID codeUser) {
         return springRepository.findByCodeUser(codeUser).stream()
                 .map(mapper::toDomain)
@@ -47,6 +51,7 @@ public class DeviceBlacklistRepositoryAdapter implements DeviceBlacklistReposito
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DeviceBlacklistEntry> listByTenantIdAndCodeUser(UUID tenantId, UUID codeUser) {
         return springRepository.findByTenantIdAndCodeUser(tenantId, codeUser).stream()
                 .map(mapper::toDomain)
@@ -54,11 +59,13 @@ public class DeviceBlacklistRepositoryAdapter implements DeviceBlacklistReposito
     }
 
     @Override
+    @Transactional
     public void deleteByCodeUserAndDeviceId(UUID codeUser, String deviceId) {
         springRepository.deleteByCodeUserAndDeviceId(codeUser, deviceId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isBlacklisted(UUID codeUser, String deviceId) {
         return springRepository.existsByCodeUserAndDeviceId(codeUser, deviceId);
     }

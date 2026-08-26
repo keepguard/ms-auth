@@ -372,6 +372,9 @@ public class DeviceSessionService {
             List<UserDevice> devices = userDeviceRepository.listByCodeUser(codeUserUuid);
             if (!devices.isEmpty()) {
                 for (UserDevice dev : devices) {
+                    if (dev.getRevokedAt() != null) {
+                        continue; // Ignora dispositivos com sessão revogada
+                    }
                     UserSession active = activeSessionMap.get(dev.getDeviceId());
                     boolean isCurrent = dev.getDeviceId() != null && dev.getDeviceId().equals(currentDeviceId);
                     String location = active != null && active.getLocation() != null ? active.getLocation() : "Localização Desconhecida";

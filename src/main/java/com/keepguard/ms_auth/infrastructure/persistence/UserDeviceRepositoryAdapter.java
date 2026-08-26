@@ -10,6 +10,7 @@ import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +28,7 @@ public class UserDeviceRepositoryAdapter implements UserDeviceRepositoryPort {
     private final UserDeviceJpaMapper mapper;
 
     @Override
+    @Transactional
     public UserDevice save(UserDevice device) {
         UserDeviceJpaEntity jpaEntity = mapper.toJpaEntity(device);
         UserDeviceJpaEntity saved = springRepository.save(jpaEntity);
@@ -34,12 +36,14 @@ public class UserDeviceRepositoryAdapter implements UserDeviceRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<UserDevice> findByCodeUserAndDeviceId(UUID codeUser, String deviceId) {
         return springRepository.findByCodeUserAndDeviceId(codeUser, deviceId)
                 .map(mapper::toDomain);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDevice> listByCodeUser(UUID codeUser) {
         return springRepository.findByCodeUser(codeUser).stream()
                 .map(mapper::toDomain)
@@ -47,6 +51,7 @@ public class UserDeviceRepositoryAdapter implements UserDeviceRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDevice> listByCodeUserAndTenantId(UUID codeUser, UUID tenantId) {
         return springRepository.findByCodeUserAndTenantId(codeUser, tenantId).stream()
                 .map(mapper::toDomain)
@@ -54,6 +59,7 @@ public class UserDeviceRepositoryAdapter implements UserDeviceRepositoryPort {
     }
 
     @Override
+    @Transactional
     public void deleteByCodeUserAndDeviceId(UUID codeUser, String deviceId) {
         springRepository.deleteByCodeUserAndDeviceId(codeUser, deviceId);
     }
