@@ -21,7 +21,7 @@ public class RoleSeeder implements CommandLineRunner {
     public void run(String... args) throws Exception {
         log.info("Iniciando verificação de Roles no banco de dados...");
 
-        List<String> defaultRoles = Arrays.asList("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_USER");
+        List<String> defaultRoles = Arrays.asList("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_USER", "ROLE_SYSTEM");
 
         for (String roleName : defaultRoles) {
             roleRepository.findByName(roleName).ifPresentOrElse(

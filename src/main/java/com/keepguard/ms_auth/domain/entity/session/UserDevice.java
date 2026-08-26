@@ -35,6 +35,7 @@ public class UserDevice {
             this.userAgent = userAgent;
         }
         this.lastActiveAt = activeAt != null ? activeAt : LocalDateTime.now();
+        this.revokedAt = null; // Reativa dispositivo se tiver nova atividade
     }
 
     public void revoke(LocalDateTime revokedAt) {
