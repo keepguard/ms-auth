@@ -69,4 +69,21 @@ public class DeviceBlacklistRepositoryAdapter implements DeviceBlacklistReposito
     public boolean isBlacklisted(UUID codeUser, String deviceId) {
         return springRepository.existsByCodeUserAndDeviceId(codeUser, deviceId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<DeviceBlacklistEntry> search(
+            UUID tenantId, UUID codeUser, String deviceId, String deviceName, String ipAddress,
+            java.time.LocalDateTime from, java.time.LocalDateTime to, org.springframework.data.domain.Pageable pageable) {
+        
+        org.springframework.data.jpa.domain.Specification<DeviceBlacklistJpaEntity> spec = org.springframework.data.jpa.domain.Specification
+                .where(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withTenantId(tenantId))
+                .and(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withCodeUser(codeUser))
+                .and(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withDeviceId(deviceId))
+                .and(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withDeviceName(deviceName))
+                .and(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withIpAddress(ipAddress))
+                .and(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withBlockedBetween(from, to));
+
+        return springRepository.findAll(spec, pageable).map(mapper::toDomain);
+    }
 }

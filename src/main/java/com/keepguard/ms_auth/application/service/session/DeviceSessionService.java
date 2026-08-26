@@ -599,6 +599,71 @@ public class DeviceSessionService {
         log.info("Dispositivo removido da blacklist | codeUser={} | deviceId={}", codeUser, deviceId);
     }
 
+    public org.springframework.data.domain.Page<com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry> searchBlacklist(
+            UUID tenantId, UUID codeUser, String deviceId, String deviceName, String ipAddress,
+            java.time.LocalDateTime from, java.time.LocalDateTime to, org.springframework.data.domain.Pageable pageable) {
+        return deviceBlacklistRepository.search(tenantId, codeUser, deviceId, deviceName, ipAddress, from, to, pageable);
+    }
+
+    public void adminAddDeviceToBlacklist(UUID tenantId, String codeUser, String deviceId, String deviceName, String reason, String blockedBy, LocalDateTime expiresAt) {
+        sessionCachePort.removeUserSession(codeUser, deviceId);
+        try {
+            userDeviceRepository.findByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId)
+                    .ifPresent(dev -> {
+                        dev.revoke(LocalDateTime.now());
+                        userDeviceRepository.save(dev);
+                    });
+        } catch (Exception ignored) {}
+
+        String ipAddress = null;
+        String userAgent = null;
+        try {
+            Optional<UserDevice> userDeviceOpt = userDeviceRepository.findByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId);
+            if (userDeviceOpt.isPresent()) {
+                UserDevice dev = userDeviceOpt.get();
+                ipAddress = dev.getIpAddress();
+                userAgent = dev.getUserAgent();
+                if (deviceName == null || deviceName.isBlank()) {
+                    deviceName = dev.getDeviceName();
+                }
+            }
+        } catch (Exception ignored) {}
+
+        com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry entry = com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry.builder()
+                .tenantId(tenantId)
+                .codeUser(codeUser)
+                .deviceId(deviceId)
+                .deviceName(deviceName != null ? deviceName : "Dispositivo Bloqueado")
+                .ipAddress(ipAddress)
+                .userAgent(userAgent)
+                .reason(reason != null ? reason : "Bloqueado pelo Administrador")
+                .blockedAt(LocalDateTime.now().toString())
+                .blockedBy(blockedBy)
+                .expiresAt(expiresAt)
+                .build();
+
+        sessionCachePort.addToBlacklist(entry, 0);
+
+        try {
+            deviceBlacklistRepository.save(entry);
+        } catch (Exception e) {
+            log.warn("Falha ao salvar blacklist administrativo no PostgreSQL | codeUser={} | deviceId={} | erro={}", codeUser, deviceId, e.getMessage());
+        }
+
+        log.info("Dispositivo adicionado à blacklist por Admin | tenantId={} | codeUser={} | deviceId={} | blockedBy={}",
+                tenantId, codeUser, deviceId, blockedBy);
+    }
+
+    public void adminRemoveDeviceFromBlacklist(UUID tenantId, String codeUser, String deviceId) {
+        sessionCachePort.removeFromBlacklist(codeUser, deviceId);
+        try {
+            deviceBlacklistRepository.deleteByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId);
+        } catch (Exception e) {
+            log.warn("Falha ao remover blacklist administrativo do PostgreSQL | codeUser={} | deviceId={} | erro={}", codeUser, deviceId, e.getMessage());
+        }
+        log.info("Dispositivo removido da blacklist por Admin | tenantId={} | codeUser={} | deviceId={}", tenantId, codeUser, deviceId);
+    }
+
     private List<String> getUserRoles(UUID userId) {
         List<UUID> roleIds = userRoleRepository.findByUserId(userId)
                 .stream()
