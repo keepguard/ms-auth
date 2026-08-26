@@ -464,6 +464,33 @@ public class DeviceSessionService {
         log.info("Todas as outras sessões foram revogadas | codeUser={} | currentDeviceId={}", codeUser, currentDeviceId);
     }
 
+    public void revokeAllSessions(String codeUser) {
+        // Localiza e remove os tokens de todas as sessões do Redis
+        List<UserSession> activeSessions = sessionCachePort.listUserSessions(codeUser);
+        for (UserSession s : activeSessions) {
+            if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
+                tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+            }
+        }
+
+        // Limpa todas as sessões e tokens legados do cache
+        sessionCachePort.removeAllUserSessions(codeUser);
+        tokenCachePort.removeAllTokens(codeUser);
+
+        try {
+            UUID codeUserUuid = UUID.fromString(codeUser);
+            List<UserDevice> devices = userDeviceRepository.listByCodeUser(codeUserUuid);
+            for (UserDevice dev : devices) {
+                dev.revoke(LocalDateTime.now());
+                userDeviceRepository.save(dev);
+            }
+        } catch (Exception e) {
+            log.warn("Falha ao atualizar revogação total de sessões no banco | codeUser={} | erro={}",
+                    codeUser, e.getMessage());
+        }
+        log.info("Todas as sessões e tokens foram revogados completamente | codeUser={}", codeUser);
+    }
+
     public Map<String, Object> quickRevoke(String token, boolean addToBlacklist) {
         log.info("Processando revogação rápida via link de e-mail | token={}", token);
         com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken quickRevokeToken = sessionCachePort.getQuickRevokeToken(token)

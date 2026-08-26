@@ -566,6 +566,13 @@ public class AuthCommandService {
         metricsPort.incrementCounter("user_password_changes_total",
             Map.of("codeUser", request.getCodeUser()));
 
+        // Revoga todas as outras sessões e tokens ativos no Redis e DB para segurança Zero Trust
+        if (request.getDeviceId() != null && !request.getDeviceId().isBlank()) {
+            deviceSessionService.revokeAllOtherSessions(request.getCodeUser(), request.getDeviceId());
+        } else {
+            deviceSessionService.revokeAllSessions(request.getCodeUser());
+        }
+
         notifyPasswordChanged(user, request.getTenantId().toString(),
                 request.getDeviceId(), request.getDeviceName(), request.getDeviceType(),
                 request.getIpAddress(), request.getUserAgent());
@@ -717,6 +724,9 @@ public class AuthCommandService {
 
         log.info("Senha resetada com sucesso | codeUser={} | messageType={} | templateType={}", 
             request.getCodeUser(), request.getMessageType(), request.getTemplateType());
+
+        // Revoga 100% das sessões e tokens no Redis e DB após reset de senha (exige novo login com a nova senha)
+        deviceSessionService.revokeAllSessions(request.getCodeUser());
 
         notifyPasswordChanged(user, request.getTenantId().toString(),
                 request.getDeviceId(), request.getDeviceName(), request.getDeviceType(),
