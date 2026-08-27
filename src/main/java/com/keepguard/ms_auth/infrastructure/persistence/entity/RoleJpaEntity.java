@@ -8,7 +8,10 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "roles")
+@Table(
+    name = "roles",
+    uniqueConstraints = @UniqueConstraint(name = "uk_roles_company_id_name", columnNames = {"company_id", "name"})
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,11 +23,18 @@ public class RoleJpaEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(unique = true, nullable = false, length = 50)
+    @Column(name = "company_id", columnDefinition = "uuid")
+    private UUID companyId;
+
+    @Column(nullable = false, length = 50)
     private String name;
 
     @Column(length = 255)
     private String description;
+
+    @Column(name = "is_system", nullable = false)
+    @Builder.Default
+    private boolean isSystem = false;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

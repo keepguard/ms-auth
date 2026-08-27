@@ -129,6 +129,11 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public long countByCompanyIdAndStatusNot(UUID companyId, UserStatus status) {
+        return springRepository.countByCompanyIdAndStatusNot(companyId, status);
+    }
+
+    @Override
     public Page<User> findAll(Pageable pageable) {
         return springRepository.findAll(pageable)
                 .map(mapper::toDomain);

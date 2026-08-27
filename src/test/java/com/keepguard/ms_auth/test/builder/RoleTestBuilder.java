@@ -14,8 +14,10 @@ import java.util.UUID;
 public class RoleTestBuilder {
     
     private UUID id;
+    private UUID companyId;
     private String name;
     private String description;
+    private boolean isSystem;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean active;
@@ -24,8 +26,10 @@ public class RoleTestBuilder {
     private RoleTestBuilder() {
         // Valores padrão
         this.id = UUID.randomUUID();
+        this.companyId = UUID.randomUUID();
         this.name = "ADMIN";
         this.description = "Administrator role";
+        this.isSystem = false;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         this.active = true;
@@ -45,6 +49,16 @@ public class RoleTestBuilder {
         return this;
     }
     
+    public RoleTestBuilder withCompanyId(UUID companyId) {
+        this.companyId = companyId;
+        return this;
+    }
+
+    public RoleTestBuilder withSystem(boolean isSystem) {
+        this.isSystem = isSystem;
+        return this;
+    }
+
     public RoleTestBuilder withName(String name) {
         this.name = name;
         return this;
@@ -78,8 +92,10 @@ public class RoleTestBuilder {
     public Role buildDomain() {
         return Role.builder()
             .id(id)
+            .companyId(companyId)
             .name(name)
             .description(description)
+            .isSystem(isSystem)
             .createdAt(createdAt)
             .updatedAt(updatedAt)
             .build();

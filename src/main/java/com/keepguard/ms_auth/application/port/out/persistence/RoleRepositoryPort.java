@@ -3,6 +3,7 @@ package com.keepguard.ms_auth.application.port.out.persistence;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,5 +23,12 @@ public interface RoleRepositoryPort {
     void delete(Role role);
 
     Optional<Role> findByName(String name);
-}
 
+    Optional<Role> findByCompanyIdAndName(UUID companyId, String name);
+
+    Optional<Role> findByCompanyIdIsNullAndName(String name);
+
+    List<Role> findByCompanyId(UUID companyId);
+
+    Page<Role> findByCompanyId(UUID companyId, Pageable pageable);
+}

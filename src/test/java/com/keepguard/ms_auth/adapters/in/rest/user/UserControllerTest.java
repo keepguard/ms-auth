@@ -122,6 +122,30 @@ class UserControllerTest {
             verify(mapper, times(1)).toResponseDTO(userView);
         }
     }
+
+    @Test
+    @DisplayName("Deve criar administrador com sucesso")
+    void shouldCreateAdminSuccessfully() {
+        UserCreateCommandDTO command = UserTestBuilder.builder()
+            .withTenantId(tenantId)
+            .buildCreateCommand();
+
+        try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
+
+            when(mapper.toCreateCommand(userCreateDTO, tenantId)).thenReturn(command);
+            when(userService.createAdmin(command)).thenReturn(userView);
+            when(mapper.toResponseDTO(userView)).thenReturn(userResponseDTO);
+
+            ResponseEntity<UserResponseDTO> response = userController.createAdmin(userCreateDTO, tenantIdStr);
+
+            assertEquals(HttpStatus.CREATED, response.getStatusCode());
+            assertNotNull(response.getBody());
+            verify(userService, times(1)).createAdmin(command);
+            verify(userService, never()).create(command);
+        }
+    }
     
     @Test
     @DisplayName("Deve lidar com exceções durante criação de usuário")

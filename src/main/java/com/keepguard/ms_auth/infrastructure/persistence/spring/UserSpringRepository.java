@@ -33,5 +33,6 @@ public interface UserSpringRepository extends JpaRepository<UserJpaEntity, UUID>
     Optional<UserJpaEntity> findByCodeUserAndTenantId(@Param("codeUser") UUID codeUser, @Param("tenantId") UUID tenantId);
     
     List<UserJpaEntity> findAllByStatus(UserStatus status);
-    
+
+    long countByCompanyIdAndStatusNot(UUID companyId, UserStatus status);
 }

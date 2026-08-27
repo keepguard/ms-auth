@@ -8,9 +8,13 @@ import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort
 import com.keepguard.ms_auth.application.port.out.persistence.UserRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRoleRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserStatusHistoryRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.persistence.CompanyRoleRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
+import com.keepguard.ms_auth.application.service.exception.CompanyDefaultRolesNotConfiguredException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.domain.entity.role.Role;
+import com.keepguard.ms_auth.domain.entity.role.CompanyRole;
+import com.keepguard.ms_auth.domain.entity.role.SystemRoleNames;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import com.keepguard.ms_auth.domain.entity.user.UserRole;
 import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
@@ -42,6 +46,7 @@ class UserCommandServiceTest {
     @Mock private RoleRepositoryPort roleRepository;
     @Mock private UserRoleRepositoryPort userRoleRepository;
     @Mock private UserStatusHistoryRepositoryPort userStatusHistoryRepository;
+    @Mock private CompanyRoleRepositoryPort companyRoleRepository;
     @Mock private UserApplicationMapper userApplicationMapper;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private MetricsPort metricsPort;
@@ -73,7 +78,11 @@ class UserCommandServiceTest {
             
         role = RoleTestBuilder.builder()
             .withName("ADMIN")
+            .withCompanyId(user.getCompanyId())
             .buildDomain();
+        lenient().when(roleRepository.findByCompanyIdAndName(user.getCompanyId(), "ADMIN")).thenReturn(Optional.of(role));
+        lenient().when(companyRoleRepository.findByCompanyIdAndRoleId(user.getCompanyId(), role.getId()))
+            .thenReturn(Optional.of(CompanyRole.create(user.getCompanyId(), role.getId(), true, false)));
     }
 
     @Test
@@ -84,7 +93,8 @@ class UserCommandServiceTest {
         when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
-        when(roleRepository.findByName("ADMIN")).thenReturn(Optional.of(role));
+        when(companyRoleRepository.findEnabledDefaultsByCompanyId(user.getCompanyId()))
+            .thenReturn(java.util.List.of(CompanyRole.create(user.getCompanyId(), role.getId(), true, true)));
         when(userRoleRepository.save(any(UserRole.class))).thenReturn(new UserRole());
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         when(userApplicationMapper.toView(user)).thenReturn(UserTestBuilder.builder().withId(userId).buildView());
@@ -98,7 +108,7 @@ class UserCommandServiceTest {
         verify(userRepository).findByEmailAndTenantId("test@example.com", tenantId);
         verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
         verify(userRepository).save(any(User.class));
-        verify(roleRepository).findByName("ADMIN");
+        verify(companyRoleRepository).findEnabledDefaultsByCompanyId(user.getCompanyId());
         verify(userRoleRepository).save(any(UserRole.class));
         verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
         verify(metricsPort).incrementCounter(eq("user_created_total"), any());
@@ -254,7 +264,7 @@ class UserCommandServiceTest {
     void shouldAddRoleToUserSuccessfully() {
         // Given
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
-        when(roleRepository.findByName("ADMIN")).thenReturn(Optional.of(role));
+        when(roleRepository.findByCompanyIdAndName(user.getCompanyId(), "ADMIN")).thenReturn(Optional.of(role));
         when(userRoleRepository.findByUserIdAndRoleId(userId, role.getId())).thenReturn(Optional.empty());
         when(userRoleRepository.save(any(UserRole.class))).thenReturn(new UserRole());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
@@ -265,7 +275,7 @@ class UserCommandServiceTest {
 
         // Then
         verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
-        verify(roleRepository).findByName("ADMIN");
+        verify(roleRepository).findByCompanyIdAndName(user.getCompanyId(), "ADMIN");
         verify(userRoleRepository).findByUserIdAndRoleId(userId, role.getId());
         verify(userRoleRepository).save(any(UserRole.class));
         verify(userCachePort).removeUserFromCache(any(User.class));
@@ -277,7 +287,7 @@ class UserCommandServiceTest {
     void shouldThrowExceptionWhenRoleAlreadyAssigned() {
         // Given
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
-        when(roleRepository.findByName("ADMIN")).thenReturn(Optional.of(role));
+        when(roleRepository.findByCompanyIdAndName(user.getCompanyId(), "ADMIN")).thenReturn(Optional.of(role));
         when(userRoleRepository.findByUserIdAndRoleId(userId, role.getId())).thenReturn(Optional.of(new UserRole()));
 
         // When & Then
@@ -297,7 +307,7 @@ class UserCommandServiceTest {
         // Given
         UserRole userRole = new UserRole();
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
-        when(roleRepository.findByName("ADMIN")).thenReturn(Optional.of(role));
+        when(roleRepository.findByCompanyIdAndName(user.getCompanyId(), "ADMIN")).thenReturn(Optional.of(role));
         when(userRoleRepository.findByUserIdAndRoleId(userId, role.getId())).thenReturn(Optional.of(userRole));
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
 
@@ -307,7 +317,7 @@ class UserCommandServiceTest {
 
         // Then
         verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
-        verify(roleRepository).findByName("ADMIN");
+        verify(roleRepository).findByCompanyIdAndName(user.getCompanyId(), "ADMIN");
         verify(userRoleRepository).findByUserIdAndRoleId(userId, role.getId());
         verify(userRoleRepository).delete(userRole);
         verify(userCachePort).removeUserFromCache(any(User.class));
@@ -554,6 +564,70 @@ class UserCommandServiceTest {
         assertNotNull(user);
         assertEquals(UserStatus.ACTIVE, user.getStatus()); // Valor padrão
         assertFalse(user.getEmailVerified()); // Valor padrão
+    }
+
+    @Test
+    @DisplayName("Deve atribuir roles default da company quando lista de roles vem vazia")
+    void shouldAssignCompanyDefaultRolesWhenRolesEmpty() {
+        userCreateCommand.setRoles(java.util.List.of());
+        CompanyRole defaultRole = CompanyRole.create(user.getCompanyId(), role.getId(), true, true);
+
+        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(companyRoleRepository.findEnabledDefaultsByCompanyId(user.getCompanyId())).thenReturn(java.util.List.of(defaultRole));
+        when(userRoleRepository.save(any(UserRole.class))).thenReturn(new UserRole());
+        when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
+        when(userApplicationMapper.toView(user)).thenReturn(UserTestBuilder.builder().withId(userId).buildView());
+
+        var result = userCommandService.create(userCreateCommand);
+
+        assertNotNull(result);
+        verify(companyRoleRepository).findEnabledDefaultsByCompanyId(user.getCompanyId());
+        verify(userRoleRepository).save(any(UserRole.class));
+    }
+
+    @Test
+    @DisplayName("Deve atribuir apenas ROLE_ADMIN ao criar admin")
+    void shouldAssignOnlyAdminRoleWhenCreateAdmin() {
+        Role adminRole = RoleTestBuilder.builder()
+            .withName(SystemRoleNames.ROLE_ADMIN)
+            .withCompanyId(user.getCompanyId())
+            .buildDomain();
+
+        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(roleRepository.findByCompanyIdAndName(user.getCompanyId(), SystemRoleNames.ROLE_ADMIN)).thenReturn(Optional.of(adminRole));
+        when(companyRoleRepository.findByCompanyIdAndRoleId(user.getCompanyId(), adminRole.getId()))
+            .thenReturn(Optional.of(CompanyRole.create(user.getCompanyId(), adminRole.getId(), true, false)));
+        when(userRoleRepository.save(any(UserRole.class))).thenReturn(new UserRole());
+        when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
+        when(userApplicationMapper.toView(user)).thenReturn(UserTestBuilder.builder().withId(userId).buildView());
+
+        var result = userCommandService.createAdmin(userCreateCommand);
+
+        assertNotNull(result);
+        verify(userRoleRepository, times(1)).save(any(UserRole.class));
+        verify(companyRoleRepository, never()).findEnabledDefaultsByCompanyId(any());
+        verify(roleRepository).findByCompanyIdAndName(user.getCompanyId(), SystemRoleNames.ROLE_ADMIN);
+    }
+
+    @Test
+    @DisplayName("Deve falhar criação quando company não tem roles default")
+    void shouldFailCreateWhenCompanyHasNoDefaultRoles() {
+        userCreateCommand.setRoles(null);
+
+        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(companyRoleRepository.findEnabledDefaultsByCompanyId(user.getCompanyId())).thenReturn(java.util.List.of());
+
+        assertThrows(CompanyDefaultRolesNotConfiguredException.class, () -> userCommandService.create(userCreateCommand));
+        verify(userRoleRepository, never()).save(any(UserRole.class));
     }
 
 }

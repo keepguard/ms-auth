@@ -4,6 +4,7 @@ import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.mapper.RoleApplicationMapper;
 import com.keepguard.ms_auth.application.port.in.RolePort;
+import com.keepguard.ms_auth.application.port.out.company.CompanyResolverPort;
 import com.keepguard.ms_auth.domain.dto.role.*;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +23,7 @@ public class RoleUseCaseService implements RolePort {
     private final RoleCommandService roleCommandService;
     private final RoleQueryService roleQueryService;
     private final RoleApplicationMapper roleMapper;
+    private final CompanyResolverPort companyResolver;
 
     @Override
     public RoleCreateView create(RoleCreateCommandDTO command) {
@@ -43,21 +46,24 @@ public class RoleUseCaseService implements RolePort {
     @Override
     public Optional<RoleGetByIdView> findById(RoleGetByIdQueryDTO command) {
         log.debug("Finding role by ID: {}", command.getId());
-        return roleQueryService.findById(command.getId())
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        return roleQueryService.findByIdForCompany(command.getId(), companyId)
                 .map(roleMapper::toGetByIdView);
     }
 
     @Override
     public Optional<RoleGetByNameView> findByName(RoleGetByNameQueryDTO command) {
         log.debug("Finding role by name: {}", command.getName());
-        return roleQueryService.findByName(command.getName())
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        return roleQueryService.findByCompanyIdAndName(companyId, command.getName())
                 .map(roleMapper::toGetByNameView);
     }
 
     @Override
     public List<RoleListView> findAll(RoleGetAllQueryDTO command) {
         log.debug("Finding all roles");
-        return roleQueryService.findAll().stream()
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        return roleQueryService.findByCompanyId(companyId).stream()
                 .map(roleMapper::toListView)
                 .toList();
     }
@@ -65,7 +71,8 @@ public class RoleUseCaseService implements RolePort {
     @Override
     public PageResultView<RoleSearchView> findAll(RoleSearchQueryDTO command) {
         log.debug("Finding all roles with pagination");
-        PageResultView<Role> pageResultView = roleQueryService.findAll(command.getPageable());
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        PageResultView<Role> pageResultView = roleQueryService.findByCompanyId(companyId, command.getPageable());
 
         List<RoleSearchView> content = pageResultView.getContent().stream()
                 .map(roleMapper::toSearchView)

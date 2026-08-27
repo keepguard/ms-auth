@@ -4,6 +4,7 @@ import com.keepguard.lib_common.logging.annotation.LogOperation;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
+import com.keepguard.ms_auth.application.port.out.company.CompanyResolverPort;
 import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.domain.entity.authority.Authority;
 import com.keepguard.ms_auth.domain.dto.authority.*;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ import java.util.Map;
 public class AuthorityCommandService {
 
     private final AuthorityRepositoryPort authorityRepository;
+    private final CompanyResolverPort companyResolver;
     private final MetricsPort metricsPort;
     private final AuthorityApplicationMapper authorityMapper;
 
@@ -37,8 +40,9 @@ public class AuthorityCommandService {
     @Transactional
     public AuthorityCreateView create(AuthorityCreateCommandDTO command) {
         log.info("Creating authority: {}", command.getName());
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
 
-        if (authorityRepository.findByName(command.getName()).isPresent()) {
+        if (authorityRepository.findByCompanyIdAndName(companyId, command.getName()).isPresent()) {
             metricsPort.incrementCounter("authority_business_errors_total",
                 Map.of("error_type", "authority_name_already_exists", "operation", "create"));
             throw new AlreadyExistsException("Authority name already exists: " + command.getName());
@@ -47,6 +51,7 @@ public class AuthorityCommandService {
         Authority authority = Authority.builder()
                 .name(command.getName())
                 .description(command.getDescription())
+                .companyId(companyId)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -68,16 +73,11 @@ public class AuthorityCommandService {
     @Transactional
     public AuthorityUpdateView update(AuthorityUpdateCommandDTO command) {
         log.info("Updating authority with ID: {}", command.getId());
-
-        Authority existingAuthority = authorityRepository.findById(command.getId())
-                .orElseThrow(() -> {
-                    metricsPort.incrementCounter("authority_business_errors_total",
-                        Map.of("error_type", "authority_not_found", "operation", "update"));
-                    return new NotFoundException("Authority not found with ID: " + command.getId());
-                });
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        Authority existingAuthority = requireAuthorityOfCompany(command.getId(), companyId, "update");
 
         if (!existingAuthority.getName().equals(command.getName()) &&
-            authorityRepository.findByName(command.getName()).isPresent()) {
+            authorityRepository.findByCompanyIdAndName(companyId, command.getName()).isPresent()) {
             metricsPort.incrementCounter("authority_business_errors_total",
                 Map.of("error_type", "authority_name_already_exists", "operation", "update"));
             throw new AlreadyExistsException("Authority name already exists: " + command.getName());
@@ -104,17 +104,26 @@ public class AuthorityCommandService {
     @Transactional
     public void delete(AuthorityDeleteCommandDTO command) {
         log.info("Deleting authority with ID: {}", command.getId());
-
-        Authority authority = authorityRepository.findById(command.getId())
-                .orElseThrow(() -> {
-                    metricsPort.incrementCounter("authority_business_errors_total",
-                        Map.of("error_type", "authority_not_found", "operation", "delete"));
-                    return new NotFoundException("Authority not found with ID: " + command.getId());
-                });
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        Authority authority = requireAuthorityOfCompany(command.getId(), companyId, "delete");
 
         authorityRepository.delete(authority);
         metricsPort.incrementCounter("authority_deleted_total",
             Map.of("authority_id", command.getId().toString(), "authority_name", authority.getName()));
     }
-}
 
+    private Authority requireAuthorityOfCompany(UUID authorityId, UUID companyId, String operation) {
+        Authority authority = authorityRepository.findById(authorityId)
+                .orElseThrow(() -> {
+                    metricsPort.incrementCounter("authority_business_errors_total",
+                        Map.of("error_type", "authority_not_found", "operation", operation));
+                    return new NotFoundException("Authority not found with ID: " + authorityId);
+                });
+        if (!authority.belongsToCompany(companyId)) {
+            metricsPort.incrementCounter("authority_business_errors_total",
+                Map.of("error_type", "authority_not_found", "operation", operation));
+            throw new NotFoundException("Authority not found with ID: " + authorityId);
+        }
+        return authority;
+    }
+}

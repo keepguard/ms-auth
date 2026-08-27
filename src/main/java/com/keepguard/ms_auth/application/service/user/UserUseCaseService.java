@@ -25,6 +25,11 @@ public class UserUseCaseService implements UserPort {
     }
 
     @Override
+    public UserView createAdmin(UserCreateCommandDTO command) {
+        return commandService.createAdmin(command);
+    }
+
+    @Override
     public void delete(UserDeleteCommandDTO command) {
         commandService.delete(command);
     }

@@ -46,6 +46,8 @@ class RoleJpaMapperTest {
         assertEquals(role.getId(), result.getId());
         assertEquals(role.getName(), result.getName());
         assertEquals(role.getDescription(), result.getDescription());
+        assertEquals(role.getCompanyId(), result.getCompanyId());
+        assertEquals(role.isSystem(), result.isSystem());
         assertEquals(role.getCreatedAt(), result.getCreatedAt());
         assertEquals(role.getUpdatedAt(), result.getUpdatedAt());
     }
@@ -61,6 +63,8 @@ class RoleJpaMapperTest {
         assertEquals(role.getId(), result.getId());
         assertEquals(role.getName(), result.getName());
         assertEquals(role.getDescription(), result.getDescription());
+        assertEquals(role.getCompanyId(), result.getCompanyId());
+        assertEquals(role.isSystem(), result.isSystem());
         assertEquals(role.getCreatedAt(), result.getCreatedAt());
         assertEquals(role.getUpdatedAt(), result.getUpdatedAt());
     }

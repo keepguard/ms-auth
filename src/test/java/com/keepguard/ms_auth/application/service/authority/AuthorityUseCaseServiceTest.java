@@ -2,6 +2,7 @@ package com.keepguard.ms_auth.application.service.authority;
 
 import com.keepguard.ms_auth.application.dto.authority.*;
 import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.port.out.company.CompanyResolverPort;
 import com.keepguard.ms_auth.domain.dto.authority.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,12 +23,17 @@ class AuthorityUseCaseServiceTest {
     private AuthorityUseCaseService useCaseService;
     private AuthorityCommandService commandService;
     private AuthorityQueryService queryService;
+    private CompanyResolverPort companyResolver;
+    private UUID companyId;
 
     @BeforeEach
     void setUp() {
         commandService = mock(AuthorityCommandService.class);
         queryService = mock(AuthorityQueryService.class);
-        useCaseService = new AuthorityUseCaseService(commandService, queryService);
+        companyResolver = mock(CompanyResolverPort.class);
+        useCaseService = new AuthorityUseCaseService(commandService, queryService, companyResolver);
+        companyId = UUID.randomUUID();
+        lenient().when(companyResolver.resolveCompanyId(any())).thenReturn(companyId);
     }
 
     @Test
@@ -91,13 +97,13 @@ class AuthorityUseCaseServiceTest {
                 .tenantId(UUID.randomUUID())
                 .build();
         var view = new AuthorityGetByIdView(id, "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
-        when(queryService.findById(id)).thenReturn(Optional.of(view));
+        when(queryService.findByIdForCompany(id, companyId)).thenReturn(Optional.of(view));
 
         var result = useCaseService.findById(query);
 
         assertTrue(result.isPresent());
         assertEquals("READ_USERS", result.get().name());
-        verify(queryService).findById(id);
+        verify(queryService).findByIdForCompany(id, companyId);
     }
 
     @Test
@@ -109,13 +115,13 @@ class AuthorityUseCaseServiceTest {
                 .tenantId(UUID.randomUUID())
                 .build();
         var view = new AuthorityGetByNameView(UUID.randomUUID(), name, "desc", LocalDateTime.now(), LocalDateTime.now());
-        when(queryService.findByName(name)).thenReturn(Optional.of(view));
+        when(queryService.findByCompanyIdAndName(companyId, name)).thenReturn(Optional.of(view));
 
         var result = useCaseService.findByName(query);
 
         assertTrue(result.isPresent());
         assertEquals(name, result.get().name());
-        verify(queryService).findByName(name);
+        verify(queryService).findByCompanyIdAndName(companyId, name);
     }
 
     @Test
@@ -125,13 +131,13 @@ class AuthorityUseCaseServiceTest {
                 .tenantId(UUID.randomUUID())
                 .build();
         var view = new AuthorityListView(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
-        when(queryService.findAll()).thenReturn(List.of(view));
+        when(queryService.findByCompanyId(companyId)).thenReturn(List.of(view));
 
         var result = useCaseService.findAll(query);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(queryService).findAll();
+        verify(queryService).findByCompanyId(companyId);
     }
 
     @Test
@@ -144,13 +150,13 @@ class AuthorityUseCaseServiceTest {
                 .build();
         var view = new AuthoritySearchView(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         var page = new PageResultView<>(List.of(view), 0, 10, 1, 1, true, true, false, false);
-        when(queryService.findAll(pageable)).thenReturn(page);
+        when(queryService.findByCompanyId(companyId, pageable)).thenReturn(page);
 
         var result = useCaseService.findAll(query);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        verify(queryService).findAll(pageable);
+        verify(queryService).findByCompanyId(companyId, pageable);
     }
 }
 

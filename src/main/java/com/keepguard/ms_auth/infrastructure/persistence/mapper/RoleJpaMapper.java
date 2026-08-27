@@ -18,8 +18,10 @@ public class RoleJpaMapper {
 
         return RoleJpaEntity.builder()
                 .id(domain.getId())
+                .companyId(domain.getCompanyId())
                 .name(domain.getName())
                 .description(domain.getDescription())
+                .isSystem(domain.isSystem())
                 .createdAt(domain.getCreatedAt())
                 .updatedAt(domain.getUpdatedAt())
                 .build();
@@ -32,8 +34,10 @@ public class RoleJpaMapper {
 
         var role = Role.builder()
                 .id(jpaEntity.getId())
+                .companyId(jpaEntity.getCompanyId())
                 .name(jpaEntity.getName())
                 .description(jpaEntity.getDescription())
+                .isSystem(jpaEntity.isSystem())
                 .createdAt(jpaEntity.getCreatedAt())
                 .updatedAt(jpaEntity.getUpdatedAt())
                 .build();
@@ -55,6 +59,7 @@ public class RoleJpaMapper {
         }
         return Authority.builder()
                 .id(jpaEntity.getId())
+                .companyId(jpaEntity.getCompanyId())
                 .name(jpaEntity.getName())
                 .description(jpaEntity.getDescription())
                 .createdAt(jpaEntity.getCreatedAt())

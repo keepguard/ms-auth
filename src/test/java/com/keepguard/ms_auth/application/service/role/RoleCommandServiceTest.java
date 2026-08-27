@@ -1,13 +1,19 @@
 package com.keepguard.ms_auth.application.service.role;
 
+import com.keepguard.ms_auth.application.port.out.company.CompanyResolverPort;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.dto.role.RoleCreateView;
 import com.keepguard.ms_auth.application.dto.role.RoleUpdateView;
 import com.keepguard.ms_auth.application.mapper.RoleApplicationMapper;
+import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.persistence.CompanyRoleRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
+import com.keepguard.ms_auth.application.service.exception.ConflictException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
+import com.keepguard.ms_auth.domain.entity.role.CompanyRole;
 import com.keepguard.ms_auth.domain.entity.role.Role;
+import com.keepguard.ms_auth.domain.entity.role.SystemRoleNames;
 import com.keepguard.ms_auth.domain.dto.role.*;
 import com.keepguard.ms_auth.test.builder.RoleTestBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +31,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -39,6 +46,15 @@ class RoleCommandServiceTest {
     private RoleRepositoryPort roleRepository;
     
     @Mock
+    private CompanyRoleRepositoryPort companyRoleRepository;
+
+    @Mock
+    private AuthorityRepositoryPort authorityRepository;
+
+    @Mock
+    private CompanyResolverPort companyResolver;
+    
+    @Mock
     private MetricsPort metricsPort;
     
     @Mock
@@ -49,6 +65,7 @@ class RoleCommandServiceTest {
     
     private Role role;
     private UUID roleId;
+    private UUID companyId;
     private RoleCreateCommandDTO createCommand;
     private RoleUpdateCommandDTO updateCommand;
     private RoleDeleteCommandDTO deleteCommand;
@@ -56,34 +73,42 @@ class RoleCommandServiceTest {
     @BeforeEach
     void setUp() {
         roleId = UUID.randomUUID();
+        companyId = UUID.randomUUID();
         
         // Criar role de teste usando builder
         role = RoleTestBuilder.builder()
             .withId(roleId)
+            .withCompanyId(companyId)
             .buildDomain();
             
         // Criar CommandDTOs de teste
         createCommand = RoleTestBuilder.builder()
             .withName("ADMIN")
             .withDescription("Administrator role")
+            .withTenantId(UUID.randomUUID())
             .buildCreateCommand();
             
         updateCommand = RoleTestBuilder.builder()
             .withId(roleId)
             .withName("ADMIN_UPDATED")
             .withDescription("Updated administrator role")
+            .withTenantId(UUID.randomUUID())
             .buildUpdateCommand();
             
         deleteCommand = RoleTestBuilder.builder()
             .withId(roleId)
+            .withTenantId(UUID.randomUUID())
             .buildDeleteCommand();
+
+        lenient().when(companyResolver.resolveCompanyId(any())).thenReturn(companyId);
+        lenient().when(companyRoleRepository.save(any(CompanyRole.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
     
     @Test
     @DisplayName("Deve criar role com sucesso")
     void shouldCreateRoleSuccessfully() {
         // Given
-        when(roleRepository.findByName(anyString())).thenReturn(Optional.empty());
+        when(roleRepository.findByCompanyIdAndName(any(), anyString())).thenReturn(Optional.empty());
         when(roleRepository.save(any(Role.class))).thenReturn(role);
         when(roleApplicationMapper.toCreateView(role)).thenReturn(new RoleCreateView(roleId, "ADMIN", "Admin role", LocalDateTime.now(), LocalDateTime.now()));
         
@@ -97,7 +122,7 @@ class RoleCommandServiceTest {
         assertNotNull(result.createdAt());
         assertNotNull(result.updatedAt());
         
-        verify(roleRepository).findByName(createCommand.getName());
+        verify(roleRepository).findByCompanyIdAndName(companyId, createCommand.getName());
         verify(roleRepository).save(any(Role.class));
         verify(metricsPort).incrementCounter(eq("role_created_total"), any());
     }
@@ -106,7 +131,7 @@ class RoleCommandServiceTest {
     @DisplayName("Deve lançar exceção ao criar role com nome duplicado")
     void shouldThrowExceptionWhenCreatingRoleWithDuplicateName() {
         // Given
-        when(roleRepository.findByName(anyString())).thenReturn(Optional.of(role));
+        when(roleRepository.findByCompanyIdAndName(any(), anyString())).thenReturn(Optional.of(role));
         
         // When & Then
         AlreadyExistsException exception = assertThrows(AlreadyExistsException.class, () -> {
@@ -115,7 +140,7 @@ class RoleCommandServiceTest {
         
         assertEquals("Role name already exists: " + createCommand.getName(), exception.getMessage());
         
-        verify(roleRepository).findByName(createCommand.getName());
+        verify(roleRepository).findByCompanyIdAndName(companyId, createCommand.getName());
         verify(roleRepository, never()).save(any());
         verify(metricsPort).incrementCounter(eq("role_business_errors_total"), any());
     }
@@ -126,11 +151,12 @@ class RoleCommandServiceTest {
         // Given
         Role existingRole = RoleTestBuilder.builder()
             .withId(roleId)
+            .withCompanyId(companyId)
             .withName("ADMIN_ORIGINAL")
             .buildDomain();
         
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(existingRole));
-        when(roleRepository.findByName(updateCommand.getName())).thenReturn(Optional.empty());
+        when(roleRepository.findByCompanyIdAndName(companyId, updateCommand.getName())).thenReturn(Optional.empty());
         when(roleRepository.save(any(Role.class))).thenAnswer(invocation -> {
             Role savedRole = invocation.getArgument(0);
             savedRole.setId(roleId);
@@ -150,7 +176,7 @@ class RoleCommandServiceTest {
         assertNotNull(result.updatedAt());
         
         verify(roleRepository).findById(roleId);
-        verify(roleRepository).findByName(updateCommand.getName());
+        verify(roleRepository).findByCompanyIdAndName(companyId, updateCommand.getName());
         verify(roleRepository).save(any(Role.class));
         verify(metricsPort).incrementCounter(eq("role_updated_total"), any());
     }
@@ -169,7 +195,7 @@ class RoleCommandServiceTest {
         assertEquals("Role not found with ID: " + roleId, exception.getMessage());
         
         verify(roleRepository).findById(roleId);
-        verify(roleRepository, never()).findByName(anyString());
+        verify(roleRepository, never()).findByCompanyIdAndName(any(), anyString());
         verify(roleRepository, never()).save(any());
         verify(metricsPort).incrementCounter(eq("role_business_errors_total"), any());
     }
@@ -180,11 +206,12 @@ class RoleCommandServiceTest {
         // Given
         Role existingRole = RoleTestBuilder.builder()
             .withId(roleId)
+            .withCompanyId(companyId)
             .withName("ADMIN_ORIGINAL")
             .buildDomain();
             
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(existingRole));
-        when(roleRepository.findByName(updateCommand.getName())).thenReturn(Optional.of(role));
+        when(roleRepository.findByCompanyIdAndName(companyId, updateCommand.getName())).thenReturn(Optional.of(role));
         
         // When & Then
         AlreadyExistsException exception = assertThrows(AlreadyExistsException.class, () -> {
@@ -194,7 +221,7 @@ class RoleCommandServiceTest {
         assertEquals("Role name already exists: " + updateCommand.getName(), exception.getMessage());
         
         verify(roleRepository).findById(roleId);
-        verify(roleRepository).findByName(updateCommand.getName());
+        verify(roleRepository).findByCompanyIdAndName(companyId, updateCommand.getName());
         verify(roleRepository, never()).save(any());
         verify(metricsPort).incrementCounter(eq("role_business_errors_total"), any());
     }
@@ -212,6 +239,7 @@ class RoleCommandServiceTest {
         
         // Then
         verify(roleRepository).findById(roleId);
+        verify(companyRoleRepository).deleteByCompanyIdAndRoleId(companyId, roleId);
         verify(roleRepository).delete(role);
         verify(metricsPort).incrementCounter(eq("role_deleted_total"), any());
     }
@@ -240,6 +268,7 @@ class RoleCommandServiceTest {
         // Given
         Role existingRole = RoleTestBuilder.builder()
             .withId(roleId)
+            .withCompanyId(companyId)
             .withName("ADMIN")
             .buildDomain();
             
@@ -259,7 +288,7 @@ class RoleCommandServiceTest {
         // Then
         assertNotNull(result);
         verify(roleRepository).findById(roleId);
-        verify(roleRepository, never()).findByName(anyString()); // Não deve verificar nome duplicado
+        verify(roleRepository, never()).findByCompanyIdAndName(any(), anyString()); // Não deve verificar nome duplicado
         verify(roleRepository).save(any(Role.class));
     }
     
@@ -272,7 +301,7 @@ class RoleCommandServiceTest {
             .withDescription("Administrator role")
             .buildCreateCommand();
             
-        when(roleRepository.findByName("ADMIN")).thenReturn(Optional.empty());
+        when(roleRepository.findByCompanyIdAndName(companyId, "ADMIN")).thenReturn(Optional.empty());
         when(roleRepository.save(any(Role.class))).thenReturn(role);
         when(roleApplicationMapper.toCreateView(role)).thenReturn(new RoleCreateView(roleId, "ADMIN", "Administrator role", LocalDateTime.now(), LocalDateTime.now()));
         
@@ -281,7 +310,7 @@ class RoleCommandServiceTest {
         
         // Then
         assertNotNull(result);
-        verify(roleRepository).findByName("ADMIN");
+        verify(roleRepository).findByCompanyIdAndName(companyId, "ADMIN");
         verify(roleRepository).save(any(Role.class));
     }
     
@@ -291,6 +320,7 @@ class RoleCommandServiceTest {
         // Given
         Role existingRole = RoleTestBuilder.builder()
             .withId(roleId)
+            .withCompanyId(companyId)
             .withName("admin")
             .buildDomain();
             
@@ -301,7 +331,7 @@ class RoleCommandServiceTest {
             .buildUpdateCommand();
             
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(existingRole));
-        when(roleRepository.findByName("ADMIN")).thenReturn(Optional.empty());
+        when(roleRepository.findByCompanyIdAndName(companyId, "ADMIN")).thenReturn(Optional.empty());
         when(roleRepository.save(any(Role.class))).thenReturn(role);
         when(roleApplicationMapper.toUpdateView(any(Role.class))).thenReturn(new RoleUpdateView(roleId, "ADMIN", "Updated description", LocalDateTime.now(), LocalDateTime.now()));
         
@@ -311,7 +341,7 @@ class RoleCommandServiceTest {
         // Then
         assertNotNull(result);
         verify(roleRepository).findById(roleId);
-        verify(roleRepository).findByName("ADMIN");
+        verify(roleRepository).findByCompanyIdAndName(companyId, "ADMIN");
         verify(roleRepository).save(any(Role.class));
     }
     
@@ -322,12 +352,13 @@ class RoleCommandServiceTest {
         LocalDateTime originalUpdatedAt = LocalDateTime.now().minusDays(1);
         Role existingRole = RoleTestBuilder.builder()
             .withId(roleId)
+            .withCompanyId(companyId)
             .withName("ADMIN_ORIGINAL")
             .withUpdatedAt(originalUpdatedAt)
             .buildDomain();
             
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(existingRole));
-        when(roleRepository.findByName(updateCommand.getName())).thenReturn(Optional.empty());
+        when(roleRepository.findByCompanyIdAndName(companyId, updateCommand.getName())).thenReturn(Optional.empty());
         when(roleRepository.save(any(Role.class))).thenAnswer(invocation -> {
             Role savedRole = invocation.getArgument(0);
             savedRole.setUpdatedAt(LocalDateTime.now());
@@ -348,7 +379,7 @@ class RoleCommandServiceTest {
     @DisplayName("Deve definir campos de auditoria ao criar role")
     void shouldSetAuditFieldsWhenCreatingRole() {
         // Given
-        when(roleRepository.findByName(createCommand.getName())).thenReturn(Optional.empty());
+        when(roleRepository.findByCompanyIdAndName(companyId, createCommand.getName())).thenReturn(Optional.empty());
         when(roleRepository.save(any(Role.class))).thenAnswer(invocation -> {
             Role savedRole = invocation.getArgument(0);
             savedRole.setId(roleId);
@@ -451,5 +482,37 @@ class RoleCommandServiceTest {
         // Then
         assertTrue(role.getUpdatedAt().isAfter(originalUpdatedAt) || 
                   role.getUpdatedAt().isEqual(originalUpdatedAt));
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar nome reservado na criação")
+    void shouldRejectReservedRoleNameOnCreate() {
+        RoleCreateCommandDTO reserved = RoleTestBuilder.builder()
+            .withName(SystemRoleNames.ROLE_ADMIN)
+            .buildCreateCommand();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> roleCommandService.create(reserved));
+
+        assertTrue(exception.getMessage().contains("reservado"));
+        verify(roleRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar exclusão de clone de catálogo")
+    void shouldRejectDeleteOfSystemRole() {
+        Role systemRole = RoleTestBuilder.builder()
+            .withId(roleId)
+            .withCompanyId(companyId)
+            .withName(SystemRoleNames.ROLE_USER)
+            .withSystem(true)
+            .buildDomain();
+        when(roleRepository.findById(roleId)).thenReturn(Optional.of(systemRole));
+
+        ConflictException exception = assertThrows(ConflictException.class,
+            () -> roleCommandService.delete(deleteCommand));
+
+        assertEquals("SYSTEM_ROLE_IMMUTABLE", exception.getErrorCode());
+        verify(roleRepository, never()).delete(any());
     }
 }

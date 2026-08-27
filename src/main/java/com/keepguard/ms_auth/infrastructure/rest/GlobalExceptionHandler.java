@@ -12,6 +12,8 @@ import com.keepguard.ms_auth.application.service.exception.QueryOperationExcepti
 import com.keepguard.ms_auth.application.service.exception.AccountLockedException;
 import com.keepguard.ms_auth.application.service.exception.CommandOperationException;
 import com.keepguard.ms_auth.application.service.exception.DeviceBlacklistedException;
+import com.keepguard.ms_auth.application.service.exception.ConflictException;
+import com.keepguard.ms_auth.application.service.exception.CompanyDefaultRolesNotConfiguredException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -110,6 +112,36 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         problemDetail.setProperty("path", request.getDescription(false).replace("uri=", ""));
         problemDetail.setProperty("errorCode", "ALREADY_EXISTS");
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ProblemDetail> handleConflict(ConflictException ex, WebRequest request) {
+        log.warn("Conflito de negócio: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problemDetail.setType(URI.create("https://keepguard.com/problems/conflict"));
+        problemDetail.setTitle("Conflito");
+        problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        problemDetail.setProperty("path", request.getDescription(false).replace("uri=", ""));
+        problemDetail.setProperty("errorCode", ex.getErrorCode());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
+    }
+
+    @ExceptionHandler(CompanyDefaultRolesNotConfiguredException.class)
+    public ResponseEntity<ProblemDetail> handleCompanyDefaultRolesNotConfigured(
+            CompanyDefaultRolesNotConfiguredException ex, WebRequest request) {
+        log.warn("Company sem roles default: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problemDetail.setType(URI.create("https://keepguard.com/problems/company-default-roles-not-configured"));
+        problemDetail.setTitle("Roles default da company não configuradas");
+        problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        problemDetail.setProperty("path", request.getDescription(false).replace("uri=", ""));
+        problemDetail.setProperty("errorCode", ex.getErrorCode());
+        problemDetail.setProperty("companyId", ex.getCompanyId());
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
     }

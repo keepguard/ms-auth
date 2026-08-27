@@ -45,6 +45,8 @@ public interface UserRepositoryPort {
 
     List<User> findAllByStatus(UserStatus status);
 
+    long countByCompanyIdAndStatusNot(UUID companyId, UserStatus status);
+
     Page<User> findAll(Pageable pageable);
 
     Page<User> findAll(Specification<User> spec, Pageable pageable);

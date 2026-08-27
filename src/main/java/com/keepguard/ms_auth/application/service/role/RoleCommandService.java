@@ -1,16 +1,21 @@
 package com.keepguard.ms_auth.application.service.role;
 
 import com.keepguard.lib_common.logging.annotation.LogOperation;
-import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
-import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
-import com.keepguard.ms_auth.application.service.exception.NotFoundException;
-import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
-import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
-import com.keepguard.ms_auth.domain.entity.role.Role;
-import com.keepguard.ms_auth.domain.entity.authority.Authority;
-import com.keepguard.ms_auth.domain.dto.role.*;
 import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.application.mapper.RoleApplicationMapper;
+import com.keepguard.ms_auth.application.port.out.company.CompanyResolverPort;
+import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
+import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.persistence.CompanyRoleRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
+import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
+import com.keepguard.ms_auth.application.service.exception.ConflictException;
+import com.keepguard.ms_auth.application.service.exception.NotFoundException;
+import com.keepguard.ms_auth.domain.dto.role.*;
+import com.keepguard.ms_auth.domain.entity.authority.Authority;
+import com.keepguard.ms_auth.domain.entity.role.CompanyRole;
+import com.keepguard.ms_auth.domain.entity.role.Role;
+import com.keepguard.ms_auth.domain.entity.role.SystemRoleNames;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +32,8 @@ public class RoleCommandService {
 
     private final RoleRepositoryPort roleRepository;
     private final AuthorityRepositoryPort authorityRepository;
+    private final CompanyRoleRepositoryPort companyRoleRepository;
+    private final CompanyResolverPort companyResolver;
     private final MetricsPort metricsPort;
     private final RoleApplicationMapper roleMapper;
 
@@ -40,8 +47,15 @@ public class RoleCommandService {
     @Transactional
     public RoleCreateView create(RoleCreateCommandDTO command) {
         log.info("Creating role: {}", command.getName());
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
 
-        if (roleRepository.findByName(command.getName()).isPresent()) {
+        if (SystemRoleNames.isReserved(command.getName())) {
+            metricsPort.incrementCounter("role_business_errors_total",
+                Map.of("error_type", "reserved_role_name", "operation", "create"));
+            throw new IllegalArgumentException("Nome de role reservado: " + command.getName());
+        }
+
+        if (roleRepository.findByCompanyIdAndName(companyId, command.getName()).isPresent()) {
             metricsPort.incrementCounter("role_business_errors_total",
                 Map.of("error_type", "role_name_already_exists", "operation", "create"));
             throw new AlreadyExistsException("Role name already exists: " + command.getName());
@@ -50,14 +64,18 @@ public class RoleCommandService {
         Role role = Role.builder()
                 .name(command.getName())
                 .description(command.getDescription())
+                .companyId(companyId)
+                .isSystem(false)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
         Role savedRole = roleRepository.save(role);
+        companyRoleRepository.save(CompanyRole.create(companyId, savedRole.getId(), true, false));
+
         metricsPort.incrementCounter("role_created_total",
             Map.of("role_name", command.getName()));
-        
+
         return roleMapper.toCreateView(savedRole);
     }
 
@@ -71,19 +89,18 @@ public class RoleCommandService {
     @Transactional
     public RoleUpdateView update(RoleUpdateCommandDTO command) {
         log.info("Updating role with ID: {}", command.getId());
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        Role existingRole = requireMutableRoleOfCompany(command.getId(), companyId, "update");
 
-        Role existingRole = roleRepository.findById(command.getId())
-                .orElseThrow(() -> {
-                    metricsPort.incrementCounter("role_business_errors_total",
-                        Map.of("error_type", "role_not_found", "operation", "update"));
-                    return new NotFoundException("Role not found with ID: " + command.getId());
-                });
-
-        if (!existingRole.getName().equals(command.getName()) &&
-            roleRepository.findByName(command.getName()).isPresent()) {
-            metricsPort.incrementCounter("role_business_errors_total",
-                Map.of("error_type", "role_name_already_exists", "operation", "update"));
-            throw new AlreadyExistsException("Role name already exists: " + command.getName());
+        if (!existingRole.getName().equals(command.getName())) {
+            if (SystemRoleNames.isReserved(command.getName())) {
+                throw new IllegalArgumentException("Nome de role reservado: " + command.getName());
+            }
+            if (roleRepository.findByCompanyIdAndName(companyId, command.getName()).isPresent()) {
+                metricsPort.incrementCounter("role_business_errors_total",
+                    Map.of("error_type", "role_name_already_exists", "operation", "update"));
+                throw new AlreadyExistsException("Role name already exists: " + command.getName());
+            }
         }
 
         existingRole.setName(command.getName());
@@ -93,7 +110,7 @@ public class RoleCommandService {
         Role updatedRole = roleRepository.save(existingRole);
         metricsPort.incrementCounter("role_updated_total",
             Map.of("role_id", command.getId().toString(), "role_name", command.getName()));
-        
+
         return roleMapper.toUpdateView(updatedRole);
     }
 
@@ -107,14 +124,10 @@ public class RoleCommandService {
     @Transactional
     public void delete(RoleDeleteCommandDTO command) {
         log.info("Deleting role with ID: {}", command.getId());
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        Role role = requireMutableRoleOfCompany(command.getId(), companyId, "delete");
 
-        Role role = roleRepository.findById(command.getId())
-                .orElseThrow(() -> {
-                    metricsPort.incrementCounter("role_business_errors_total",
-                        Map.of("error_type", "role_not_found", "operation", "delete"));
-                    return new NotFoundException("Role not found with ID: " + command.getId());
-                });
-
+        companyRoleRepository.deleteByCompanyIdAndRoleId(companyId, role.getId());
         roleRepository.delete(role);
         metricsPort.incrementCounter("role_deleted_total",
             Map.of("role_id", command.getId().toString(), "role_name", role.getName()));
@@ -130,40 +143,28 @@ public class RoleCommandService {
     @Transactional
     public RoleAddAuthorityView addAuthority(RoleAddAuthorityCommandDTO command) {
         log.info("Adding authority {} to role: {}", command.getAuthorityName(), command.getRoleId());
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        Role role = requireRoleOfCompany(command.getRoleId(), companyId, "add_authority");
 
-        // Buscar o Role
-        Role role = roleRepository.findById(command.getRoleId())
-                .orElseThrow(() -> {
-                    metricsPort.incrementCounter("role_business_errors_total",
-                        Map.of("error_type", "role_not_found", "operation", "add_authority"));
-                    return new NotFoundException("Role not found with ID: " + command.getRoleId());
-                });
-
-        // Buscar a Authority
-        Authority authority = authorityRepository.findByName(command.getAuthorityName())
+        Authority authority = authorityRepository.findByCompanyIdAndName(companyId, command.getAuthorityName())
                 .orElseThrow(() -> {
                     metricsPort.incrementCounter("role_business_errors_total",
                         Map.of("error_type", "authority_not_found", "operation", "add_authority"));
                     return new NotFoundException("Authority not found with name: " + command.getAuthorityName());
                 });
 
-        // Verificar se a authority já está associada (idempotente - não lança exceção)
         boolean alreadyExists = role.getAuthorities().stream()
                 .anyMatch(auth -> auth.getId().equals(authority.getId()));
 
         if (alreadyExists) {
-            log.info("Authority {} already exists in role: {}, returning current state", 
+            log.info("Authority {} already exists in role: {}, returning current state",
                     command.getAuthorityName(), command.getRoleId());
             metricsPort.incrementCounter("role_authority_already_exists_total",
                 Map.of("role_id", command.getRoleId().toString(), "authority_name", command.getAuthorityName()));
         } else {
-            // Adicionar a Authority ao Role
             role.getAuthorities().add(authority);
             role.setUpdatedAt(LocalDateTime.now());
-            
-            // Salvar (JPA atualiza automaticamente a tabela role_authorities)
             roleRepository.save(role);
-            
             metricsPort.incrementCounter("role_authority_added_total",
                 Map.of("role_id", command.getRoleId().toString(), "authority_name", command.getAuthorityName()));
         }
@@ -181,44 +182,59 @@ public class RoleCommandService {
     @Transactional
     public RoleRemoveAuthorityView removeAuthority(RoleRemoveAuthorityCommandDTO command) {
         log.info("Removing authority {} from role: {}", command.getAuthorityName(), command.getRoleId());
+        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        Role role = requireRoleOfCompany(command.getRoleId(), companyId, "remove_authority");
 
-        // Buscar o Role
-        Role role = roleRepository.findById(command.getRoleId())
-                .orElseThrow(() -> {
-                    metricsPort.incrementCounter("role_business_errors_total",
-                        Map.of("error_type", "role_not_found", "operation", "remove_authority"));
-                    return new NotFoundException("Role not found with ID: " + command.getRoleId());
-                });
-
-        // Buscar a Authority
-        Authority authority = authorityRepository.findByName(command.getAuthorityName())
+        Authority authority = authorityRepository.findByCompanyIdAndName(companyId, command.getAuthorityName())
                 .orElseThrow(() -> {
                     metricsPort.incrementCounter("role_business_errors_total",
                         Map.of("error_type", "authority_not_found", "operation", "remove_authority"));
                     return new NotFoundException("Authority not found with name: " + command.getAuthorityName());
                 });
 
-        // Verificar se a authority está associada ao role
         boolean exists = role.getAuthorities().stream()
                 .anyMatch(auth -> auth.getId().equals(authority.getId()));
 
         if (!exists) {
             metricsPort.incrementCounter("role_business_errors_total",
                 Map.of("error_type", "authority_not_associated", "operation", "remove_authority"));
-            throw new NotFoundException("Authority " + command.getAuthorityName() + 
+            throw new NotFoundException("Authority " + command.getAuthorityName() +
                     " is not associated with role ID: " + command.getRoleId());
         }
 
-        // Remover a Authority do Role
         role.getAuthorities().removeIf(auth -> auth.getId().equals(authority.getId()));
         role.setUpdatedAt(LocalDateTime.now());
-
-        // Salvar (JPA atualiza automaticamente a tabela role_authorities)
         roleRepository.save(role);
 
         metricsPort.incrementCounter("role_authority_removed_total",
             Map.of("role_id", command.getRoleId().toString(), "authority_name", command.getAuthorityName()));
 
         return roleMapper.toRemoveAuthorityView(role, command.getAuthorityName());
+    }
+
+    private Role requireRoleOfCompany(UUID roleId, UUID companyId, String operation) {
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> {
+                    metricsPort.incrementCounter("role_business_errors_total",
+                        Map.of("error_type", "role_not_found", "operation", operation));
+                    return new NotFoundException("Role not found with ID: " + roleId);
+                });
+        if (!role.belongsToCompany(companyId)) {
+            metricsPort.incrementCounter("role_business_errors_total",
+                Map.of("error_type", "role_not_found", "operation", operation));
+            throw new NotFoundException("Role not found with ID: " + roleId);
+        }
+        return role;
+    }
+
+    private Role requireMutableRoleOfCompany(UUID roleId, UUID companyId, String operation) {
+        Role role = requireRoleOfCompany(roleId, companyId, operation);
+        if (role.isSystem()) {
+            metricsPort.incrementCounter("role_business_errors_total",
+                Map.of("error_type", "system_role_immutable", "operation", operation));
+            throw new ConflictException("Role de catálogo não pode ser alterada ou removida: " + role.getName(),
+                    "SYSTEM_ROLE_IMMUTABLE");
+        }
+        return role;
     }
 }

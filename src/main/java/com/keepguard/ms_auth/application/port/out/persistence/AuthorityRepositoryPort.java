@@ -23,5 +23,11 @@ public interface AuthorityRepositoryPort {
     void delete(Authority authority);
 
     Optional<Authority> findByName(String name);
+
+    Optional<Authority> findByCompanyIdAndName(UUID companyId, String name);
+
+    List<Authority> findByCompanyId(UUID companyId);
+
+    Page<Authority> findByCompanyId(UUID companyId, Pageable pageable);
 }
 

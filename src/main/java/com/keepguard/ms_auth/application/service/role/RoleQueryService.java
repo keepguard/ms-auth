@@ -2,7 +2,6 @@ package com.keepguard.ms_auth.application.service.role;
 
 import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
-import com.keepguard.ms_auth.application.service.exception.QueryOperationException;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,18 +24,36 @@ public class RoleQueryService {
         return roleRepository.findById(id);
     }
 
+    public Optional<Role> findByIdForCompany(UUID id, UUID companyId) {
+        return roleRepository.findById(id)
+                .filter(role -> role.belongsToCompany(companyId));
+    }
+
     public Optional<Role> findByName(String name) {
         return roleRepository.findByName(name);
+    }
+
+    public Optional<Role> findByCompanyIdAndName(UUID companyId, String name) {
+        return roleRepository.findByCompanyIdAndName(companyId, name);
     }
 
     public List<Role> findAll() {
         return roleRepository.findAll();
     }
 
+    public List<Role> findByCompanyId(UUID companyId) {
+        return roleRepository.findByCompanyId(companyId);
+    }
+
     public PageResultView<Role> findAll(Pageable pageable) {
+        return toPageResult(roleRepository.findAll(pageable));
+    }
 
-        Page<Role> page = roleRepository.findAll(pageable);
+    public PageResultView<Role> findByCompanyId(UUID companyId, Pageable pageable) {
+        return toPageResult(roleRepository.findByCompanyId(companyId, pageable));
+    }
 
+    private PageResultView<Role> toPageResult(Page<Role> page) {
         return PageResultView.<Role>builder()
                 .content(page.getContent())
                 .totalElements(page.getTotalElements())
@@ -49,6 +65,5 @@ public class RoleQueryService {
                 .hasNext(page.hasNext())
                 .hasPrevious(page.hasPrevious())
                 .build();
-
     }
 }

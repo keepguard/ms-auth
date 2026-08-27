@@ -7,7 +7,10 @@ import com.keepguard.ms_auth.application.port.out.persistence.UserRepositoryPort
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRoleRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserStatusHistoryRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.persistence.CompanyRoleRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
+import com.keepguard.ms_auth.application.service.exception.CompanyDefaultRolesNotConfiguredException;
+import com.keepguard.ms_auth.application.service.exception.ConflictException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.domain.dto.user.*;
 import com.keepguard.ms_auth.application.dto.user.UserHardDeleteCommandDTO;
@@ -16,6 +19,8 @@ import com.keepguard.ms_auth.domain.enums.UserStatusEventType;
 import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
 import com.keepguard.ms_auth.domain.entity.user.UserRole;
 import com.keepguard.ms_auth.domain.entity.role.Role;
+import com.keepguard.ms_auth.domain.entity.role.CompanyRole;
+import com.keepguard.ms_auth.domain.entity.role.SystemRoleNames;
 import com.keepguard.lib_common.logging.annotation.LogOperation;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.lib_common.utils.ValidationUtils;
@@ -26,6 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -34,12 +40,11 @@ import java.util.UUID;
 @Slf4j
 public class UserCommandService {
 
-    private static final String DEFAULT_USER_ROLE = "ROLE_USER";
-
     private final UserRepositoryPort userRepository;
     private final RoleRepositoryPort roleRepository;
     private final UserRoleRepositoryPort userRoleRepository;
     private final UserStatusHistoryRepositoryPort userStatusHistoryRepository;
+    private final CompanyRoleRepositoryPort companyRoleRepository;
     private final UserApplicationMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final MetricsPort metricsPort;
@@ -55,62 +60,24 @@ public class UserCommandService {
     @Transactional
     public UserView create(UserCreateCommandDTO command) {
         log.info("Creating user with username: {}", command.getUsername());
+        User savedUser = persistNewUser(command);
+        assignDefaultRoles(savedUser);
+        return finishCreate(savedUser);
+    }
 
-        if (userRepository.findByUsernameAndTenantId(command.getUsername(), command.getTenantId()).isPresent()) {
-            metricsPort.incrementCounter("user_business_errors_total",
-                Map.of("error_code", "USERNAME_ALREADY_EXISTS", "operation", "create"));
-            throw new AlreadyExistsException("Username já existe: " + command.getUsername());
-        }
-
-        if (userRepository.findByEmailAndTenantId(command.getEmail(), command.getTenantId()).isPresent()) {
-            metricsPort.incrementCounter("user_business_errors_total",
-                Map.of("error_code", "EMAIL_ALREADY_EXISTS", "operation", "create"));
-            throw new AlreadyExistsException("Email já existe: " + command.getEmail());
-        }
-
-        var idUserExternalUuid = UUID.fromString(command.getIdUserExternal());
-        if (userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId()).isPresent()) {
-            metricsPort.incrementCounter("user_business_errors_total",
-                Map.of("error_code", "ID_EXTERNAL_ALREADY_EXISTS", "operation", "create"));
-            throw new AlreadyExistsException("ID externo já existe: " + command.getIdUserExternal());
-        }
-
-        User user = User.createNew(
-            command.getUsername(),
-            command.getEmail(),
-            command.getPassword(),
-            idUserExternalUuid,
-            command.getCodeUser(),
-            command.getCompanyId(),
-            command.getCompanyCode(),
-            command.getTenantId()
-        );
-
-        User savedUser = userRepository.save(user);
-
-        if (command.getRoles() != null && !command.getRoles().isEmpty()) {
-            for (String roleName : command.getRoles()) {
-                Role role = roleRepository.findByName(roleName)
-                    .orElseThrow(() -> new NotFoundException("Role não encontrada: " + roleName));
-                userRoleRepository.save(UserRole.assign(savedUser.getId(), role.getId()));
-            }
-        } else {
-            // Buscar e adicionar role USER se existir (Fallback)
-            roleRepository.findByName(DEFAULT_USER_ROLE).ifPresent(role -> {
-                userRoleRepository.save(UserRole.assign(savedUser.getId(), role.getId()));
-                log.info("Role {} added to user with ID: {}", DEFAULT_USER_ROLE, savedUser.getId());
-            });
-        }
-
-        userStatusHistoryRepository.save(
-            UserStatusHistory.create(savedUser.getId(), UserStatusEventType.CREATED, "Usuário criado")
-        );
-
-        metricsPort.incrementCounter("user_created_total",
-            Map.of("status", "success"));
-
-        log.info("User created successfully with ID: {}", savedUser.getId());
-        return userMapper.toView(savedUser);
+    @LogOperation(
+        operation = "CREATE_ADMIN",
+        description = "Criando admin: {command.username}",
+        audit = true,
+        auditAction = "CREATE",
+        auditEntityType = "USER"
+    )
+    @Transactional
+    public UserView createAdmin(UserCreateCommandDTO command) {
+        log.info("Creating admin with username: {}", command.getUsername());
+        User savedUser = persistNewUser(command);
+        assignCompanyRole(savedUser, SystemRoleNames.ROLE_ADMIN);
+        return finishCreate(savedUser);
     }
 
     @LogOperation(
@@ -298,8 +265,7 @@ public class UserCommandService {
                 return new NotFoundException("Usuário não encontrado: " + command.getIdUserExternal());
             });
 
-        Role role = roleRepository.findByName(command.getRole())
-            .orElseThrow(() -> new NotFoundException("Role não encontrada: " + command.getRole()));
+        Role role = requireEnabledCompanyRole(user.getCompanyId(), command.getRole());
 
         if (userRoleRepository.findByUserIdAndRoleId(user.getId(), role.getId()).isPresent()) {
             metricsPort.incrementCounter("user_business_errors_total",
@@ -329,8 +295,7 @@ public class UserCommandService {
                 return new NotFoundException("Usuário não encontrado: " + command.getIdUserExternal());
             });
 
-        Role role = roleRepository.findByName(command.getRole())
-            .orElseThrow(() -> new NotFoundException("Role não encontrada: " + command.getRole()));
+        Role role = requireEnabledCompanyRole(user.getCompanyId(), command.getRole());
 
         UserRole userRole = userRoleRepository.findByUserIdAndRoleId(user.getId(), role.getId())
             .orElseThrow(() -> new NotFoundException("Associação usuário-role não encontrada"));
@@ -380,6 +345,81 @@ public class UserCommandService {
             Map.of("status", "success"));
 
         log.info("User email updated successfully with ID: {}", user.getId());
+    }
+
+    private Role requireEnabledCompanyRole(UUID companyId, String roleName) {
+        Role role = roleRepository.findByCompanyIdAndName(companyId, roleName)
+            .orElseThrow(() -> new NotFoundException("Role não encontrada: " + roleName));
+
+        CompanyRole companyRole = companyRoleRepository.findByCompanyIdAndRoleId(companyId, role.getId())
+            .orElseThrow(() -> new NotFoundException("Role não encontrada: " + roleName));
+
+        if (!companyRole.isEnabled()) {
+            throw new ConflictException("Role desabilitada para a company: " + roleName, "ROLE_DISABLED");
+        }
+        return role;
+    }
+
+    private User persistNewUser(UserCreateCommandDTO command) {
+        if (userRepository.findByUsernameAndTenantId(command.getUsername(), command.getTenantId()).isPresent()) {
+            metricsPort.incrementCounter("user_business_errors_total",
+                Map.of("error_code", "USERNAME_ALREADY_EXISTS", "operation", "create"));
+            throw new AlreadyExistsException("Username já existe: " + command.getUsername());
+        }
+
+        if (userRepository.findByEmailAndTenantId(command.getEmail(), command.getTenantId()).isPresent()) {
+            metricsPort.incrementCounter("user_business_errors_total",
+                Map.of("error_code", "EMAIL_ALREADY_EXISTS", "operation", "create"));
+            throw new AlreadyExistsException("Email já existe: " + command.getEmail());
+        }
+
+        var idUserExternalUuid = UUID.fromString(command.getIdUserExternal());
+        if (userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId()).isPresent()) {
+            metricsPort.incrementCounter("user_business_errors_total",
+                Map.of("error_code", "ID_EXTERNAL_ALREADY_EXISTS", "operation", "create"));
+            throw new AlreadyExistsException("ID externo já existe: " + command.getIdUserExternal());
+        }
+
+        User user = User.createNew(
+            command.getUsername(),
+            command.getEmail(),
+            command.getPassword(),
+            idUserExternalUuid,
+            command.getCodeUser(),
+            command.getCompanyId(),
+            command.getCompanyCode(),
+            command.getTenantId()
+        );
+        return userRepository.save(user);
+    }
+
+    private void assignDefaultRoles(User savedUser) {
+        List<CompanyRole> defaults = companyRoleRepository.findEnabledDefaultsByCompanyId(savedUser.getCompanyId());
+        if (defaults.isEmpty()) {
+            metricsPort.incrementCounter("user_business_errors_total",
+                Map.of("error_code", "COMPANY_DEFAULT_ROLES_NOT_CONFIGURED", "operation", "create"));
+            throw new CompanyDefaultRolesNotConfiguredException(savedUser.getCompanyId());
+        }
+        for (CompanyRole companyRole : defaults) {
+            userRoleRepository.save(UserRole.assign(savedUser.getId(), companyRole.getRoleId()));
+            log.info("Default company role {} assigned to user {}", companyRole.getRoleId(), savedUser.getId());
+        }
+    }
+
+    private void assignCompanyRole(User savedUser, String roleName) {
+        Role role = requireEnabledCompanyRole(savedUser.getCompanyId(), roleName);
+        userRoleRepository.save(UserRole.assign(savedUser.getId(), role.getId()));
+        log.info("Company role {} ({}) assigned to user {}", role.getId(), roleName, savedUser.getId());
+    }
+
+    private UserView finishCreate(User savedUser) {
+        userStatusHistoryRepository.save(
+            UserStatusHistory.create(savedUser.getId(), UserStatusEventType.CREATED, "Usuário criado")
+        );
+        metricsPort.incrementCounter("user_created_total",
+            Map.of("status", "success"));
+        log.info("User created successfully with ID: {}", savedUser.getId());
+        return userMapper.toView(savedUser);
     }
 
 }

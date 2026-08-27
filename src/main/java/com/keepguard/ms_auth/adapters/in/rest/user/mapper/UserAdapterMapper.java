@@ -32,7 +32,7 @@ public class UserAdapterMapper {
                     .companyId(dto.getCompanyId() != null ? UUID.fromString(dto.getCompanyId()) : null)
                     .companyCode(dto.getCompanyCode() != null ? UUID.fromString(dto.getCompanyCode()) : null)
                     .tenantId(tenantId)
-                    .roles(List.of()) // Roles vazias por padrão
+                    .roles(List.of())
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear UserCreateRequestDTO para UserCreateCommandDTO: {}", e.getMessage(), e);

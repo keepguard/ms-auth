@@ -52,6 +52,7 @@ class UserAdapterMapperTest {
         assertEquals("test@example.com", command.getEmail());
         assertEquals("password123", command.getPassword());
         assertEquals(dto.getIdUserExternal(), command.getIdUserExternal());
+        assertTrue(command.getRoles() == null || command.getRoles().isEmpty());
     }
     
     @Test

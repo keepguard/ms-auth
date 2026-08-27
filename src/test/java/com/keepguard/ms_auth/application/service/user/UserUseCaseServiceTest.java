@@ -132,6 +132,19 @@ class UserUseCaseServiceTest {
         
         verify(commandService, times(1)).create(userCreateCommand);
     }
+
+    @Test
+    @DisplayName("Deve criar administrador com sucesso")
+    void shouldCreateAdminSuccessfully() {
+        when(commandService.createAdmin(userCreateCommand)).thenReturn(userView);
+
+        UserView result = userUseCaseService.createAdmin(userCreateCommand);
+
+        assertNotNull(result);
+        assertEquals(userView, result);
+        verify(commandService, times(1)).createAdmin(userCreateCommand);
+        verify(commandService, never()).create(userCreateCommand);
+    }
     
     @Test
     @DisplayName("Deve deletar usuário com sucesso")

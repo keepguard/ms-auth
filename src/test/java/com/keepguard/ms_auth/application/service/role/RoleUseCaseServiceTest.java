@@ -6,6 +6,7 @@ import com.keepguard.ms_auth.adapters.in.rest.role.dto.RoleUpdateDTO;
 import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.application.mapper.RoleApplicationMapper;
+import com.keepguard.ms_auth.application.port.out.company.CompanyResolverPort;
 import com.keepguard.ms_auth.domain.dto.role.RoleCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.role.RoleUpdateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.role.RoleDeleteCommandDTO;
@@ -50,12 +51,16 @@ class RoleUseCaseServiceTest {
     
     @Mock
     private RoleApplicationMapper roleApplicationMapper;
+
+    @Mock
+    private CompanyResolverPort companyResolver;
     
     @InjectMocks
     private RoleUseCaseService roleUseCaseService;
     
     private UUID roleId;
     private UUID tenantId;
+    private UUID companyId;
     private Role role;
     private RoleCreateDTO createDTO;
     private RoleUpdateDTO updateDTO;
@@ -83,6 +88,8 @@ class RoleUseCaseServiceTest {
     void setUp() {
         roleId = UUID.randomUUID();
         tenantId = UUID.randomUUID();
+        companyId = UUID.randomUUID();
+        lenient().when(companyResolver.resolveCompanyId(tenantId)).thenReturn(companyId);
         
         // Criar role de teste usando builder
         role = RoleTestBuilder.builder()
@@ -208,7 +215,7 @@ class RoleUseCaseServiceTest {
     @DisplayName("Deve buscar role por ID com sucesso")
     void shouldFindRoleByIdSuccessfully() {
         // Given
-        when(roleQueryService.findById(roleId)).thenReturn(Optional.of(role));
+        when(roleQueryService.findByIdForCompany(roleId, companyId)).thenReturn(Optional.of(role));
         when(roleApplicationMapper.toGetByIdView(role)).thenReturn(getRoleByIdView);
         
         // When
@@ -219,7 +226,7 @@ class RoleUseCaseServiceTest {
         assertEquals(roleId, result.get().id());
         assertEquals("ADMIN", result.get().name());
         
-        verify(roleQueryService).findById(roleId);
+        verify(roleQueryService).findByIdForCompany(roleId, companyId);
         verify(roleApplicationMapper).toGetByIdView(role);
     }
     
@@ -227,7 +234,7 @@ class RoleUseCaseServiceTest {
     @DisplayName("Deve retornar vazio quando role não encontrado por ID")
     void shouldReturnEmptyWhenRoleNotFoundById() {
         // Given
-        when(roleQueryService.findById(roleId)).thenReturn(Optional.empty());
+        when(roleQueryService.findByIdForCompany(roleId, companyId)).thenReturn(Optional.empty());
         
         // When
         Optional<RoleGetByIdView> result = roleUseCaseService.findById(getByIdCommand);
@@ -235,7 +242,7 @@ class RoleUseCaseServiceTest {
         // Then
         assertFalse(result.isPresent());
         
-        verify(roleQueryService).findById(roleId);
+        verify(roleQueryService).findByIdForCompany(roleId, companyId);
         verify(roleApplicationMapper, never()).toGetByIdView(any());
     }
     
@@ -244,7 +251,7 @@ class RoleUseCaseServiceTest {
     void shouldFindRoleByNameSuccessfully() {
         // Given
         String roleName = "ADMIN";
-        when(roleQueryService.findByName(roleName)).thenReturn(Optional.of(role));
+        when(roleQueryService.findByCompanyIdAndName(companyId, roleName)).thenReturn(Optional.of(role));
         when(roleApplicationMapper.toGetByNameView(role)).thenReturn(getRoleByNameView);
         
         // When
@@ -255,7 +262,7 @@ class RoleUseCaseServiceTest {
         assertEquals(roleId, result.get().id());
         assertEquals(roleName, result.get().name());
         
-        verify(roleQueryService).findByName(roleName);
+        verify(roleQueryService).findByCompanyIdAndName(companyId, roleName);
         verify(roleApplicationMapper).toGetByNameView(role);
     }
     
@@ -268,7 +275,7 @@ class RoleUseCaseServiceTest {
             .name(roleName)
             .tenantId(tenantId)
             .build();
-        when(roleQueryService.findByName(roleName)).thenReturn(Optional.empty());
+        when(roleQueryService.findByCompanyIdAndName(companyId, roleName)).thenReturn(Optional.empty());
         
         // When
         Optional<RoleGetByNameView> result = roleUseCaseService.findByName(getByNameCommandInexistente);
@@ -276,7 +283,7 @@ class RoleUseCaseServiceTest {
         // Then
         assertFalse(result.isPresent());
         
-        verify(roleQueryService).findByName(roleName);
+        verify(roleQueryService).findByCompanyIdAndName(companyId, roleName);
         verify(roleApplicationMapper, never()).toGetByNameView(any());
     }
     
@@ -287,7 +294,7 @@ class RoleUseCaseServiceTest {
         List<Role> roles = List.of(role);
         List<RoleListView> listRoleViews = List.of(listRoleView);
         
-        when(roleQueryService.findAll()).thenReturn(roles);
+        when(roleQueryService.findByCompanyId(companyId)).thenReturn(roles);
         when(roleApplicationMapper.toListView(role)).thenReturn(listRoleView);
         
         // When
@@ -299,7 +306,7 @@ class RoleUseCaseServiceTest {
         assertEquals(roleId, result.get(0).id());
         assertEquals("ADMIN", result.get(0).name());
         
-        verify(roleQueryService).findAll();
+        verify(roleQueryService).findByCompanyId(companyId);
         verify(roleApplicationMapper).toListView(role);
     }
     
@@ -307,7 +314,7 @@ class RoleUseCaseServiceTest {
     @DisplayName("Deve retornar lista vazia quando não há roles")
     void shouldReturnEmptyListWhenNoRoles() {
         // Given
-        when(roleQueryService.findAll()).thenReturn(List.of());
+        when(roleQueryService.findByCompanyId(companyId)).thenReturn(List.of());
         
         // When
         List<RoleListView> result = roleUseCaseService.findAll(getAllCommand);
@@ -316,7 +323,7 @@ class RoleUseCaseServiceTest {
         assertNotNull(result);
         assertTrue(result.isEmpty());
         
-        verify(roleQueryService).findAll();
+        verify(roleQueryService).findByCompanyId(companyId);
         verify(roleApplicationMapper, never()).toListView(any());
     }
     
@@ -348,7 +355,7 @@ class RoleUseCaseServiceTest {
             .numberOfElements(1)
             .build();
         
-        when(roleQueryService.findAll(pageable)).thenReturn(pageResultView);
+        when(roleQueryService.findByCompanyId(companyId, pageable)).thenReturn(pageResultView);
         when(roleApplicationMapper.toSearchView(role)).thenReturn(searchRoleView);
         
         // When
@@ -366,7 +373,7 @@ class RoleUseCaseServiceTest {
         assertTrue(result.isLast());
         assertEquals(1, result.getNumberOfElements());
         
-        verify(roleQueryService).findAll(pageable);
+        verify(roleQueryService).findByCompanyId(companyId, pageable);
         verify(roleApplicationMapper).toSearchView(role);
     }
     
@@ -386,7 +393,7 @@ class RoleUseCaseServiceTest {
             .hasPrevious(false)
             .build();
         
-        when(roleQueryService.findAll(pageable)).thenReturn(emptyPageResultView);
+        when(roleQueryService.findByCompanyId(companyId, pageable)).thenReturn(emptyPageResultView);
         
         // When
         PageResultView<RoleSearchView> result = roleUseCaseService.findAll(searchCommand);
@@ -402,7 +409,7 @@ class RoleUseCaseServiceTest {
         assertTrue(result.isLast());
         assertEquals(0, result.getNumberOfElements());
         
-        verify(roleQueryService).findAll(pageable);
+        verify(roleQueryService).findByCompanyId(companyId, pageable);
         verify(roleApplicationMapper, never()).toSearchView(any());
     }
     
@@ -423,7 +430,7 @@ class RoleUseCaseServiceTest {
             .hasPrevious(true)
             .build();
         
-        when(roleQueryService.findAll(pageable)).thenReturn(pageResultView);
+        when(roleQueryService.findByCompanyId(companyId, pageable)).thenReturn(pageResultView);
         when(roleApplicationMapper.toSearchView(role)).thenReturn(new RoleSearchView(roleId, "ADMIN", "Admin role", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
@@ -440,7 +447,7 @@ class RoleUseCaseServiceTest {
         assertFalse(result.isLast());
         assertEquals(1, result.getNumberOfElements());
         
-        verify(roleQueryService).findAll(pageable);
+        verify(roleQueryService).findByCompanyId(companyId, pageable);
         verify(roleApplicationMapper).toSearchView(role);
     }
     
@@ -464,7 +471,7 @@ class RoleUseCaseServiceTest {
         
         List<Role> roles = List.of(role, role2);
         
-        when(roleQueryService.findAll()).thenReturn(roles);
+        when(roleQueryService.findByCompanyId(companyId)).thenReturn(roles);
         when(roleApplicationMapper.toListView(role)).thenReturn(new RoleListView(roleId, "ADMIN", "Admin role", LocalDateTime.now(), LocalDateTime.now()));
         when(roleApplicationMapper.toListView(role2)).thenReturn(new RoleListView(role2.getId(), "USER", "Usuário comum", LocalDateTime.now(), LocalDateTime.now()));
         
@@ -477,7 +484,7 @@ class RoleUseCaseServiceTest {
         assertEquals(roleId, result.get(0).id());
         assertEquals(role2.getId(), result.get(1).id());
         
-        verify(roleQueryService).findAll();
+        verify(roleQueryService).findByCompanyId(companyId);
         verify(roleApplicationMapper).toListView(role);
         verify(roleApplicationMapper).toListView(role2);
     }

@@ -9,6 +9,8 @@ public interface UserPort {
 
     UserView create(UserCreateCommandDTO command);
 
+    UserView createAdmin(UserCreateCommandDTO command);
+
     void delete(UserDeleteCommandDTO command);
 
     void hardDelete(UserHardDeleteCommandDTO command);

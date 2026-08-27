@@ -78,6 +78,39 @@ public class UserController {
         return ResponseEntity.status(201).body(response);
     }
 
+    @PostMapping("/create-admin")
+    @Operation(
+        summary = "Criar administrador",
+        description = "Cria um usuário com apenas a ROLE_ADMIN habilitada da company."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Administrador criado com sucesso",
+                    content = @Content(schema = @Schema(implementation = UserResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos ou usuário já existe"),
+        @ApiResponse(responseCode = "404", description = "ROLE_ADMIN não encontrada ou desabilitada para a company"),
+        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+    @MetricsEndpoint(
+        endpoint = "user_create_admin",
+        operation = "criar administrador"
+    )
+    public ResponseEntity<UserResponseDTO> createAdmin(
+            @Parameter(description = "Dados do administrador a ser criado", required = true)
+            @Valid @RequestBody UserCreateRequestDTO dto,
+            @Parameter(description = "UUID da aplicação", required = true)
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+
+        log.info("Criando admin: {}, tenantIdHeader={}", dto.getUsername(), tenantIdHeader);
+
+        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        var command = mapper.toCreateCommand(dto, tenantId);
+        var view = userService.createAdmin(command);
+        var response = mapper.toResponseDTO(view);
+
+        log.info("Admin created: {} with application: {}", response.getId(), tenantId);
+        return ResponseEntity.status(201).body(response);
+    }
+
     @DeleteMapping("/delete/{idUserExternal}")
     @Operation(
         summary = "Deletar usuário",

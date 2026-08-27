@@ -347,4 +347,21 @@ class RoleQueryServiceTest {
         
         verify(roleRepository).findAll();
     }
+
+    @Test
+    @DisplayName("Deve filtrar role de outra company no findByIdForCompany")
+    void shouldHideRoleFromOtherCompany() {
+        UUID companyA = UUID.randomUUID();
+        UUID companyB = UUID.randomUUID();
+        Role roleOfB = RoleTestBuilder.builder()
+            .withId(roleId)
+            .withCompanyId(companyB)
+            .withName("ROLE_AUDITOR")
+            .buildDomain();
+        when(roleRepository.findById(roleId)).thenReturn(Optional.of(roleOfB));
+
+        Optional<Role> result = roleQueryService.findByIdForCompany(roleId, companyA);
+
+        assertTrue(result.isEmpty());
+    }
 }
