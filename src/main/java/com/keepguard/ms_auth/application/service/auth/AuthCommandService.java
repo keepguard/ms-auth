@@ -194,9 +194,8 @@ public class AuthCommandService {
         // Dispositivo confiável: emite o token JWT final
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
-        String displayHandle = getDisplayHandle(user.getCodeUser(), request.getTenantId().toString());
 
-        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), displayHandle, deviceId);
+        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), deviceId);
 
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
@@ -360,11 +359,7 @@ public class AuthCommandService {
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
 
-        // Buscar displayHandle do ms-user (com fallback gracioso)
-        String displayHandle = getDisplayHandle(user.getCodeUser(), request.getTenantId().toString());
-
-        // Gerar token
-        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), displayHandle);
+        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId());
 
         // Atualizar último login
         user.setLastLogin(LocalDateTime.now());
@@ -428,9 +423,8 @@ public class AuthCommandService {
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
 
-        String displayHandle = getDisplayHandle(user.getCodeUser(), request.getTenantId().toString());
         String deviceId = jwtService.extractDeviceId(request.getToken());
-        String newToken = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), displayHandle, deviceId);
+        String newToken = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), deviceId);
 
         // Remove o token antigo e salva o novo (rotação de token)
         tokenCachePort.removeToken(codeUser.toString(), request.getToken());
@@ -792,29 +786,4 @@ public class AuthCommandService {
             .collect(Collectors.toList());
     }
 
-    /**
-     * Busca displayHandle do ms-user com fallback gracioso
-     * Se não conseguir buscar ou se displayHandle não estiver disponível, retorna null
-     * 
-     * @param codeUser Código único do usuário
-     * @param tenantId UUID da aplicação
-     * @return displayHandle ou null se não disponível
-     */
-    private String getDisplayHandle(UUID codeUser, String tenantId) {
-        try {
-            Map<String, Object> userData = userClient.getUserByCode(codeUser, tenantId);
-            if (userData != null) {
-                // display_handle está na raiz do user (ms-user)
-                String displayHandle = (String) userData.get("display_handle");
-                if (displayHandle != null && !displayHandle.trim().isEmpty()) {
-                    log.debug("displayHandle encontrado para codeUser: {} - {}", codeUser, displayHandle);
-                    return displayHandle;
-                }
-            }
-        } catch (Exception e) {
-            // Fallback gracioso: se não conseguir buscar, continua sem displayHandle
-            log.debug("Não foi possível buscar displayHandle do ms-user para codeUser: {} - {}", codeUser, e.getMessage());
-        }
-        return null;
-    }
 }

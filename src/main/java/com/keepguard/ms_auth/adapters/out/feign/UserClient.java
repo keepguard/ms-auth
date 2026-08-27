@@ -9,8 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Feign Client para comunicação com ms-user
- * Usado para buscar display_handle do usuário para incluir no JWT
+ * Feign Client para comunicação com ms-user (ex.: telefone no fluxo de MFA).
  */
 @FeignClient(
     name = "user-service",

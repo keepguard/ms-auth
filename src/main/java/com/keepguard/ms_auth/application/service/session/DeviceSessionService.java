@@ -3,7 +3,6 @@ package com.keepguard.ms_auth.application.service.session;
 import com.keepguard.lib_common.utils.CodeGeneratorUtils;
 import com.keepguard.ms_auth.adapters.out.feign.CommunicationClient;
 import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
-import com.keepguard.ms_auth.adapters.out.feign.UserClient;
 import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
 import com.keepguard.ms_auth.application.dto.session.DeviceSessionView;
 import com.keepguard.ms_auth.application.dto.session.PasswordChangedNotifyCommand;
@@ -46,7 +45,6 @@ public class DeviceSessionService {
     private final RoleRepositoryPort roleRepository;
     private final UserDeviceRepositoryPort userDeviceRepository;
     private final DeviceBlacklistRepositoryPort deviceBlacklistRepository;
-    private final UserClient userClient;
     private final CompanyClient companyClient;
     private final JwtService jwtService;
 
@@ -146,10 +144,8 @@ public class DeviceSessionService {
 
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
-        String displayHandle = getDisplayHandle(user.getCodeUser(), challenge.getTenantId());
 
-        // Emitir JWT final
-        String token = jwtService.generateToken(user, roleNames, authorities, challenge.getTenantId(), challenge.getClientId(), displayHandle, challenge.getDeviceId());
+        String token = jwtService.generateToken(user, roleNames, authorities, challenge.getTenantId(), challenge.getClientId(), challenge.getDeviceId());
 
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
@@ -740,15 +736,4 @@ public class DeviceSessionService {
                 .collect(Collectors.toList());
     }
 
-    private String getDisplayHandle(UUID codeUser, String tenantId) {
-        try {
-            Map<String, Object> userData = userClient.getUserByCode(codeUser, tenantId);
-            if (userData != null && userData.containsKey("display_handle") && userData.get("display_handle") != null) {
-                return (String) userData.get("display_handle");
-            }
-        } catch (Exception e) {
-            log.warn("Não foi possível buscar display_handle do ms-user | codeUser={} | erro={}", codeUser, e.getMessage());
-        }
-        return null;
-    }
 }

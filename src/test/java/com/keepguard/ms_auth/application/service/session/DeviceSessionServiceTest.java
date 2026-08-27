@@ -195,7 +195,7 @@ class DeviceSessionServiceTest {
 
         when(userRepository.findByCodeUserAndTenantId(UUID.fromString(codeUser), UUID.fromString(tenantId)))
                 .thenReturn(Optional.of(user));
-        when(jwtService.generateToken(any(), any(), any(), any(), any(), any(), any()))
+        when(jwtService.generateToken(any(), any(), any(), any(), any(), any()))
                 .thenReturn("mock-jwt-token");
         when(jwtService.getExpiration()).thenReturn(3600L);
         when(userRoleRepository.findByUserId(any())).thenReturn(Collections.emptyList());
@@ -289,7 +289,7 @@ class DeviceSessionServiceTest {
 
         when(userRepository.findByCodeUserAndTenantId(UUID.fromString(codeUser), UUID.fromString(tenantId)))
                 .thenReturn(Optional.of(mockUser));
-        when(jwtService.generateToken(any(), any(), any(), any(), any(), any(), any()))
+        when(jwtService.generateToken(any(), any(), any(), any(), any(), any()))
                 .thenReturn("mock_jwt_token");
         when(jwtService.getExpiration()).thenReturn(3600L);
         when(userRoleRepository.findByUserId(any())).thenReturn(Collections.emptyList());

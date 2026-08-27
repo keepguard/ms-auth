@@ -128,7 +128,7 @@ class AuthCommandServiceTest {
         when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPasswordHash())).thenReturn(true);
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
-        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any(), any())).thenReturn(token);
+        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn(token);
         when(jwtService.getExpiration()).thenReturn(3600L);
         when(sessionCachePort.getUserSession(anyString(), anyString())).thenReturn(Optional.of(
                 com.keepguard.ms_auth.domain.entity.session.UserSession.builder()
@@ -153,7 +153,7 @@ class AuthCommandServiceTest {
         verify(userRepository, times(1)).findByUsernameAndTenantId(username, tenantId);
         verify(passwordEncoder, times(1)).matches(password, user.getPasswordHash());
         verify(userRoleRepository, times(2)).findByUserId(user.getId()); // Chamado 2x: getUserRoles e getUserAuthorities
-        verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any(), any());
+        verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any());
         verify(userRepository, times(1)).save(user);
         verify(tokenCachePort, times(1)).saveToken(codeUser.toString(), token, 3600L);
         verify(sessionCachePort, times(1)).saveUserSession(any(), eq(2592000L));
@@ -181,7 +181,7 @@ class AuthCommandServiceTest {
             authCommandService.login(loginRequest);
         });
 
-        verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any(), any());
+        verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any());
     }
 
     @Test
@@ -314,7 +314,7 @@ class AuthCommandServiceTest {
         when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPasswordHash())).thenReturn(true);
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
-        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any(), any())).thenReturn(token);
+        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn(token);
         when(jwtService.getExpiration()).thenReturn(3600L);
         when(sessionCachePort.getUserSession(anyString(), anyString())).thenReturn(Optional.of(
                 com.keepguard.ms_auth.domain.entity.session.UserSession.builder().isTrusted(true).build()
@@ -348,7 +348,7 @@ class AuthCommandServiceTest {
         when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
         when(userRepository.findByCodeUserAndTenantId(codeUser, tenantId)).thenReturn(Optional.of(user));
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
-        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any(), any())).thenReturn("new-token");
+        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn("new-token");
         when(jwtService.getExpiration()).thenReturn(3600L);
         
         // When
@@ -360,7 +360,7 @@ class AuthCommandServiceTest {
         verify(jwtService, times(1)).extractUserId(token);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
         verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUser, tenantId);
-        verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any(), any());
+        verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any());
         verify(tokenCachePort, times(1)).removeToken(codeUser.toString(), token);
         verify(tokenCachePort, times(1)).saveToken(codeUser.toString(), "new-token", 3600L);
     }

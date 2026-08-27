@@ -421,88 +421,21 @@ class JwtServiceTest {
     }
 
     @Test
-    @DisplayName("Deve incluir display_handle no token quando fornecido")
-    void shouldIncludeDisplayHandleInTokenWhenProvided() {
-        // Given
+    @DisplayName("Não deve incluir display_handle no token")
+    void shouldNotIncludeDisplayHandleInToken() {
         List<String> roles = List.of("ADMIN");
         List<String> authorities = List.of("READ_USER");
         String application = "test-app";
-        String displayHandle = "rafael.soares";
 
-        // When
-        String token = jwtService.generateToken(user, roles, authorities, application, "Mozilla/5.0", displayHandle);
+        String token = jwtService.generateToken(user, roles, authorities, application, "keepguard-web", "dev_123");
 
-        // Then
         Claims claims = Jwts.parser()
             .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
             .build()
             .parseSignedClaims(token)
             .getPayload();
-        
-        assertEquals(displayHandle, claims.get("display_handle", String.class));
-    }
 
-    @Test
-    @DisplayName("Não deve incluir display_handle no token quando null")
-    void shouldNotIncludeDisplayHandleInTokenWhenNull() {
-        // Given
-        List<String> roles = List.of("ADMIN");
-        List<String> authorities = List.of("READ_USER");
-        String application = "test-app";
-
-        // When
-        String token = jwtService.generateToken(user, roles, authorities, application, "Mozilla/5.0", null);
-
-        // Then
-        Claims claims = Jwts.parser()
-            .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
-        
         assertNull(claims.get("display_handle"));
-    }
-
-    @Test
-    @DisplayName("Não deve incluir display_handle no token quando vazio")
-    void shouldNotIncludeDisplayHandleInTokenWhenEmpty() {
-        // Given
-        List<String> roles = List.of("ADMIN");
-        List<String> authorities = List.of("READ_USER");
-        String application = "test-app";
-
-        // When
-        String token = jwtService.generateToken(user, roles, authorities, application, "Mozilla/5.0", "");
-
-        // Then
-        Claims claims = Jwts.parser()
-            .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
-        
-        assertNull(claims.get("display_handle"));
-    }
-
-    @Test
-    @DisplayName("Deve usar método generateToken sem displayHandle (compatibilidade)")
-    void shouldUseGenerateTokenWithoutDisplayHandleForCompatibility() {
-        // Given
-        List<String> roles = List.of("ADMIN");
-        List<String> authorities = List.of("READ_USER");
-        String application = "test-app";
-
-        // When
-        String token = jwtService.generateToken(user, roles, authorities, application, "Mozilla/5.0");
-
-        // Then
-        assertNotNull(token);
-        Claims claims = Jwts.parser()
-            .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
-        
-        assertNull(claims.get("display_handle"));
+        assertEquals("dev_123", claims.get("device_id", String.class));
     }
 }
