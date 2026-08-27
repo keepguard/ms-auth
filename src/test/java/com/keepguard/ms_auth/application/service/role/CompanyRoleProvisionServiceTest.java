@@ -2,7 +2,6 @@ package com.keepguard.ms_auth.application.service.role;
 
 import com.keepguard.ms_auth.application.dto.role.ProvisionCompanyRolesView;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
-import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.CompanyRoleRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
@@ -34,8 +33,6 @@ class CompanyRoleProvisionServiceTest {
     private RoleRepositoryPort roleRepository;
     @Mock
     private CompanyRoleRepositoryPort companyRoleRepository;
-    @Mock
-    private AuthorityRepositoryPort authorityRepository;
     @Mock
     private MetricsPort metricsPort;
 
@@ -89,7 +86,9 @@ class CompanyRoleProvisionServiceTest {
         assertFalse(view.alreadyProvisioned());
         assertEquals(3, view.roleNames().size());
         assertTrue(view.roleNames().containsAll(SystemRoleNames.PROVISIONED));
-        verify(roleRepository, times(3)).save(any(Role.class));
+        ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
+        verify(roleRepository, times(3)).save(roleCaptor.capture());
+        assertTrue(roleCaptor.getAllValues().stream().allMatch(role -> role.grantedAuthorities().isEmpty()));
         ArgumentCaptor<CompanyRole> companyRoleCaptor = ArgumentCaptor.forClass(CompanyRole.class);
         verify(companyRoleRepository, times(3)).save(companyRoleCaptor.capture());
         assertTrue(companyRoleCaptor.getAllValues().stream().anyMatch(CompanyRole::isDefaultRole));

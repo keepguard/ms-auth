@@ -785,7 +785,7 @@ public class AuthCommandService {
             .map(roleId -> roleRepository.findById(roleId))
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .flatMap(role -> role.getAuthorities().stream())
+            .flatMap(role -> role.grantedAuthorities().stream())
             .map(authority -> authority.getName())
             .distinct()
             .sorted()

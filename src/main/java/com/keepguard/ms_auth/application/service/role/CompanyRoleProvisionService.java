@@ -4,11 +4,9 @@ import com.keepguard.lib_common.logging.annotation.LogOperation;
 import com.keepguard.ms_auth.application.dto.role.ProvisionCompanyRolesView;
 import com.keepguard.ms_auth.application.port.in.CompanyRoleProvisionPort;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
-import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.CompanyRoleRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
-import com.keepguard.ms_auth.domain.entity.authority.Authority;
 import com.keepguard.ms_auth.domain.entity.role.CompanyRole;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.domain.entity.role.SystemRoleNames;
@@ -22,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -32,7 +29,6 @@ public class CompanyRoleProvisionService implements CompanyRoleProvisionPort {
 
     private final RoleRepositoryPort roleRepository;
     private final CompanyRoleRepositoryPort companyRoleRepository;
-    private final AuthorityRepositoryPort authorityRepository;
     private final MetricsPort metricsPort;
 
     @Override
@@ -69,7 +65,7 @@ public class CompanyRoleProvisionService implements CompanyRoleProvisionPort {
                     .description(template.getDescription())
                     .companyId(companyId)
                     .isSystem(true)
-                    .authorities(cloneAuthoritiesForCompany(template, companyId, now))
+                    .authorities(new HashSet<>())
                     .createdAt(now)
                     .updatedAt(now)
                     .build();
@@ -89,24 +85,5 @@ public class CompanyRoleProvisionService implements CompanyRoleProvisionPort {
                 Map.of("company_id", companyId.toString()));
         log.info("Roles provisionadas para company {}: {}", companyId, createdNames);
         return new ProvisionCompanyRolesView(companyId, false, createdNames);
-    }
-
-    private Set<Authority> cloneAuthoritiesForCompany(Role template, UUID companyId, LocalDateTime now) {
-        Set<Authority> cloned = new HashSet<>();
-        if (template.getAuthorities() == null || template.getAuthorities().isEmpty()) {
-            return cloned;
-        }
-        for (Authority source : template.getAuthorities()) {
-            Authority companyAuthority = authorityRepository.findByCompanyIdAndName(companyId, source.getName())
-                    .orElseGet(() -> authorityRepository.save(Authority.builder()
-                            .name(source.getName())
-                            .description(source.getDescription())
-                            .companyId(companyId)
-                            .createdAt(now)
-                            .updatedAt(now)
-                            .build()));
-            cloned.add(companyAuthority);
-        }
-        return cloned;
     }
 }

@@ -27,6 +27,13 @@ public class Role {
         return companyId != null && companyId.equals(this.companyId);
     }
 
+    public Set<Authority> grantedAuthorities() {
+        if (isSystem || SystemRoleNames.isReserved(name)) {
+            return Set.of();
+        }
+        return authorities != null ? authorities : Set.of();
+    }
+
     public void updateTimestamp() {
         this.updatedAt = LocalDateTime.now();
     }
