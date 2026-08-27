@@ -88,7 +88,7 @@ class CompanyRoleProvisionServiceTest {
         assertTrue(view.roleNames().containsAll(SystemRoleNames.PROVISIONED));
         ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
         verify(roleRepository, times(3)).save(roleCaptor.capture());
-        assertTrue(roleCaptor.getAllValues().stream().allMatch(role -> role.grantedAuthorities().isEmpty()));
+        assertTrue(roleCaptor.getAllValues().stream().allMatch(role -> role.getAuthorities().isEmpty()));
         ArgumentCaptor<CompanyRole> companyRoleCaptor = ArgumentCaptor.forClass(CompanyRole.class);
         verify(companyRoleRepository, times(3)).save(companyRoleCaptor.capture());
         assertTrue(companyRoleCaptor.getAllValues().stream().anyMatch(CompanyRole::isDefaultRole));

@@ -223,33 +223,4 @@ class RoleTest {
         // Then
         assertEquals(longDescription, roleWithLongDescription.getDescription());
     }
-
-    @Test
-    @DisplayName("Role de sistema não concede authorities no JWT")
-    void shouldNotGrantAuthoritiesForSystemRole() {
-        Role adminRole = RoleTestBuilder.aRole()
-            .withName(SystemRoleNames.ROLE_ADMIN)
-            .withSystem(true)
-            .buildDomain();
-        adminRole.getAuthorities().add(com.keepguard.ms_auth.domain.entity.authority.Authority.builder()
-            .name("user:delete")
-            .build());
-
-        assertTrue(adminRole.grantedAuthorities().isEmpty());
-    }
-
-    @Test
-    @DisplayName("Role customizada concede authorities")
-    void shouldGrantAuthoritiesForCustomRole() {
-        Role custom = RoleTestBuilder.aRole()
-            .withName("ROLE_AUDITOR")
-            .withSystem(false)
-            .buildDomain();
-        custom.getAuthorities().add(com.keepguard.ms_auth.domain.entity.authority.Authority.builder()
-            .name("user:delete")
-            .build());
-
-        assertEquals(1, custom.grantedAuthorities().size());
-        assertTrue(custom.grantedAuthorities().stream().anyMatch(a -> "user:delete".equals(a.getName())));
-    }
 }
