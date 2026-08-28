@@ -42,9 +42,6 @@ public class JwtService {
                 .claim("client_id", finalClientId)
                 .claim("tenant_id", tenantId)
                 .claim("login_method", "password");
-        if (user.getCompanyId() != null) {
-            builder.claim("companyId", user.getCompanyId().toString());
-        }
 
         if (deviceId != null && !deviceId.isBlank()) {
             builder.claim("device_id", deviceId);
