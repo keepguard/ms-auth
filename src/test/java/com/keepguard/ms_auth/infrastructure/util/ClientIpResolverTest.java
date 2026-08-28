@@ -11,6 +11,16 @@ import static org.mockito.Mockito.when;
 class ClientIpResolverTest {
 
     @Test
+    void prefersFrontendPublicIpOverClusterAddress() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getHeader("X-Public-IP")).thenReturn("189.45.12.8");
+        when(request.getHeader("X-Client-IP")).thenReturn("10.42.0.1");
+        when(request.getRemoteAddr()).thenReturn("10.42.0.15");
+
+        assertEquals("189.45.12.8", ClientIpResolver.from(request));
+    }
+
+    @Test
     void prefersPublicClientIpHeaderOverPrivateForwardedChain() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader("X-Client-IP")).thenReturn("189.45.12.8");

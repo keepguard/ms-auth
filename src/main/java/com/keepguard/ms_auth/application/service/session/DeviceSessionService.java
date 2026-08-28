@@ -385,7 +385,7 @@ public class DeviceSessionService {
                     }
                     UserSession active = activeSessionMap.get(dev.getDeviceId());
                     boolean isCurrent = dev.getDeviceId() != null && dev.getDeviceId().equals(currentDeviceId);
-                    String ipAddress = firstNonBlank(
+                    String ipAddress = resolveSessionIp(
                             dev.getIpAddress(),
                             active != null ? active.getIpAddress() : null,
                             isCurrent ? requestIp : null
@@ -415,7 +415,7 @@ public class DeviceSessionService {
         // Fallback para Redis se banco vazio ou indisponível
         return activeSessions.stream().map(s -> {
             boolean isCurrent = s.getDeviceId() != null && s.getDeviceId().equals(currentDeviceId);
-            String ipAddress = firstNonBlank(s.getIpAddress(), isCurrent ? requestIp : null);
+            String ipAddress = resolveSessionIp(s.getIpAddress(), null, isCurrent ? requestIp : null);
             return new DeviceSessionView(
                     s.getSessionId(),
                     s.getDeviceId(),
@@ -432,15 +432,24 @@ public class DeviceSessionService {
     }
 
     private String resolveAndPersistLocation(UserSession session, String ipAddress) {
+        String ip = IpAddressUtils.firstIp(ipAddress);
+        boolean publicIp = ip != null && !IpAddressUtils.isPrivate(ip);
         String existing = session != null ? session.getLocation() : null;
-        if (existing != null && !existing.isBlank() && !"Localização Desconhecida".equalsIgnoreCase(existing)) {
+        boolean staleLocation = existing == null || existing.isBlank()
+                || "Localização Desconhecida".equalsIgnoreCase(existing)
+                || "Rede interna".equalsIgnoreCase(existing);
+        boolean replacingPrivateSession = publicIp
+                && session != null
+                && IpAddressUtils.isPrivate(session.getIpAddress());
+        if (!staleLocation && !replacingPrivateSession) {
             return existing;
         }
-        String resolved = geoLocationPort.resolve(ipAddress);
+        String resolved = geoLocationPort.resolve(ip);
         if (session != null && resolved != null && !resolved.equals(existing)) {
             session.setLocation(resolved);
-            if (ipAddress != null && (session.getIpAddress() == null || session.getIpAddress().isBlank())) {
-                session.setIpAddress(IpAddressUtils.firstIp(ipAddress));
+            if (ip != null && (session.getIpAddress() == null || session.getIpAddress().isBlank()
+                    || (publicIp && IpAddressUtils.isPrivate(session.getIpAddress())))) {
+                session.setIpAddress(ip);
             }
             sessionCachePort.saveUserSession(session, 2592000L);
         }
@@ -448,14 +457,32 @@ public class DeviceSessionService {
     }
 
     private void persistDeviceIpIfMissing(UserDevice device, String ipAddress) {
-        if (device == null || ipAddress == null || ipAddress.isBlank()) {
+        if (device == null) {
             return;
         }
-        if (device.getIpAddress() != null && !device.getIpAddress().isBlank()) {
+        String incoming = IpAddressUtils.firstIp(ipAddress);
+        if (incoming == null) {
             return;
         }
-        device.updateActivity(ipAddress, null, device.getLastActiveAt());
+        String current = device.getIpAddress();
+        boolean shouldWrite = current == null || current.isBlank()
+                || (IpAddressUtils.isPrivate(current) && !IpAddressUtils.isPrivate(incoming));
+        if (!shouldWrite) {
+            return;
+        }
+        device.updateActivity(incoming, null, device.getLastActiveAt());
         userDeviceRepository.save(device);
+    }
+
+    private static String resolveSessionIp(String deviceIp, String sessionIp, String requestIp) {
+        String requestPublic = IpAddressUtils.firstPublic(requestIp);
+        if (requestPublic != null) {
+            String stored = firstNonBlank(deviceIp, sessionIp);
+            if (stored == null || IpAddressUtils.isPrivate(stored)) {
+                return requestPublic;
+            }
+        }
+        return firstNonBlank(deviceIp, sessionIp, requestIp);
     }
 
     private static String firstNonBlank(String... values) {

@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 public final class ClientIpResolver {
 
     private static final String[] HEADERS = {
+            "X-Public-IP",
             "X-Client-IP",
             "CF-Connecting-IP",
             "True-Client-IP",
