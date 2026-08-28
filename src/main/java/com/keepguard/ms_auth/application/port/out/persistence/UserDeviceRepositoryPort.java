@@ -14,7 +14,7 @@ public interface UserDeviceRepositoryPort {
 
     List<UserDevice> listByCodeUser(UUID codeUser);
 
-    List<UserDevice> listByCodeUserAndTenantId(UUID codeUser, UUID tenantId);
+    List<UserDevice> listByCodeUserAndTenantId(UUID codeUser, UUID companyId);
 
     void deleteByCodeUserAndDeviceId(UUID codeUser, String deviceId);
 }

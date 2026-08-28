@@ -14,7 +14,7 @@ import java.io.Serializable;
 public class UserSession implements Serializable {
     private String sessionId;
     private String codeUser;
-    private String tenantId;
+    private String companyId;
     private String clientId;
     private String deviceId;
     private String deviceName;

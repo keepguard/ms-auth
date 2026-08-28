@@ -15,7 +15,7 @@ public interface UserDeviceSpringRepository extends JpaRepository<UserDeviceJpaE
 
     List<UserDeviceJpaEntity> findByCodeUser(UUID codeUser);
 
-    List<UserDeviceJpaEntity> findByCodeUserAndTenantId(UUID codeUser, UUID tenantId);
+    List<UserDeviceJpaEntity> findByCodeUserAndTenantId(UUID codeUser, UUID companyId);
 
     void deleteByCodeUserAndDeviceId(UUID codeUser, String deviceId);
 }

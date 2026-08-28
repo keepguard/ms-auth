@@ -1,5 +1,7 @@
 package com.keepguard.ms_auth.adapters.in.rest.auth;
 
+
+import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -110,20 +112,19 @@ public class AuthController {
     public ResponseEntity<AuthLoginResponseDTO> registerLogin(
             @Parameter(description = "Dados para login após registro", required = true)
             @RequestBody @Valid AuthRegisterLoginRequestDTO request,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             @RequestHeader(value = "X-Client-ID", defaultValue = "keepguard-default-client") String clientId) {
 
-        log.info("Realizando register login para usuário: {}, tenantIdHeader={}, clientId={}", 
-            request.getUsername(), tenantIdHeader, clientId);
+        log.info("Realizando register login para usuário: {}, companyId={}, clientId={}", 
+            request.getUsername(), companyId, clientId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toRegisterLoginCommand(request, tenantId, clientId);
+        var command = mapper.toRegisterLoginCommand(request, companyId, clientId);
         var view = authService.registerLogin(command);
         var response = mapper.toLoginResponseDTO(view);
         
-        log.info("Register login successful for user: {} with application: {}", request.getUsername(), tenantId);
+        log.info("Register login successful for user: {} with application: {}", request.getUsername(), companyId);
         return ResponseEntity.ok(response);
     }
 
@@ -146,15 +147,14 @@ public class AuthController {
     public ResponseEntity<AuthRefreshTokenResponseDTO> refreshToken(
             @Parameter(description = "Dados para renovação do token", required = true)
             @RequestBody @Valid AuthRefreshTokenRequestDTO request,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             @RequestHeader(value = "X-Client-ID", defaultValue = "keepguard-default-client") String clientId) {
 
-        log.info("Renovando token JWT - tenantIdHeader={}, clientId={}", tenantIdHeader, clientId);
+        log.info("Renovando token JWT - companyId={}, clientId={}", companyId, clientId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toRefreshTokenCommand(request, tenantId, clientId);
+        var command = mapper.toRefreshTokenCommand(request, companyId, clientId);
         var view = authService.refreshToken(command);
         var response = mapper.toRefreshTokenResponseDTO(view);
         
@@ -181,19 +181,18 @@ public class AuthController {
     public ResponseEntity<AuthLogoutResponseDTO> logout(
             @Parameter(description = "Token JWT a ser invalidado", required = true)
             @RequestHeader("Authorization") String authorization,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Realizando logout - tenantIdHeader={}", tenantIdHeader);
+        log.info("Realizando logout - companyId={}", companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         String token = authorization.replace("Bearer ", "");
 
-        var command = mapper.toLogoutCommand(token, tenantId);
+        var command = mapper.toLogoutCommand(token, companyId);
         var view = authService.logout(command);
         var response = mapper.toLogoutResponseDTO(view);
         
-        log.info("Logout successful for application: {}", tenantId);
+        log.info("Logout successful for application: {}", companyId);
         return ResponseEntity.ok(response);
     }
 
@@ -216,17 +215,16 @@ public class AuthController {
     public ResponseEntity<Void> validate(
             @Parameter(description = "Token JWT a ser validado", required = true)
             @RequestBody @Valid AuthValidateTokenRequestDTO validateTokenDTO, 
-            @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "Identificador da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
         
-        log.info("Validando token JWT - tenantIdHeader={}", tenantIdHeader);
+        log.info("Validando token JWT - companyId={}", companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toValidateTokenCommand(validateTokenDTO, tenantId);
+        var command = mapper.toValidateTokenCommand(validateTokenDTO, companyId);
         authService.validateToken(command);
         
-        log.info("Token valid for application: {}", tenantId);
+        log.info("Token valid for application: {}", companyId);
         return ResponseEntity.ok().build();
     }
 
@@ -248,24 +246,23 @@ public class AuthController {
     public ResponseEntity<Void> changePassword(
             @Parameter(description = "Dados para alteração de senha", required = true)
             @RequestBody @Valid AuthChangePasswordRequestDTO request,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
             @RequestHeader(value = "X-Device-Name", required = false) String deviceName,
             @RequestHeader(value = "X-Device-Type", required = false) String deviceType,
             @RequestHeader(value = "User-Agent", required = false) String userAgent,
             HttpServletRequest httpRequest) {
 
-        log.info("Alterando senha para usuário: {}, tenantIdHeader={}, deviceId={}",
-                request.getCodeUser(), tenantIdHeader, deviceId);
+        log.info("Alterando senha para usuário: {}, companyId={}, deviceId={}",
+                request.getCodeUser(), companyId, deviceId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         var ipAddress = ClientIpResolver.from(httpRequest);
         var command = mapper.toChangePasswordCommand(
-                request, tenantId, deviceId, deviceName, deviceType, ipAddress, userAgent);
+                request, companyId, deviceId, deviceName, deviceType, ipAddress, userAgent);
         authService.changePassword(command);
         
-        log.info("Password changed successfully for user: {} with application: {}", request.getCodeUser(), tenantId);
+        log.info("Password changed successfully for user: {} with application: {}", request.getCodeUser(), companyId);
         return ResponseEntity.ok().build();
     }
 
@@ -286,24 +283,23 @@ public class AuthController {
     public ResponseEntity<Void> resetPassword(
             @Parameter(description = "Dados para reset de senha", required = true)
             @RequestBody @Valid AuthResetPasswordRequestDTO request,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
             @RequestHeader(value = "X-Device-Name", required = false) String deviceName,
             @RequestHeader(value = "X-Device-Type", required = false) String deviceType,
             @RequestHeader(value = "User-Agent", required = false) String userAgent,
             HttpServletRequest httpRequest) {
 
-        log.info("Resetando senha para usuário: {}, tenantIdHeader={}, deviceId={}, resetToken={}", 
-            request.getCodeUser(), tenantIdHeader, deviceId, request.getResetToken());
+        log.info("Resetando senha para usuário: {}, companyId={}, deviceId={}, resetToken={}", 
+            request.getCodeUser(), companyId, deviceId, request.getResetToken());
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         var ipAddress = ClientIpResolver.from(httpRequest);
         var command = mapper.toResetPasswordCommand(
-                request, tenantId, deviceId, deviceName, deviceType, ipAddress, userAgent);
+                request, companyId, deviceId, deviceName, deviceType, ipAddress, userAgent);
         authService.resetPassword(command);
         
-        log.info("Password reset successfully for user: {} with application: {}", request.getCodeUser(), tenantId);
+        log.info("Password reset successfully for user: {} with application: {}", request.getCodeUser(), companyId);
         return ResponseEntity.ok().build();
     }
 
@@ -327,19 +323,18 @@ public class AuthController {
     public ResponseEntity<AuthGenerateResetTokenResponseDTO> generateResetToken(
             @Parameter(description = "Dados para geração de token de reset", required = true)
             @RequestBody @Valid AuthGenerateResetTokenRequestDTO request,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Gerando token de reset | codeUser={} | tenantIdHeader={} | messageType={} | templateType={}", 
-            request.getCodeUser(), tenantIdHeader, request.getMessageType(), request.getTemplateType());
+        log.info("Gerando token de reset | codeUser={} | companyId={} | messageType={} | templateType={}", 
+            request.getCodeUser(), companyId, request.getMessageType(), request.getTemplateType());
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        var command = mapper.toGenerateResetTokenCommand(request, tenantId);
+        var command = mapper.toGenerateResetTokenCommand(request, companyId);
         var view = authService.generateResetToken(command);
         var response = mapper.toGenerateResetTokenResponseDTO(view);
         
         log.info("Token de reset gerado com sucesso | codeUser={} | application={}", 
-            request.getCodeUser(), tenantId);
+            request.getCodeUser(), companyId);
         return ResponseEntity.ok(response);
     }
 }

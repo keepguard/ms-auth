@@ -83,7 +83,7 @@ class DeviceSessionServiceTest {
 
     private DeviceChallengeSession mockChallenge;
     private final String challengeSessionId = "chal_12345";
-    private final String tenantId = UUID.randomUUID().toString();
+    private final String companyId = UUID.randomUUID().toString();
     private final String codeUser = UUID.randomUUID().toString();
 
     @BeforeEach
@@ -91,7 +91,7 @@ class DeviceSessionServiceTest {
         mockChallenge = DeviceChallengeSession.builder()
                 .challengeSessionId(challengeSessionId)
                 .codeUser(codeUser)
-                .tenantId(tenantId)
+                .companyId(companyId)
                 .username("testuser")
                 .email("test@example.com")
                 .phone("+5511999999999")
@@ -112,7 +112,7 @@ class DeviceSessionServiceTest {
         SendDeviceChallengeCommandDTO command = SendDeviceChallengeCommandDTO.builder()
                 .challengeSessionId(challengeSessionId)
                 .channel("EMAIL")
-                .tenantId(tenantId)
+                .companyId(companyId)
                 .build();
 
         Map<String, Object> result = deviceSessionService.sendChallenge(command);
@@ -128,7 +128,7 @@ class DeviceSessionServiceTest {
 
         // Captura o payload enviado para o ms-communication
         ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(communicationClient, times(1)).sendMessage(payloadCaptor.capture(), eq(tenantId));
+        verify(communicationClient, times(1)).sendMessage(payloadCaptor.capture(), eq(UUID.fromString(companyId)));
 
         Map<String, Object> capturedPayload = payloadCaptor.getValue();
         assertEquals("test@example.com", capturedPayload.get("recipient"));
@@ -152,7 +152,7 @@ class DeviceSessionServiceTest {
         SendDeviceChallengeCommandDTO command = SendDeviceChallengeCommandDTO.builder()
                 .challengeSessionId(challengeSessionId)
                 .channel("SMS")
-                .tenantId(tenantId)
+                .companyId(companyId)
                 .build();
 
         Map<String, Object> result = deviceSessionService.sendChallenge(command);
@@ -161,7 +161,7 @@ class DeviceSessionServiceTest {
         assertEquals("SMS", result.get("channel"));
 
         ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(communicationClient, times(1)).sendMessage(payloadCaptor.capture(), eq(tenantId));
+        verify(communicationClient, times(1)).sendMessage(payloadCaptor.capture(), eq(UUID.fromString(companyId)));
 
         Map<String, Object> capturedPayload = payloadCaptor.getValue();
         assertEquals("+5511999999999", capturedPayload.get("recipient"));
@@ -197,7 +197,7 @@ class DeviceSessionServiceTest {
         user.setEmail("test@example.com");
         user.setStatus(UserStatus.ACTIVE);
 
-        when(userRepository.findByCodeUserAndTenantId(UUID.fromString(codeUser), UUID.fromString(tenantId)))
+        when(userRepository.findByCodeUserAndTenantId(UUID.fromString(codeUser), UUID.fromString(companyId)))
                 .thenReturn(Optional.of(user));
         when(jwtService.generateToken(any(), any(), any(), any(), any(), any()))
                 .thenReturn("mock-jwt-token");
@@ -207,7 +207,7 @@ class DeviceSessionServiceTest {
         VerifyDeviceChallengeCommandDTO command = VerifyDeviceChallengeCommandDTO.builder()
                 .challengeSessionId(challengeSessionId)
                 .code("123456")
-                .tenantId(tenantId)
+                .companyId(companyId)
                 .trustDevice(true)
                 .build();
 
@@ -268,7 +268,7 @@ class DeviceSessionServiceTest {
         VerifyDeviceChallengeCommandDTO command = VerifyDeviceChallengeCommandDTO.builder()
                 .challengeSessionId(challengeSessionId)
                 .code("000000")
-                .tenantId(tenantId)
+                .companyId(companyId)
                 .build();
 
         assertThrows(InvalidCredentialsException.class, () -> deviceSessionService.verifyChallenge(command));
@@ -285,13 +285,13 @@ class DeviceSessionServiceTest {
         User mockUser = User.builder()
                 .id(UUID.randomUUID())
                 .codeUser(UUID.fromString(codeUser))
-                .tenantId(UUID.fromString(tenantId))
+                .companyId(UUID.fromString(companyId))
                 .username("testuser")
                 .email("test@example.com")
                 .status(UserStatus.ACTIVE)
                 .build();
 
-        when(userRepository.findByCodeUserAndTenantId(UUID.fromString(codeUser), UUID.fromString(tenantId)))
+        when(userRepository.findByCodeUserAndTenantId(UUID.fromString(codeUser), UUID.fromString(companyId)))
                 .thenReturn(Optional.of(mockUser));
         when(jwtService.generateToken(any(), any(), any(), any(), any(), any()))
                 .thenReturn("mock_jwt_token");
@@ -301,7 +301,7 @@ class DeviceSessionServiceTest {
         VerifyDeviceChallengeCommandDTO command = VerifyDeviceChallengeCommandDTO.builder()
                 .challengeSessionId(challengeSessionId)
                 .code("123456")
-                .tenantId(tenantId)
+                .companyId(companyId)
                 .trustDevice(true)
                 .build();
 
@@ -317,7 +317,7 @@ class DeviceSessionServiceTest {
     void shouldNotifyPasswordChangedWithRevokeWhenDevicePresent() {
         PasswordChangedNotifyCommand command = PasswordChangedNotifyCommand.builder()
                 .codeUser(codeUser)
-                .tenantId(tenantId)
+                .companyId(companyId)
                 .email("test@example.com")
                 .username("testuser")
                 .deviceId("device_abc")
@@ -332,7 +332,7 @@ class DeviceSessionServiceTest {
         verify(sessionCachePort, times(1)).saveQuickRevokeToken(any(), eq(172800L));
 
         ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(communicationClient, times(1)).sendMessage(payloadCaptor.capture(), eq(tenantId));
+        verify(communicationClient, times(1)).sendMessage(payloadCaptor.capture(), eq(UUID.fromString(companyId)));
 
         Map<String, Object> payload = payloadCaptor.getValue();
         assertEquals("SENHA_ALTERADA_SUCESSO", payload.get("templateType"));
@@ -351,7 +351,7 @@ class DeviceSessionServiceTest {
     void shouldNotifyPasswordChangedWithoutRevokeWhenDeviceMissing() {
         PasswordChangedNotifyCommand command = PasswordChangedNotifyCommand.builder()
                 .codeUser(codeUser)
-                .tenantId(tenantId)
+                .companyId(companyId)
                 .email("test@example.com")
                 .username("testuser")
                 .build();
@@ -361,7 +361,7 @@ class DeviceSessionServiceTest {
         verify(sessionCachePort, never()).saveQuickRevokeToken(any(), anyLong());
 
         ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(communicationClient, times(1)).sendMessage(payloadCaptor.capture(), eq(tenantId));
+        verify(communicationClient, times(1)).sendMessage(payloadCaptor.capture(), eq(UUID.fromString(companyId)));
 
         @SuppressWarnings("unchecked")
         Map<String, Object> vars = (Map<String, Object>) payloadCaptor.getValue().get("variables");

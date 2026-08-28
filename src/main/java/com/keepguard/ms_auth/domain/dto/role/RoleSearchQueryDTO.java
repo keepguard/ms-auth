@@ -15,6 +15,6 @@ import java.util.UUID;
 public class RoleSearchQueryDTO {
 
     private Pageable pageable;
-    private UUID tenantId;
+    private UUID companyId;
 }
 

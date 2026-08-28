@@ -29,8 +29,8 @@ public class AuthResetPasswordCommandDTO {
     @NotBlank(message = "Confirmação da nova senha é obrigatória")
     private String confirmNewPassword;
 
-    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
-    private UUID tenantId;
+    @NotBlank(message = "O header X-Company-Id é obrigatório")
+    private UUID companyId;
 
     @NotNull(message = "Message Type é obrigatório")
     private MessageTypeEnum messageType;

@@ -52,8 +52,8 @@ public class UserDeviceRepositoryAdapter implements UserDeviceRepositoryPort {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserDevice> listByCodeUserAndTenantId(UUID codeUser, UUID tenantId) {
-        return springRepository.findByCodeUserAndTenantId(codeUser, tenantId).stream()
+    public List<UserDevice> listByCodeUserAndTenantId(UUID codeUser, UUID companyId) {
+        return springRepository.findByCodeUserAndTenantId(codeUser, companyId).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

@@ -45,7 +45,7 @@ class RoleControllerTest {
     private RoleController roleController;
     
     private UUID roleId;
-    private UUID tenantId;
+    private UUID companyId;
     private String tenantIdStr;
     private RoleResponseDTO roleResponseDTO;
     private RoleCreateDTO roleCreateDTO;
@@ -67,8 +67,8 @@ class RoleControllerTest {
         roleController = new RoleController(rolePort, mapper);
         
         roleId = UUID.randomUUID();
-        tenantId = UUID.randomUUID();
-        tenantIdStr = tenantId.toString();
+        companyId = UUID.randomUUID();
+        tenantIdStr = companyId.toString();
         
         roleResponseDTO = RoleResponseDTO.builder()
             .id(roleId)
@@ -127,11 +127,11 @@ class RoleControllerTest {
         var command = RoleCreateCommandDTO.builder()
             .name("ADMIN")
             .description("Administrador do sistema")
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toCreateCommand(any(RoleCreateDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.create(any(RoleCreateCommandDTO.class))).thenReturn(createRoleView);
             when(mapper.toCreateResponseDTO(any(RoleCreateView.class))).thenReturn(RoleCreateResponseDTO.builder()
@@ -144,7 +144,7 @@ class RoleControllerTest {
                 .build());
             
             // When
-            ResponseEntity<RoleCreateResponseDTO> response = roleController.create(tenantIdStr, roleCreateDTO);
+            ResponseEntity<RoleCreateResponseDTO> response = roleController.create(companyId, roleCreateDTO);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -164,18 +164,18 @@ class RoleControllerTest {
         var command = RoleCreateCommandDTO.builder()
             .name("ADMIN")
             .description("Administrador do sistema")
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toCreateCommand(any(RoleCreateDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.create(any(RoleCreateCommandDTO.class)))
                 .thenThrow(new AlreadyExistsException("Role já existe"));
             
             // When & Then
             assertThrows(AlreadyExistsException.class, () -> {
-                roleController.create(tenantIdStr, roleCreateDTO);
+                roleController.create(companyId, roleCreateDTO);
             });
             
             verify(rolePort).create(command);
@@ -190,11 +190,11 @@ class RoleControllerTest {
             .id(roleId)
             .name("ADMIN")
             .description("Administrador atualizado")
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toUpdateCommand(any(UUID.class), any(RoleUpdateDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.update(any(RoleUpdateCommandDTO.class)))
                 .thenReturn(updateRoleView);
@@ -208,7 +208,7 @@ class RoleControllerTest {
                 .build());
             
             // When
-            ResponseEntity<RoleUpdateResponseDTO> response = roleController.update(tenantIdStr, roleId, roleUpdateDTO);
+            ResponseEntity<RoleUpdateResponseDTO> response = roleController.update(companyId, roleId, roleUpdateDTO);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -227,18 +227,18 @@ class RoleControllerTest {
             .id(roleId)
             .name("ADMIN")
             .description("Administrador atualizado")
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toUpdateCommand(any(UUID.class), any(RoleUpdateDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.update(any(RoleUpdateCommandDTO.class)))
                 .thenThrow(new NotFoundException("Role não encontrado"));
             
             // When & Then
             assertThrows(NotFoundException.class, () -> {
-                roleController.update(tenantIdStr, roleId, roleUpdateDTO);
+                roleController.update(companyId, roleId, roleUpdateDTO);
             });
             
             verify(rolePort).update(command);
@@ -251,16 +251,16 @@ class RoleControllerTest {
         // Given
         var command = RoleDeleteCommandDTO.builder()
             .id(roleId)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toDeleteCommand(any(UUID.class), any(UUID.class))).thenReturn(command);
             doNothing().when(rolePort).delete(any(RoleDeleteCommandDTO.class));
             
             // When
-            ResponseEntity<Void> response = roleController.delete(tenantIdStr, roleId);
+            ResponseEntity<Void> response = roleController.delete(companyId, roleId);
             
             // Then
             assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
@@ -275,18 +275,18 @@ class RoleControllerTest {
         // Given
         var command = RoleDeleteCommandDTO.builder()
             .id(roleId)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toDeleteCommand(any(UUID.class), any(UUID.class))).thenReturn(command);
             doThrow(new NotFoundException("Role não encontrado"))
                 .when(rolePort).delete(any(RoleDeleteCommandDTO.class));
             
             // When & Then
             assertThrows(NotFoundException.class, () -> {
-                roleController.delete(tenantIdStr, roleId);
+                roleController.delete(companyId, roleId);
             });
             
             verify(rolePort).delete(command);
@@ -299,11 +299,11 @@ class RoleControllerTest {
         // Given
         var command = RoleGetByIdQueryDTO.builder()
             .id(roleId)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toGetByIdCommand(any(UUID.class), any(UUID.class))).thenReturn(command);
             when(rolePort.findById(any(RoleGetByIdQueryDTO.class))).thenReturn(Optional.of(getRoleByIdView));
             when(mapper.toGetByIdResponseDTO(any(RoleGetByIdView.class))).thenReturn(RoleGetByIdResponseDTO.builder()
@@ -316,7 +316,7 @@ class RoleControllerTest {
                 .build());
             
             // When
-            ResponseEntity<RoleGetByIdResponseDTO> response = roleController.getById(tenantIdStr, roleId);
+            ResponseEntity<RoleGetByIdResponseDTO> response = roleController.getById(companyId, roleId);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -334,16 +334,16 @@ class RoleControllerTest {
         // Given
         var command = RoleGetByIdQueryDTO.builder()
             .id(roleId)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toGetByIdCommand(any(UUID.class), any(UUID.class))).thenReturn(command);
             when(rolePort.findById(any(RoleGetByIdQueryDTO.class))).thenReturn(Optional.empty());
             
             // When
-            ResponseEntity<RoleGetByIdResponseDTO> response = roleController.getById(tenantIdStr, roleId);
+            ResponseEntity<RoleGetByIdResponseDTO> response = roleController.getById(companyId, roleId);
             
             // Then
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -360,11 +360,11 @@ class RoleControllerTest {
         String roleName = "ADMIN";
         var command = RoleGetByNameQueryDTO.builder()
             .name(roleName)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toGetByNameCommand(any(String.class), any(UUID.class))).thenReturn(command);
             when(rolePort.findByName(any(RoleGetByNameQueryDTO.class))).thenReturn(Optional.of(getRoleByNameView));
             when(mapper.toGetByNameResponseDTO(any(RoleGetByNameView.class))).thenReturn(RoleGetByNameResponseDTO.builder()
@@ -377,7 +377,7 @@ class RoleControllerTest {
                 .build());
             
             // When
-            ResponseEntity<RoleGetByNameResponseDTO> response = roleController.getByName(tenantIdStr, roleName);
+            ResponseEntity<RoleGetByNameResponseDTO> response = roleController.getByName(companyId, roleName);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -396,16 +396,16 @@ class RoleControllerTest {
         String roleName = "INEXISTENTE";
         var command = RoleGetByNameQueryDTO.builder()
             .name(roleName)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toGetByNameCommand(any(String.class), any(UUID.class))).thenReturn(command);
             when(rolePort.findByName(any(RoleGetByNameQueryDTO.class))).thenReturn(Optional.empty());
             
             // When
-            ResponseEntity<RoleGetByNameResponseDTO> response = roleController.getByName(tenantIdStr, roleName);
+            ResponseEntity<RoleGetByNameResponseDTO> response = roleController.getByName(companyId, roleName);
             
             // Then
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -421,11 +421,11 @@ class RoleControllerTest {
         // Given
         List<RoleListView> roles = List.of(listRoleView);
         var command = RoleGetAllQueryDTO.builder()
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toGetAllCommand(any(UUID.class))).thenReturn(command);
             when(rolePort.findAll(any(RoleGetAllQueryDTO.class))).thenReturn(roles);
             when(mapper.toListResponseDTO(any(RoleListView.class))).thenReturn(RoleListResponseDTO.builder()
@@ -438,7 +438,7 @@ class RoleControllerTest {
                 .build());
             
             // When
-            ResponseEntity<List<RoleListResponseDTO>> response = roleController.listAll(tenantIdStr);
+            ResponseEntity<List<RoleListResponseDTO>> response = roleController.listAll(companyId);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -457,11 +457,11 @@ class RoleControllerTest {
         Pageable pageable = PageRequest.of(0, 10);
         var command = RoleSearchQueryDTO.builder()
             .pageable(pageable)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toSearchCommand(any(Pageable.class), any(UUID.class))).thenReturn(command);
             when(rolePort.findAll(any(RoleSearchQueryDTO.class))).thenReturn(searchPageResultView);
             when(mapper.toSearchResponseDTO(any(RoleSearchView.class))).thenReturn(RoleSearchResponseDTO.builder()
@@ -474,7 +474,7 @@ class RoleControllerTest {
                 .build());
             
             // When
-            ResponseEntity<PageResultView<RoleSearchResponseDTO>> response = roleController.search(tenantIdStr, pageable);
+            ResponseEntity<PageResultView<RoleSearchResponseDTO>> response = roleController.search(companyId, pageable);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -493,16 +493,16 @@ class RoleControllerTest {
     void shouldReturnEmptyListWhenNoRoles() {
         // Given
         var command = RoleGetAllQueryDTO.builder()
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toGetAllCommand(any(UUID.class))).thenReturn(command);
             when(rolePort.findAll(any(RoleGetAllQueryDTO.class))).thenReturn(List.of());
             
             // When
-            ResponseEntity<List<RoleListResponseDTO>> response = roleController.listAll(tenantIdStr);
+            ResponseEntity<List<RoleListResponseDTO>> response = roleController.listAll(companyId);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -521,16 +521,16 @@ class RoleControllerTest {
         PageResultView<RoleSearchView> emptyPageResultView = new PageResultView<>(List.of(), 0, 10, 0L, 0, true, true, false, false);
         var command = RoleSearchQueryDTO.builder()
             .pageable(pageable)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toSearchCommand(any(Pageable.class), any(UUID.class))).thenReturn(command);
             when(rolePort.findAll(any(RoleSearchQueryDTO.class))).thenReturn(emptyPageResultView);
             
             // When
-            ResponseEntity<PageResultView<RoleSearchResponseDTO>> response = roleController.search(tenantIdStr, pageable);
+            ResponseEntity<PageResultView<RoleSearchResponseDTO>> response = roleController.search(companyId, pageable);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -562,11 +562,11 @@ class RoleControllerTest {
         var command = RoleCreateCommandDTO.builder()
             .name("user")
             .description("Usuário comum")
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toCreateCommand(any(RoleCreateDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.create(any(RoleCreateCommandDTO.class))).thenReturn(createRoleView);
             when(mapper.toCreateResponseDTO(any(RoleCreateView.class))).thenReturn(RoleCreateResponseDTO.builder()
@@ -579,7 +579,7 @@ class RoleControllerTest {
                 .build());
             
             // When
-            ResponseEntity<RoleCreateResponseDTO> response = roleController.create(tenantIdStr, createDTO);
+            ResponseEntity<RoleCreateResponseDTO> response = roleController.create(companyId, createDTO);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -611,11 +611,11 @@ class RoleControllerTest {
             .id(roleId)
             .name("admin_updated")
             .description("Administrador atualizado")
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
-            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toUpdateCommand(any(UUID.class), any(RoleUpdateDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.update(any(RoleUpdateCommandDTO.class))).thenReturn(updateRoleView);
             when(mapper.toUpdateResponseDTO(any(RoleUpdateView.class))).thenReturn(RoleUpdateResponseDTO.builder()
@@ -628,7 +628,7 @@ class RoleControllerTest {
                 .build());
             
             // When
-            ResponseEntity<RoleUpdateResponseDTO> response = roleController.update(tenantIdStr, roleId, updateDTO);
+            ResponseEntity<RoleUpdateResponseDTO> response = roleController.update(companyId, roleId, updateDTO);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());

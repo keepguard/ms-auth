@@ -78,7 +78,7 @@ public class CommunicationClientAdapter {
         
         return CompletableFuture.supplyAsync(() -> {
             try {
-                String response = communicationClient.health(application);
+                String response = communicationClient.health();
                 log.debug("Health check ms-communication OK | response={}", response);
                 return response;
             } catch (Exception ex) {
@@ -116,7 +116,7 @@ public class CommunicationClientAdapter {
         
         return CompletableFuture.supplyAsync(() -> {
             try {
-                String response = communicationClient.testCommunication(application);
+                String response = communicationClient.testCommunication();
                 log.debug("Teste de comunicacao OK | response={}", response);
                 return response;
             } catch (Exception ex) {

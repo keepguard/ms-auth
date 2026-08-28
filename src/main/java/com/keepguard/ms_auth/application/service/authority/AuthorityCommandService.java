@@ -38,7 +38,7 @@ public class AuthorityCommandService {
     @Transactional
     public AuthorityCreateView create(AuthorityCreateCommandDTO command) {
         log.info("Creating authority: {}", command.getName());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
 
         if (authorityRepository.findByCompanyIdAndName(companyId, command.getName()).isPresent()) {
             metricsPort.incrementCounter("authority_business_errors_total",
@@ -71,7 +71,7 @@ public class AuthorityCommandService {
     @Transactional
     public AuthorityUpdateView update(AuthorityUpdateCommandDTO command) {
         log.info("Updating authority with ID: {}", command.getId());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         Authority existingAuthority = requireAuthorityOfCompany(command.getId(), companyId, "update");
 
         if (!existingAuthority.getName().equals(command.getName()) &&
@@ -102,7 +102,7 @@ public class AuthorityCommandService {
     @Transactional
     public void delete(AuthorityDeleteCommandDTO command) {
         log.info("Deleting authority with ID: {}", command.getId());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         Authority authority = requireAuthorityOfCompany(command.getId(), companyId, "delete");
 
         authorityRepository.delete(authority);

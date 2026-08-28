@@ -20,10 +20,8 @@ public class UserGetByEmailQueryDTO {
     @Email(message = "Email deve ter formato válido")
     private String email;
 
-    @NotNull(message = "O header X-Tenant-Id é obrigatório")
-    private UUID tenantId;
-
-    @NotNull(message = "companyId é obrigatório")
+    @NotNull(message = "O header X-Company-Id é obrigatório")
     private UUID companyId;
+
 }
 

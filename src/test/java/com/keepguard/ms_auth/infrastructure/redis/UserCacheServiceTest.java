@@ -102,7 +102,6 @@ class UserCacheServiceTest {
             LocalDateTime.now(),
             List.of("ADMIN", "USER"),
             UUID.randomUUID(),
-            UUID.randomUUID(),
             UUID.randomUUID()
         );
         
@@ -120,7 +119,6 @@ class UserCacheServiceTest {
             LocalDateTime.now(),
             List.of("ADMIN", "USER"),
             UUID.randomUUID(),
-            UUID.randomUUID(),
             UUID.randomUUID()
         );
         
@@ -137,7 +135,6 @@ class UserCacheServiceTest {
             LocalDateTime.now(),
             LocalDateTime.now(),
             List.of("ADMIN", "USER"),
-            UUID.randomUUID(),
             UUID.randomUUID(),
             UUID.randomUUID()
         );

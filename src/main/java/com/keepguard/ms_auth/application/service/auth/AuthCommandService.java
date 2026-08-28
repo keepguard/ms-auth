@@ -106,30 +106,30 @@ public class AuthCommandService {
                 });
 
         if (user.getTenantId() != null) {
-            request.setTenantId(user.getTenantId());
+            request.setCompanyId(user.getTenantId());
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             log.warn("Login failed - Invalid password: username={}, userId={}, application={}", 
-                request.getUsername(), user.getCodeUser(), request.getTenantId());
+                request.getUsername(), user.getCodeUser(), request.getCompanyId());
             loginAttemptService.recordFailedAttempt(request.getUsername());
             throw new InvalidCredentialsException("Invalid password", "INVALID_PASSWORD", 
-                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getTenantId().toString()));
+                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getCompanyId().toString()));
         }
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             log.warn("Login failed - User not active: username={}, userId={}, status={}, application={}",
-                    request.getUsername(), user.getCodeUser(), user.getStatus(), request.getTenantId());
+                    request.getUsername(), user.getCodeUser(), user.getStatus(), request.getCompanyId());
             throw new InvalidCredentialsException("User is not active", "USER_NOT_ACTIVE", 
                 Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(),
-                       "status", user.getStatus().toString(), "application", request.getTenantId().toString()));
+                       "status", user.getStatus().toString(), "application", request.getCompanyId().toString()));
         }
 
         if (!Boolean.TRUE.equals(user.getEmailVerified())) {
             log.warn("Login failed - Email not verified: username={}, userId={}, application={}",
-                    request.getUsername(), user.getCodeUser(), request.getTenantId());
+                    request.getUsername(), user.getCodeUser(), request.getCompanyId());
             throw new EmailNotVerifiedException("Email not verified", "EMAIL_NOT_VERIFIED", 
-                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getTenantId().toString()));
+                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getCompanyId().toString()));
         }
 
         // Login bem-sucedido: limpa contador de tentativas e bloqueios
@@ -172,7 +172,7 @@ public class AuthCommandService {
                 DeviceChallengeSession challenge = DeviceChallengeSession.builder()
                         .challengeSessionId(challengeSessionId)
                         .codeUser(user.getCodeUser().toString())
-                        .tenantId(request.getTenantId().toString())
+                        .companyId(request.getCompanyId().toString())
                         .username(user.getUsername())
                         .email(user.getEmail())
                         .phone(phone)
@@ -204,7 +204,7 @@ public class AuthCommandService {
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
 
-        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), deviceId);
+        String token = jwtService.generateToken(user, roleNames, authorities, request.getCompanyId().toString(), request.getClientId(), deviceId);
 
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
@@ -222,7 +222,7 @@ public class AuthCommandService {
         UserSession session = UserSession.builder()
                 .sessionId("sess_" + UUID.randomUUID())
                 .codeUser(user.getCodeUser().toString())
-                .tenantId(request.getTenantId().toString())
+                .companyId(request.getCompanyId().toString())
                 .clientId(request.getClientId())
                 .deviceId(deviceId)
                 .deviceName(request.getDeviceName() != null ? request.getDeviceName() : "Navegador Web")
@@ -247,7 +247,7 @@ public class AuthCommandService {
                     }, () -> {
                         com.keepguard.ms_auth.domain.entity.session.UserDevice newDevice = com.keepguard.ms_auth.domain.entity.session.UserDevice.builder()
                                 .codeUser(user.getCodeUser())
-                                .tenantId(request.getTenantId())
+                                .companyId(request.getCompanyId())
                                 .deviceId(deviceId)
                                 .deviceName(request.getDeviceName() != null ? request.getDeviceName() : "Navegador Web")
                                 .deviceType(request.getDeviceType() != null ? request.getDeviceType() : "DESKTOP")
@@ -265,7 +265,7 @@ public class AuthCommandService {
         }
 
         metricsPort.incrementCounter("auth_login_success_total",
-            Map.of("application", request.getTenantId().toString()));
+            Map.of("application", request.getCompanyId().toString()));
 
         return new AuthLoginView(token, 3600L, "AUTHENTICATED", null, true, null);
     }
@@ -302,7 +302,7 @@ public class AuthCommandService {
 
     private String getUserPhone(UUID codeUser, UUID companyId) {
         try {
-            Map<String, Object> userData = userClient.getUserByCode(codeUser, companyId.toString());
+            Map<String, Object> userData = userClient.getUserByCode(codeUser, companyId);
             if (userData != null) {
                 if (userData.containsKey("phoneE164") && userData.get("phoneE164") != null) {
                     return (String) userData.get("phoneE164");
@@ -343,39 +343,39 @@ public class AuthCommandService {
 
         User user = userRepository.findByUsernameAndCompanyId(request.getUsername(), request.getCompanyId())
                 .orElseThrow(() -> {
-                    log.warn("Register login failed - User not found: username={}, application={}", request.getUsername(), request.getTenantId());
+                    log.warn("Register login failed - User not found: username={}, application={}", request.getUsername(), request.getCompanyId());
                     return new InvalidCredentialsException("User not found", "USER_NOT_FOUND", 
-                        Map.of("username", request.getUsername() != null ? request.getUsername() : "null", "application", request.getTenantId().toString()));
+                        Map.of("username", request.getUsername() != null ? request.getUsername() : "null", "application", request.getCompanyId().toString()));
                 });
 
         // Compara hash com hash diretamente (sem usar passwordEncoder.matches)
         if (!request.getPasswordHash().equals(user.getPasswordHash())) {
             log.warn("Register login failed - Invalid password hash: username={}, userId={}, application={}", 
-                request.getUsername(), user.getCodeUser(), request.getTenantId());
+                request.getUsername(), user.getCodeUser(), request.getCompanyId());
             throw new InvalidCredentialsException("Invalid password", "INVALID_PASSWORD", 
-                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getTenantId().toString()));
+                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getCompanyId().toString()));
         }
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             log.warn("Register login failed - User not active: username={}, userId={}, status={}, application={}",
-                    request.getUsername(), user.getCodeUser(), user.getStatus(), request.getTenantId());
+                    request.getUsername(), user.getCodeUser(), user.getStatus(), request.getCompanyId());
             throw new InvalidCredentialsException("User is not active", "USER_NOT_ACTIVE", 
                 Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(),
-                       "status", user.getStatus().toString(), "application", request.getTenantId().toString()));
+                       "status", user.getStatus().toString(), "application", request.getCompanyId().toString()));
         }
 
         if (!Boolean.TRUE.equals(user.getEmailVerified())) {
             log.warn("Register login failed - Email not verified: username={}, userId={}, application={}",
-                    request.getUsername(), user.getCodeUser(), request.getTenantId());
+                    request.getUsername(), user.getCodeUser(), request.getCompanyId());
             throw new EmailNotVerifiedException("Email not verified", "EMAIL_NOT_VERIFIED", 
-                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getTenantId().toString()));
+                Map.of("username", request.getUsername(), "userId", user.getCodeUser().toString(), "application", request.getCompanyId().toString()));
         }
 
         // Buscar roles e authorities do usuário
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
 
-        String token = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId());
+        String token = jwtService.generateToken(user, roleNames, authorities, request.getCompanyId().toString(), request.getClientId());
 
         // Atualizar último login
         user.setLastLogin(LocalDateTime.now());
@@ -389,9 +389,9 @@ public class AuthCommandService {
         tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getExpiration());
 
         metricsPort.incrementCounter("auth_register_login_success_total",
-            Map.of("application", request.getTenantId().toString()));
+            Map.of("application", request.getCompanyId().toString()));
 
-        log.info("Register login successful for user: {} with application: {}", request.getUsername(), request.getTenantId());
+        log.info("Register login successful for user: {} with application: {}", request.getUsername(), request.getCompanyId());
         return token;
     }
 
@@ -405,34 +405,34 @@ public class AuthCommandService {
     @Transactional
     public String refreshToken(AuthRefreshTokenCommandDTO request) {
         log.info("Processing refresh token request - application={}, clientId={}", 
-            request.getTenantId(), request.getClientId());
+            request.getCompanyId(), request.getClientId());
 
         if (!jwtService.validateToken(request.getToken())) {
             throw new InvalidCredentialsException("Invalid token", "INVALID_TOKEN", 
-                Map.of("application", request.getTenantId().toString()));
+                Map.of("application", request.getCompanyId().toString()));
         }
 
         UUID codeUser = jwtService.extractUserId(request.getToken());
 
         // Valida se o token ainda está ativo no Redis (Refresh Token Rotation - RTR)
         if (!tokenCachePort.isTokenValid(codeUser.toString(), request.getToken())) {
-            log.warn("Refresh token failed - Token revogado ou já rotacionado: codeUser={}, application={}", codeUser, request.getTenantId());
+            log.warn("Refresh token failed - Token revogado ou já rotacionado: codeUser={}, application={}", codeUser, request.getCompanyId());
             throw new InvalidCredentialsException("Token revogado ou sessão encerrada", "TOKEN_REVOKED", 
-                Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
+                Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
         }
         
-        User user = userRepository.findByCodeUserAndTenantId(codeUser, request.getTenantId())
+        User user = userRepository.findByCodeUserAndTenantId(codeUser, request.getCompanyId())
                 .orElseThrow(() -> {
-                    log.warn("Refresh token failed - User not found: codeUser={}, application={}", codeUser, request.getTenantId());
+                    log.warn("Refresh token failed - User not found: codeUser={}, application={}", codeUser, request.getCompanyId());
                     return new NotFoundException("User not found", "USER_NOT_FOUND", 
-                        Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
+                        Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
                 });
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new InvalidCredentialsException("User is not active", "USER_NOT_ACTIVE", 
                 Map.of("codeUser", codeUser.toString(), 
                 "status", user.getStatus().toString(), 
-                "application", request.getTenantId().toString()));
+                "application", request.getCompanyId().toString()));
         }
 
         // Buscar roles e authorities do usuário
@@ -440,7 +440,7 @@ public class AuthCommandService {
         List<String> authorities = getUserAuthorities(user.getId());
 
         String deviceId = jwtService.extractDeviceId(request.getToken());
-        String newToken = jwtService.generateToken(user, roleNames, authorities, request.getTenantId().toString(), request.getClientId(), deviceId);
+        String newToken = jwtService.generateToken(user, roleNames, authorities, request.getCompanyId().toString(), request.getClientId(), deviceId);
 
         // Remove o token antigo e salva o novo (rotação de token)
         tokenCachePort.removeToken(codeUser.toString(), request.getToken());
@@ -467,27 +467,27 @@ public class AuthCommandService {
     )
     @Transactional
     public void logout(AuthLogoutCommandDTO request) {
-        log.info("Processing logout request - application={}", request.getTenantId());
+        log.info("Processing logout request - application={}", request.getCompanyId());
 
         if (!jwtService.validateToken(request.getToken())) {
-            log.warn("Logout failed - Token com assinatura inválida: application={}", request.getTenantId());
+            log.warn("Logout failed - Token com assinatura inválida: application={}", request.getCompanyId());
             throw new InvalidCredentialsException("Token inválido", "INVALID_TOKEN",
-                Map.of("application", request.getTenantId().toString()));
+                Map.of("application", request.getCompanyId().toString()));
         }
 
         UUID codeUser = jwtService.extractUserId(request.getToken());
 
         // Garante que o token ainda está ativo no Redis antes de encerrar a sessão
         if (!tokenCachePort.isTokenValid(codeUser.toString(), request.getToken())) {
-            log.warn("Logout failed - Sessão já encerrada ou token revogado: codeUser={}, application={}", codeUser, request.getTenantId());
+            log.warn("Logout failed - Sessão já encerrada ou token revogado: codeUser={}, application={}", codeUser, request.getCompanyId());
             throw new InvalidCredentialsException("Sessão já encerrada", "SESSION_ALREADY_TERMINATED",
-                Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
+                Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
         }
 
         tokenCachePort.removeAllTokens(codeUser.toString());
 
         metricsPort.incrementCounter("auth_logouts_total",
-            Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
+            Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
     }
 
     @LogOperation(
@@ -499,29 +499,29 @@ public class AuthCommandService {
     )
     @Transactional(readOnly = true)
     public void validateToken(AuthValidateTokenQueryDTO request) {
-        log.info("Processing token validation request - application={}", request.getTenantId());
+        log.info("Processing token validation request - application={}", request.getCompanyId());
 
         if (!jwtService.validateToken(request.getToken())) {
             throw new InvalidCredentialsException("Token inválido ou expirado", "INVALID_TOKEN", 
-                Map.of("application", request.getTenantId().toString()));
+                Map.of("application", request.getCompanyId().toString()));
         }
 
         UUID codeUser = jwtService.extractUserId(request.getToken());
 
-        userRepository.findByCodeUserAndTenantId(codeUser, request.getTenantId())
+        userRepository.findByCodeUserAndTenantId(codeUser, request.getCompanyId())
                 .orElseThrow(() -> {
-                    log.warn("Refresh token failed - User not found: codeUser={}, application={}", codeUser, request.getTenantId());
+                    log.warn("Refresh token failed - User not found: codeUser={}, application={}", codeUser, request.getCompanyId());
                     return new NotFoundException("User not found", "USER_NOT_FOUND", 
-                        Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
+                        Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
                 });
 
         if (!tokenCachePort.isTokenValid(codeUser.toString(), request.getToken())) {
             throw new InvalidCredentialsException("Token inválido ou expirado", "INVALID_TOKEN", 
-                Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
+                Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
         }
 
         metricsPort.incrementCounter("auth_token_validations_total",
-            Map.of("codeUser", codeUser.toString(), "application", request.getTenantId().toString()));
+            Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
     }
 
     @LogOperation(
@@ -534,17 +534,17 @@ public class AuthCommandService {
     @Transactional
     public void changePassword(AuthChangePasswordCommandDTO request) {
         log.info("Processing password change request - codeUser={}, application={}", 
-            request.getCodeUser(), request.getTenantId());
+            request.getCodeUser(), request.getCompanyId());
 
         if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
             throw new InvalidPasswordException("New password and confirmation do not match");
         }
         
-        User user = userRepository.findByCodeUserAndTenantId(UUID.fromString(request.getCodeUser()), request.getTenantId())
+        User user = userRepository.findByCodeUserAndTenantId(UUID.fromString(request.getCodeUser()), request.getCompanyId())
             .orElseThrow(() -> {
-                log.warn("Change password failed - User not found: codeUser={}, application={}", request.getCodeUser(), request.getTenantId());
+                log.warn("Change password failed - User not found: codeUser={}, application={}", request.getCodeUser(), request.getCompanyId());
             return new NotFoundException("User not found", "USER_NOT_FOUND", 
-            Map.of("codeUser", request.getCodeUser(), "application", request.getTenantId().toString()));
+            Map.of("codeUser", request.getCodeUser(), "application", request.getCompanyId().toString()));
         });
 
         if (user.getStatus() != UserStatus.ACTIVE) {
@@ -583,7 +583,7 @@ public class AuthCommandService {
             deviceSessionService.revokeAllSessions(request.getCodeUser());
         }
 
-        notifyPasswordChanged(user, request.getTenantId().toString(),
+        notifyPasswordChanged(user, request.getCompanyId().toString(),
                 request.getDeviceId(), request.getDeviceName(), request.getDeviceType(),
                 request.getIpAddress(), request.getUserAgent());
     }
@@ -598,7 +598,7 @@ public class AuthCommandService {
     @Transactional(readOnly = true)
     public AuthGenerateResetTokenViewDTO generateResetToken(AuthGenerateResetTokenCommandDTO request) {
         log.info("Gerando token de reset | codeUser={} | application={}", 
-            request.getCodeUser(), request.getTenantId());
+            request.getCodeUser(), request.getCompanyId());
 
         // 1. Verificar se o cooldown para nova geração está ativo
         if (tokenCachePort.isResetTokenCooldownActive(request.getCodeUser())) {
@@ -612,13 +612,13 @@ public class AuthCommandService {
         // Valida se o usuário existe e está ativo
         User user = userRepository.findByCodeUserAndTenantId(
             UUID.fromString(request.getCodeUser()), 
-            request.getTenantId())
+            request.getCompanyId())
             .orElseThrow(() -> {
                 log.warn("Geração de token falhou - Usuário não encontrado: codeUser={}, application={}", 
-                    request.getCodeUser(), request.getTenantId());
+                    request.getCodeUser(), request.getCompanyId());
                 return new NotFoundException("Usuário não encontrado", "USER_NOT_FOUND", 
                     Map.of("codeUser", request.getCodeUser(), 
-                           "application", request.getTenantId().toString()));
+                           "application", request.getCompanyId().toString()));
             });
 
         if (user.getStatus() != UserStatus.ACTIVE) {
@@ -664,18 +664,18 @@ public class AuthCommandService {
     @Transactional
     public void resetPassword(AuthResetPasswordCommandDTO request) {
         log.info("Processing password reset request - codeUser={}, application={}, messageType={}, templateType={}, resetToken={}", 
-            request.getCodeUser(), request.getTenantId(), 
+            request.getCodeUser(), request.getCompanyId(), 
             request.getMessageType(), request.getTemplateType(), request.getResetToken());
 
         if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
             throw new InvalidPasswordException("New password and confirmation do not match");
         }
         
-        User user = userRepository.findByCodeUserAndTenantId(UUID.fromString(request.getCodeUser()), request.getTenantId())
+        User user = userRepository.findByCodeUserAndTenantId(UUID.fromString(request.getCodeUser()), request.getCompanyId())
             .orElseThrow(() -> {
-                log.warn("Change password failed - User not found: codeUser={}, application={}", request.getCodeUser(), request.getTenantId());
+                log.warn("Change password failed - User not found: codeUser={}, application={}", request.getCodeUser(), request.getCompanyId());
             return new NotFoundException("User not found", "USER_NOT_FOUND", 
-            Map.of("codeUser", request.getCodeUser(), "application", request.getTenantId().toString()));
+            Map.of("codeUser", request.getCodeUser(), "application", request.getCompanyId().toString()));
         });
 
         if (user.getStatus() != UserStatus.ACTIVE) {
@@ -738,17 +738,17 @@ public class AuthCommandService {
         // Revoga 100% das sessões e tokens no Redis e DB após reset de senha (exige novo login com a nova senha)
         deviceSessionService.revokeAllSessions(request.getCodeUser());
 
-        notifyPasswordChanged(user, request.getTenantId().toString(),
+        notifyPasswordChanged(user, request.getCompanyId().toString(),
                 request.getDeviceId(), request.getDeviceName(), request.getDeviceType(),
                 request.getIpAddress(), request.getUserAgent());
     }
 
-    private void notifyPasswordChanged(User user, String tenantId,
+    private void notifyPasswordChanged(User user, String companyId,
                                        String deviceId, String deviceName, String deviceType,
                                        String ipAddress, String userAgent) {
         deviceSessionService.notifyPasswordChanged(PasswordChangedNotifyCommand.builder()
                 .codeUser(user.getCodeUser() != null ? user.getCodeUser().toString() : null)
-                .tenantId(tenantId)
+                .companyId(companyId)
                 .email(user.getEmail())
                 .username(user.getUsername())
                 .deviceId(deviceId)

@@ -27,8 +27,8 @@ public class AuthChangePasswordCommandDTO {
     @NotBlank(message = "Confirmação da nova senha é obrigatória")
     private String confirmNewPassword;
 
-    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
-    private UUID tenantId;
+    @NotBlank(message = "O header X-Company-Id é obrigatório")
+    private UUID companyId;
 
     private String deviceId;
     private String deviceName;

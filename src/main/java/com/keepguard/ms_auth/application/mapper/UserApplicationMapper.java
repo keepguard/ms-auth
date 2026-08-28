@@ -35,8 +35,7 @@ public class UserApplicationMapper {
                 user.getLastLogin(),
                 null, // roles - será preenchido pelo UserQueryService
                 user.getCompanyId(),
-                user.getCompanyCode(),
-                user.getTenantId()
+                user.getCompanyCode()
             );
         } catch (Exception e) {
             log.error("Erro ao mapear User para UserView: {}", e.getMessage(), e);
@@ -68,8 +67,7 @@ public class UserApplicationMapper {
                 user.getLastLogin(),
                 roles,
                 user.getCompanyId(),
-                user.getCompanyCode(),
-                user.getTenantId()
+                user.getCompanyCode()
             );
         } catch (Exception e) {
             log.error("Erro ao mapear User para UserView com roles: {}", e.getMessage(), e);
@@ -102,8 +100,7 @@ public class UserApplicationMapper {
                 user.getLastLogin(),
                 roles,
                 user.getCompanyId(),
-                user.getCompanyCode(),
-                user.getTenantId()
+                user.getCompanyCode()
             );
         } catch (Exception e) {
             log.error("Erro ao mapear User para UserView com roles e defaults: {}", e.getMessage(), e);
@@ -137,8 +134,7 @@ public class UserApplicationMapper {
                 user.getLastLogin(),
                 roles,
                 user.getCompanyId(),
-                user.getCompanyCode(),
-                user.getTenantId()
+                user.getCompanyCode()
             );
         } catch (Exception e) {
             log.error("Erro ao mapear User para UserGetByUsernameView: {}", e.getMessage(), e);
@@ -170,8 +166,7 @@ public class UserApplicationMapper {
                 user.getLastLogin(),
                 roles,
                 user.getCompanyId(),
-                user.getCompanyCode(),
-                user.getTenantId()
+                user.getCompanyCode()
             );
         } catch (Exception e) {
             log.error("Erro ao mapear User para UserGetByEmailView: {}", e.getMessage(), e);
@@ -203,8 +198,7 @@ public class UserApplicationMapper {
                 user.getLastLogin(),
                 roles,
                 user.getCompanyId(),
-                user.getCompanyCode(),
-                user.getTenantId()
+                user.getCompanyCode()
             );
         } catch (Exception e) {
             log.error("Erro ao mapear User para UserGetByCodeView: {}", e.getMessage(), e);
@@ -237,8 +231,7 @@ public class UserApplicationMapper {
                 user.getLastLogin(),
                 roles,
                 user.getCompanyId(),
-                user.getCompanyCode(),
-                user.getTenantId()
+                user.getCompanyCode()
             );
         } catch (Exception e) {
             log.error("Erro ao mapear User para UserGetByIdExternalView: {}", e.getMessage(), e);
@@ -270,8 +263,7 @@ public class UserApplicationMapper {
                 user.getLastLogin(),
                 roles,
                 user.getCompanyId(),
-                user.getCompanyCode(),
-                user.getTenantId()
+                user.getCompanyCode()
             );
         } catch (Exception e) {
             log.error("Erro ao mapear User para UserSearchView: {}", e.getMessage(), e);

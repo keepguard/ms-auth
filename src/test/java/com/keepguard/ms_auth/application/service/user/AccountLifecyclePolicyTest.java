@@ -44,12 +44,11 @@ class AccountLifecyclePolicyTest {
     private AccountLifecyclePolicy policy;
 
     private UUID companyId;
-    private UUID tenantId;
 
     @BeforeEach
     void setUp() {
         companyId = UUID.randomUUID();
-        tenantId = UUID.randomUUID();
+        companyId = UUID.randomUUID();
     }
 
     @Test
@@ -176,7 +175,7 @@ class AccountLifecyclePolicyTest {
         return UserTestBuilder.builder()
             .withId(UUID.randomUUID())
             .withCompanyId(companyId)
-            .withTenantId(tenantId)
+            .withTenantId(companyId)
             .buildDomain();
     }
 

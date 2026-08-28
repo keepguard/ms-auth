@@ -16,7 +16,7 @@ public class AuthorityAdapterMapper {
 
     // ========== COMMAND DTO CONVERSIONS ==========
 
-    public AuthorityCreateCommandDTO toCreateCommand(AuthorityCreateRequestDTO dto, UUID tenantId) {
+    public AuthorityCreateCommandDTO toCreateCommand(AuthorityCreateRequestDTO dto, UUID companyId) {
         if (dto == null) {
             return null;
         }
@@ -24,7 +24,7 @@ public class AuthorityAdapterMapper {
             return AuthorityCreateCommandDTO.builder()
                     .name(dto.getName())
                     .description(dto.getDescription())
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthorityCreateRequestDTO para AuthorityCreateCommandDTO: {}", e.getMessage(), e);
@@ -32,7 +32,7 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthorityUpdateCommandDTO toUpdateCommand(UUID id, AuthorityUpdateRequestDTO dto, UUID tenantId) {
+    public AuthorityUpdateCommandDTO toUpdateCommand(UUID id, AuthorityUpdateRequestDTO dto, UUID companyId) {
         if (dto == null) {
             return null;
         }
@@ -41,7 +41,7 @@ public class AuthorityAdapterMapper {
                     .id(id)
                     .name(dto.getName())
                     .description(dto.getDescription())
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthorityUpdateRequestDTO para AuthorityUpdateCommandDTO: {}", e.getMessage(), e);
@@ -49,11 +49,11 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthorityDeleteCommandDTO toDeleteCommand(UUID id, UUID tenantId) {
+    public AuthorityDeleteCommandDTO toDeleteCommand(UUID id, UUID companyId) {
         try {
             return AuthorityDeleteCommandDTO.builder()
                     .id(id)
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar AuthorityDeleteCommandDTO: {}", e.getMessage(), e);
@@ -61,11 +61,11 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthorityGetByIdQueryDTO toGetByIdQuery(UUID id, UUID tenantId) {
+    public AuthorityGetByIdQueryDTO toGetByIdQuery(UUID id, UUID companyId) {
         try {
             return AuthorityGetByIdQueryDTO.builder()
                     .id(id)
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar AuthorityGetByIdQueryDTO: {}", e.getMessage(), e);
@@ -73,11 +73,11 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthorityGetByNameQueryDTO toGetByNameQuery(String name, UUID tenantId) {
+    public AuthorityGetByNameQueryDTO toGetByNameQuery(String name, UUID companyId) {
         try {
             return AuthorityGetByNameQueryDTO.builder()
                     .name(name)
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar AuthorityGetByNameQueryDTO: {}", e.getMessage(), e);
@@ -85,10 +85,10 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthorityGetAllQueryDTO toGetAllQuery(UUID tenantId) {
+    public AuthorityGetAllQueryDTO toGetAllQuery(UUID companyId) {
         try {
             return AuthorityGetAllQueryDTO.builder()
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar AuthorityGetAllQueryDTO: {}", e.getMessage(), e);
@@ -96,7 +96,7 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthoritySearchQueryDTO toSearchQuery(AuthoritySearchRequestDTO searchRequest, UUID tenantId) {
+    public AuthoritySearchQueryDTO toSearchQuery(AuthoritySearchRequestDTO searchRequest, UUID companyId) {
         try {
             Sort.Direction direction = "ASC".equalsIgnoreCase(searchRequest.getSortDirection())
                     ? Sort.Direction.ASC
@@ -114,7 +114,7 @@ public class AuthorityAdapterMapper {
                     .name(searchRequest.getName())
                     .description(searchRequest.getDescription())
                     .pageable(pageable)
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar AuthoritySearchQueryDTO: {}", e.getMessage(), e);

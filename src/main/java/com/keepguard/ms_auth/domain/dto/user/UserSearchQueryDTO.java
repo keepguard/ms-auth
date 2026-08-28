@@ -39,7 +39,6 @@ public class UserSearchQueryDTO {
     private Integer page;
 
     private Integer size;
-
-    private UUID tenantId;
 }
+
 

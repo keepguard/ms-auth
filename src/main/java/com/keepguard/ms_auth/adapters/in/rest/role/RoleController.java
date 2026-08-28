@@ -52,17 +52,16 @@ public class RoleController {
         operation = "criar role"
     )
     public ResponseEntity<RoleCreateResponseDTO> create(
-            @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Company-Id") String tenantIdHeader,
+            @Parameter(description = "Identificador da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             @Parameter(description = "Dados do role a ser criado", required = true)
             @RequestBody @Valid RoleCreateDTO dto) {
 
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        log.info("Criando role: {}, application={}", dto.getName(), tenantId);
-        var command = mapper.toCreateCommand(dto, tenantId);
+        log.info("Criando role: {}, application={}", dto.getName(), companyId);
+        var command = mapper.toCreateCommand(dto, companyId);
         var roleView = roleService.create(command);
         var response = mapper.toCreateResponseDTO(roleView);
-        log.info("Role created: {} with application: {}", response.getId(), tenantId);
+        log.info("Role created: {} with application: {}", response.getId(), companyId);
         return ResponseEntity.ok(response);
     }
 
@@ -83,19 +82,18 @@ public class RoleController {
         operation = "atualizar role"
     )
     public ResponseEntity<RoleUpdateResponseDTO> update(
-            @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Company-Id") String tenantIdHeader,
+            @Parameter(description = "Identificador da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             @Parameter(description = "ID do role", required = true)
             @PathVariable UUID id,
             @Parameter(description = "Dados do role a ser atualizado", required = true)
             @RequestBody @Valid RoleUpdateDTO dto) {
 
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        log.info("Atualizando role: {} com nome: {}, application={}", id, dto.getName(), tenantId);
-        var command = mapper.toUpdateCommand(id, dto, tenantId);
+        log.info("Atualizando role: {} com nome: {}, application={}", id, dto.getName(), companyId);
+        var command = mapper.toUpdateCommand(id, dto, companyId);
         var roleView = roleService.update(command);
         var response = mapper.toUpdateResponseDTO(roleView);
-        log.info("Role updated: {} with application: {}", response.getId(), tenantId);
+        log.info("Role updated: {} with application: {}", response.getId(), companyId);
         return ResponseEntity.ok(response);
     }
 
@@ -114,16 +112,15 @@ public class RoleController {
         operation = "remover role"
     )
     public ResponseEntity<Void> delete(
-            @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Company-Id") String tenantIdHeader,
+            @Parameter(description = "Identificador da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             @Parameter(description = "ID do role", required = true)
             @PathVariable UUID id) {
 
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        log.info("Removendo role: {}, application={}", id, tenantId);
-        var command = mapper.toDeleteCommand(id, tenantId);
+        log.info("Removendo role: {}, application={}", id, companyId);
+        var command = mapper.toDeleteCommand(id, companyId);
         roleService.delete(command);
-        log.info("Role deleted: {} with application: {}", id, tenantId);
+        log.info("Role deleted: {} with application: {}", id, companyId);
         return ResponseEntity.noContent().build();
     }
 
@@ -143,21 +140,20 @@ public class RoleController {
         operation = "buscar role por ID"
     )
     public ResponseEntity<RoleGetByIdResponseDTO> getById(
-            @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Company-Id") String tenantIdHeader,
+            @Parameter(description = "Identificador da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             @Parameter(description = "ID do role", required = true)
             @PathVariable UUID id) {
 
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        log.info("Buscando role por ID: {}, application={}", id, tenantId);
-        var command = mapper.toGetByIdCommand(id, tenantId);
+        log.info("Buscando role por ID: {}, application={}", id, companyId);
+        var command = mapper.toGetByIdCommand(id, companyId);
         Optional<RoleGetByIdView> roleView = roleService.findById(command);
         if (roleView.isPresent()) {
             var response = mapper.toGetByIdResponseDTO(roleView.get());
-            log.info("Role found: {} with application: {}", id, tenantId);
+            log.info("Role found: {} with application: {}", id, companyId);
             return ResponseEntity.ok(response);
         } else {
-            log.warn("Role not found: {} with application: {}", id, tenantId);
+            log.warn("Role not found: {} with application: {}", id, companyId);
             return ResponseEntity.notFound().build();
         }
     }
@@ -178,21 +174,20 @@ public class RoleController {
         operation = "buscar role por nome"
     )
     public ResponseEntity<RoleGetByNameResponseDTO> getByName(
-            @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Company-Id") String tenantIdHeader,
+            @Parameter(description = "Identificador da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             @Parameter(description = "Nome do role", required = true)
             @PathVariable String name) {
 
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        log.info("Buscando role por nome: {}, application={}", name, tenantId);
-        var command = mapper.toGetByNameCommand(name, tenantId);
+        log.info("Buscando role por nome: {}, application={}", name, companyId);
+        var command = mapper.toGetByNameCommand(name, companyId);
         Optional<RoleGetByNameView> roleView = roleService.findByName(command);
         if (roleView.isPresent()) {
             var response = mapper.toGetByNameResponseDTO(roleView.get());
-            log.info("Role found by name: {} with application: {}", name, tenantId);
+            log.info("Role found by name: {} with application: {}", name, companyId);
             return ResponseEntity.ok(response);
         } else {
-            log.warn("Role not found by name: {} with application: {}", name, tenantId);
+            log.warn("Role not found by name: {} with application: {}", name, companyId);
             return ResponseEntity.notFound().build();
         }
     }
@@ -211,17 +206,16 @@ public class RoleController {
         operation = "listar roles"
     )
     public ResponseEntity<List<RoleListResponseDTO>> listAll(
-            @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Company-Id") String tenantIdHeader) {
+            @Parameter(description = "Identificador da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        log.info("Listando todas as roles, application={}", tenantId);
-        var command = mapper.toGetAllCommand(tenantId);
+        log.info("Listando todas as roles, application={}", companyId);
+        var command = mapper.toGetAllCommand(companyId);
         List<RoleListView> roleViews = roleService.findAll(command);
         List<RoleListResponseDTO> response = roleViews.stream()
                 .map(mapper::toListResponseDTO)
                 .toList();
-        log.info("Roles listed: {} total with application: {}", response.size(), tenantId);
+        log.info("Roles listed: {} total with application: {}", response.size(), companyId);
         return ResponseEntity.ok(response);
     }
 
@@ -239,14 +233,13 @@ public class RoleController {
         operation = "buscar roles com paginação"
     )
     public ResponseEntity<PageResultView<RoleSearchResponseDTO>> search(
-            @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Company-Id") String tenantIdHeader,
+            @Parameter(description = "Identificador da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             Pageable pageable) {
 
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         log.info("Buscando roles com paginação: página {}, tamanho {}, application={}", 
-                pageable.getPageNumber(), pageable.getPageSize(), tenantId);
-        var command = mapper.toSearchCommand(pageable, tenantId);
+                pageable.getPageNumber(), pageable.getPageSize(), companyId);
+        var command = mapper.toSearchCommand(pageable, companyId);
         PageResultView<RoleSearchView> pageResultView = roleService.findAll(command);
         List<RoleSearchResponseDTO> content = pageResultView.getContent().stream()
                 .map(mapper::toSearchResponseDTO)
@@ -262,7 +255,7 @@ public class RoleController {
                 pageResultView.hasNext(),
                 pageResultView.hasPrevious()
         );
-        log.info("Roles searched: {} total with application: {}", response.getTotalElements(), tenantId);
+        log.info("Roles searched: {} total with application: {}", response.getTotalElements(), companyId);
         return ResponseEntity.ok(response);
     }
 
@@ -284,21 +277,20 @@ public class RoleController {
         operation = "adicionar authority ao role"
     )
     public ResponseEntity<RoleAddAuthorityResponseDTO> addAuthority(
-            @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Company-Id") String tenantIdHeader,
+            @Parameter(description = "Identificador da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             @Parameter(description = "Dados para adicionar authority ao role", required = true)
             @RequestBody @Valid RoleAddAuthorityRequestDTO dto) {
 
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         log.info("Adicionando authority {} ao role: {}, application={}", 
-                dto.getAuthorityName(), dto.getRoleId(), tenantId);
+                dto.getAuthorityName(), dto.getRoleId(), companyId);
         
-        var command = mapper.toAddAuthorityCommand(dto, tenantId);
+        var command = mapper.toAddAuthorityCommand(dto, companyId);
         var roleView = roleService.addAuthority(command);
         var response = mapper.toAddAuthorityResponseDTO(roleView);
         
         log.info("Authority {} adicionada ao role: {} with application: {}", 
-                dto.getAuthorityName(), dto.getRoleId(), tenantId);
+                dto.getAuthorityName(), dto.getRoleId(), companyId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -319,21 +311,20 @@ public class RoleController {
         operation = "remover authority do role"
     )
     public ResponseEntity<RoleRemoveAuthorityResponseDTO> removeAuthority(
-            @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Company-Id") String tenantIdHeader,
+            @Parameter(description = "Identificador da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId,
             @Parameter(description = "Dados para remover authority do role", required = true)
             @RequestBody @Valid RoleRemoveAuthorityRequestDTO dto) {
 
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         log.info("Removendo authority {} do role: {}, application={}", 
-                dto.getAuthorityName(), dto.getRoleId(), tenantId);
+                dto.getAuthorityName(), dto.getRoleId(), companyId);
         
-        var command = mapper.toRemoveAuthorityCommand(dto, tenantId);
+        var command = mapper.toRemoveAuthorityCommand(dto, companyId);
         var roleView = roleService.removeAuthority(command);
         var response = mapper.toRemoveAuthorityResponseDTO(roleView);
         
         log.info("Authority {} removida do role: {} with application: {}", 
-                dto.getAuthorityName(), dto.getRoleId(), tenantId);
+                dto.getAuthorityName(), dto.getRoleId(), companyId);
         return ResponseEntity.ok(response);
     }
 }

@@ -71,8 +71,7 @@ class UserUseCaseServiceTest {
             LocalDateTime.now(), // lastLogin
             List.of("ROLE_USER"),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            UUID.randomUUID() // tenantId
+            UUID.randomUUID()
         );
 
         userGetByUsernameView = userTestBuilder.buildGetByUsernameView();

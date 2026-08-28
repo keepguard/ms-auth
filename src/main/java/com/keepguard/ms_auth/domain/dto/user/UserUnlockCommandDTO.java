@@ -20,8 +20,8 @@ public class UserUnlockCommandDTO {
     @NotBlank(message = "Motivo do desbloqueio é obrigatório")
     private String reason;
 
-    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
-    private UUID tenantId;
+    @NotBlank(message = "O header X-Company-Id é obrigatório")
+    private UUID companyId;
 
     private String actorCodeUser;
 }

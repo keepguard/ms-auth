@@ -21,7 +21,7 @@ public class RoleTestBuilder {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean active;
-    private UUID tenantId;
+
     
     private RoleTestBuilder() {
         // Valores padrão
@@ -33,7 +33,7 @@ public class RoleTestBuilder {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         this.active = true;
-        this.tenantId = UUID.randomUUID();
+
     }
     
     public static RoleTestBuilder builder() {
@@ -84,8 +84,8 @@ public class RoleTestBuilder {
         return this;
     }
     
-    public RoleTestBuilder withTenantId(UUID tenantId) {
-        this.tenantId = tenantId;
+    public RoleTestBuilder withTenantId(UUID companyId) {
+        this.companyId = companyId;
         return this;
     }
     
@@ -107,7 +107,7 @@ public class RoleTestBuilder {
         return RoleCreateCommandDTO.builder()
             .name(name)
             .description(description)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
     }
     
@@ -115,7 +115,7 @@ public class RoleTestBuilder {
         return RoleCreateCommandDTO.builder()
             .name(name)
             .description(description)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
     }
     
@@ -124,7 +124,7 @@ public class RoleTestBuilder {
             .id(id)
             .name(name)
             .description(description)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
     }
     
@@ -133,21 +133,21 @@ public class RoleTestBuilder {
             .id(id)
             .name(name)
             .description(description)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
     }
     
     public RoleDeleteCommandDTO buildDeleteCommand() {
         return RoleDeleteCommandDTO.builder()
             .id(id)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
     }
     
     public RoleDeleteCommandDTO buildDeleteCommand(UUID id) {
         return RoleDeleteCommandDTO.builder()
             .id(id)
-            .tenantId(tenantId)
+            .companyId(companyId)
             .build();
     }
     

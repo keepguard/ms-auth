@@ -27,7 +27,7 @@ public class DeviceBlacklistJpaMapper {
 
         return DeviceBlacklistJpaEntity.builder()
                 .id(domain.getId())
-                .tenantId(domain.getTenantId())
+                .companyId(domain.getCompanyId())
                 .codeUser(codeUserUuid)
                 .deviceId(domain.getDeviceId())
                 .deviceName(domain.getDeviceName())
@@ -47,7 +47,7 @@ public class DeviceBlacklistJpaMapper {
 
         return DeviceBlacklistEntry.builder()
                 .id(jpaEntity.getId())
-                .tenantId(jpaEntity.getTenantId())
+                .companyId(jpaEntity.getCompanyId())
                 .codeUser(jpaEntity.getCodeUser() != null ? jpaEntity.getCodeUser().toString() : null)
                 .deviceId(jpaEntity.getDeviceId())
                 .deviceName(jpaEntity.getDeviceName())

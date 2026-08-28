@@ -21,5 +21,5 @@ public class VerifyDeviceChallengeCommandDTO {
     @Builder.Default
     private Boolean trustDevice = true;
 
-    private String tenantId;
+    private String companyId;
 }

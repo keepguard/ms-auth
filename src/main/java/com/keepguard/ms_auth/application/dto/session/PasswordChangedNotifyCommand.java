@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class PasswordChangedNotifyCommand {
 
     private String codeUser;
-    private String tenantId;
+    private String companyId;
     private String email;
     private String username;
     private String deviceId;

@@ -17,6 +17,6 @@ public class AuthoritySearchQueryDTO {
     private String name;
     private String description;
     private Pageable pageable;
-    private UUID tenantId;
+    private UUID companyId;
 }
 

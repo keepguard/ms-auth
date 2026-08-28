@@ -21,6 +21,6 @@ public interface UserClient {
     @GetMapping("/internal/v1/users/code/{codeUser}")
     Map<String, Object> getUserByCode(
         @PathVariable("codeUser") UUID codeUser,
-        @RequestHeader("X-Company-Id") String companyIdHeader
+        @RequestHeader("X-Company-Id") UUID companyId
     );
 }

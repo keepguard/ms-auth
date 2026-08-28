@@ -25,9 +25,7 @@ public class AuthRegisterLoginRequestDTO {
     @Size(max = 255, message = "passwordHash deve ter no máximo 255 caracteres")
     private String passwordHash;
 
-    @Schema(description = "UUID da aplicação", example = "123e4567-e89b-12d3-a456-426614174000")
-    private String tenantId;
-
-    @Schema(description = "ID interno da empresa (resolvido pelo BFF a partir do tenant)", example = "123e4567-e89b-12d3-a456-426614174000")
+    @Schema(description = "UUID da empresa", example = "123e4567-e89b-12d3-a456-426614174000")
     private String companyId;
+
 }

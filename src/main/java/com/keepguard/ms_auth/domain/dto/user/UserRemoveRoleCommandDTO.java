@@ -20,7 +20,7 @@ public class UserRemoveRoleCommandDTO {
     @NotBlank(message = "Nome da role é obrigatório")
     private String role;
 
-    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
-    private UUID tenantId;
+    @NotBlank(message = "O header X-Company-Id é obrigatório")
+    private UUID companyId;
 }
 

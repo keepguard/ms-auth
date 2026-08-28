@@ -14,7 +14,7 @@ import java.io.Serializable;
 public class QuickRevokeToken implements Serializable {
     private String token;
     private String codeUser;
-    private String tenantId;
+    private String companyId;
     private String deviceId;
     private String deviceName;
     private String ipAddress;

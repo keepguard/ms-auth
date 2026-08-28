@@ -18,10 +18,8 @@ public class UserGetByUsernameQueryDTO {
     @NotBlank(message = "Username é obrigatório")
     private String username;
 
-    @NotNull(message = "O header X-Tenant-Id é obrigatório")
-    private UUID tenantId;
-
-    @NotNull(message = "companyId é obrigatório")
+    @NotNull(message = "O header X-Company-Id é obrigatório")
     private UUID companyId;
+
 }
 

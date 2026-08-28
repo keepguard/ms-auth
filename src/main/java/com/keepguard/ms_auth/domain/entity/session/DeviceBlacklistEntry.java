@@ -15,7 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class DeviceBlacklistEntry implements Serializable {
     private UUID id;
-    private UUID tenantId;
+    private UUID companyId;
     private String codeUser;
     private String deviceId;
     private String deviceName;

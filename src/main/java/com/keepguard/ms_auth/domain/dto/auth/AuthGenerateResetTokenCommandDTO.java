@@ -30,7 +30,7 @@ public class AuthGenerateResetTokenCommandDTO {
     @NotNull(message = "Template Type é obrigatório")
     private TemplateTypeEnum templateType;
 
-    @NotNull(message = "X-Tenant-Id é obrigatório")
-    private UUID tenantId;
+    @NotNull(message = "X-Company-Id é obrigatório")
+    private UUID companyId;
 }
 

@@ -21,7 +21,7 @@ public class UserGetStatusHistoryQueryDTO {
 
     private Integer size;
 
-    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
-    private UUID tenantId;
+    @NotBlank(message = "O header X-Company-Id é obrigatório")
+    private UUID companyId;
 }
 

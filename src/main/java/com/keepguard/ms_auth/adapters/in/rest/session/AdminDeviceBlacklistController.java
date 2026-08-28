@@ -39,7 +39,7 @@ public class AdminDeviceBlacklistController {
     @MetricsEndpoint(endpoint = "admin_search_device_blacklist")
     public ResponseEntity<Page<DeviceBlacklistEntry>> searchBlacklist(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") UUID companyId,
             @RequestParam(value = "userId", required = false) UUID userId,
             @RequestParam(value = "deviceId", required = false) String deviceId,
             @RequestParam(value = "deviceName", required = false) String deviceName,
@@ -51,7 +51,6 @@ public class AdminDeviceBlacklistController {
             @RequestParam(value = "sort", defaultValue = "blockedAt,desc") String sort) {
 
         validateAdminOrManagerRole(jwt);
-        UUID tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
         // Limita o tamanho máximo da página a 100 registros (boas práticas)
         int pageSize = Math.min(Math.max(size, 1), 100);
@@ -63,7 +62,7 @@ public class AdminDeviceBlacklistController {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(direction, sortProp));
 
         Page<DeviceBlacklistEntry> result = deviceSessionService.searchBlacklist(
-                tenantId, userId, deviceId, deviceName, ipAddress, startDate, endDate, pageable
+                companyId, userId, deviceId, deviceName, ipAddress, startDate, endDate, pageable
         );
 
         return ResponseEntity.ok(result);
@@ -75,11 +74,10 @@ public class AdminDeviceBlacklistController {
     @MetricsEndpoint(endpoint = "admin_add_device_blacklist")
     public ResponseEntity<Void> addDeviceToBlacklist(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") UUID companyId,
             @RequestBody Map<String, Object> request) {
 
         validateAdminOrManagerRole(jwt);
-        UUID tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         String blockedBy = jwt != null && jwt.getClaimAsString("email") != null ? jwt.getClaimAsString("email") : (jwt != null ? jwt.getSubject() : "ADMIN");
 
         String userId = (String) request.get("userId");
@@ -99,7 +97,7 @@ public class AdminDeviceBlacklistController {
             return ResponseEntity.badRequest().build();
         }
 
-        deviceSessionService.adminAddDeviceToBlacklist(tenantId, userId, deviceId, deviceName, reason, blockedBy, expiresAt);
+        deviceSessionService.adminAddDeviceToBlacklist(companyId, userId, deviceId, deviceName, reason, blockedBy, expiresAt);
         return ResponseEntity.noContent().build();
     }
 
@@ -109,18 +107,17 @@ public class AdminDeviceBlacklistController {
     @MetricsEndpoint(endpoint = "admin_remove_device_blacklist")
     public ResponseEntity<Void> removeDeviceFromBlacklist(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") UUID companyId,
             @PathVariable("deviceId") String deviceId,
             @RequestParam("userId") String userId) {
 
         validateAdminOrManagerRole(jwt);
-        UUID tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
 
         if (userId == null || userId.isBlank() || deviceId == null || deviceId.isBlank()) {
             return ResponseEntity.badRequest().build();
         }
 
-        deviceSessionService.adminRemoveDeviceFromBlacklist(tenantId, userId, deviceId);
+        deviceSessionService.adminRemoveDeviceFromBlacklist(companyId, userId, deviceId);
         return ResponseEntity.noContent().build();
     }
 

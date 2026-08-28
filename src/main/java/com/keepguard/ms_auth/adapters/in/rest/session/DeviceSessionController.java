@@ -1,5 +1,7 @@
 package com.keepguard.ms_auth.adapters.in.rest.session;
 
+
+import java.util.UUID;
 import com.keepguard.lib_common.metrics.annotation.MetricsEndpoint;
 import com.keepguard.lib_common.utils.ValidationUtils;
 import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthLoginResponseDTO;
@@ -43,9 +45,9 @@ public class DeviceSessionController {
     @MetricsEndpoint(endpoint = "auth_device_challenge_send")
     public ResponseEntity<Map<String, Object>> sendChallenge(
             @Valid @RequestBody SendDeviceChallengeCommandDTO request,
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        request.setTenantId(tenantIdHeader);
+        request.setCompanyId(companyId != null ? companyId.toString() : null);
         Map<String, Object> response = deviceSessionService.sendChallenge(request);
         return ResponseEntity.ok(response);
     }
@@ -56,9 +58,9 @@ public class DeviceSessionController {
     @MetricsEndpoint(endpoint = "auth_device_challenge_verify")
     public ResponseEntity<AuthLoginResponseDTO> verifyChallenge(
             @Valid @RequestBody VerifyDeviceChallengeCommandDTO request,
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        request.setTenantId(tenantIdHeader);
+        request.setCompanyId(companyId != null ? companyId.toString() : null);
         AuthLoginView view = deviceSessionService.verifyChallenge(request);
         AuthLoginResponseDTO response = authAdapterMapper.toLoginResponseDTO(view);
         return ResponseEntity.ok(response);

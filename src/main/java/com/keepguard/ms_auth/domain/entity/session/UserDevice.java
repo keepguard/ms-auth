@@ -15,7 +15,7 @@ import java.util.UUID;
 public class UserDevice {
     private UUID id;
     private UUID codeUser;
-    private UUID tenantId;
+    private UUID companyId;
     private String deviceId;
     private String deviceName;
     private String deviceType;

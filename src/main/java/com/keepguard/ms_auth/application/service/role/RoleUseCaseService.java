@@ -44,7 +44,7 @@ public class RoleUseCaseService implements RolePort {
     @Override
     public Optional<RoleGetByIdView> findById(RoleGetByIdQueryDTO command) {
         log.debug("Finding role by ID: {}", command.getId());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         return roleQueryService.findByIdForCompany(command.getId(), companyId)
                 .map(roleMapper::toGetByIdView);
     }
@@ -52,7 +52,7 @@ public class RoleUseCaseService implements RolePort {
     @Override
     public Optional<RoleGetByNameView> findByName(RoleGetByNameQueryDTO command) {
         log.debug("Finding role by name: {}", command.getName());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         return roleQueryService.findByCompanyIdAndName(companyId, command.getName())
                 .map(roleMapper::toGetByNameView);
     }
@@ -60,7 +60,7 @@ public class RoleUseCaseService implements RolePort {
     @Override
     public List<RoleListView> findAll(RoleGetAllQueryDTO command) {
         log.debug("Finding all roles");
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         return roleQueryService.findByCompanyId(companyId).stream()
                 .map(roleMapper::toListView)
                 .toList();
@@ -69,7 +69,7 @@ public class RoleUseCaseService implements RolePort {
     @Override
     public PageResultView<RoleSearchView> findAll(RoleSearchQueryDTO command) {
         log.debug("Finding all roles with pagination");
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         PageResultView<Role> pageResultView = roleQueryService.findByCompanyId(companyId, command.getPageable());
 
         List<RoleSearchView> content = pageResultView.getContent().stream()

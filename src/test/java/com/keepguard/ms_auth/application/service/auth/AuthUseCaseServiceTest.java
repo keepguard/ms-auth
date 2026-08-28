@@ -57,14 +57,14 @@ class AuthUseCaseServiceTest {
         loginRequest = AuthLoginCommandDTO.builder()
             .username("testuser")
             .password("password123")
-            .tenantId(UUID.randomUUID())
+            .companyId(UUID.randomUUID())
             .companyId(UUID.randomUUID())
             .clientId("test-client-id")
             .build();
         
         refreshTokenRequest = AuthRefreshTokenCommandDTO.builder()
             .token(token)
-            .tenantId(UUID.randomUUID())
+            .companyId(UUID.randomUUID())
             .clientId("test-client-id")
             .build();
         
@@ -73,7 +73,7 @@ class AuthUseCaseServiceTest {
             .currentPassword("oldpassword")
             .newPassword("newpassword123")
             .confirmNewPassword("newpassword123")
-            .tenantId(UUID.randomUUID())
+            .companyId(UUID.randomUUID())
             .build();
         
         resetPasswordRequest = AuthResetPasswordCommandDTO.builder()
@@ -81,12 +81,12 @@ class AuthUseCaseServiceTest {
             .resetToken("reset-token")
             .newPassword("newpassword123")
             .confirmNewPassword("newpassword123")
-            .tenantId(UUID.randomUUID())
+            .companyId(UUID.randomUUID())
             .build();
         
         validateTokenRequest = AuthValidateTokenQueryDTO.builder()
             .token(token)
-            .tenantId(UUID.randomUUID())
+            .companyId(UUID.randomUUID())
             .build();
         
         user = UserTestBuilder.aUser()
@@ -107,8 +107,7 @@ class AuthUseCaseServiceTest {
             user.getLastLogin(),
             null, // roles
             user.getCompanyId(),
-            user.getCompanyCode(),
-            user.getTenantId()
+            user.getCompanyCode()
         );
     }
     
@@ -155,7 +154,7 @@ class AuthUseCaseServiceTest {
         // Given
         AuthLogoutCommandDTO logoutRequest = AuthLogoutCommandDTO.builder()
             .token(token)
-            .tenantId(UUID.randomUUID())
+            .companyId(UUID.randomUUID())
             .build();
         
         doNothing().when(authCommandService).logout(logoutRequest);
@@ -373,7 +372,7 @@ class AuthUseCaseServiceTest {
         // Given
         AuthLogoutCommandDTO logoutRequest = AuthLogoutCommandDTO.builder()
             .token(token)
-            .tenantId(UUID.randomUUID())
+            .companyId(UUID.randomUUID())
             .build();
         
         doThrow(new RuntimeException("Service error")).when(authCommandService).logout(logoutRequest);

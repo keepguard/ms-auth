@@ -21,6 +21,6 @@ public class RoleRemoveAuthorityCommandDTO {
     @NotBlank(message = "Nome da authority é obrigatório")
     private String authorityName;
 
-    private UUID tenantId;
+    private UUID companyId;
 }
 

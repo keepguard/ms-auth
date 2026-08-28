@@ -17,8 +17,8 @@ public class AuthRefreshTokenCommandDTO {
     @NotBlank(message = "Token é obrigatório")
     private String token;
 
-    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
-    private UUID tenantId;
+    @NotBlank(message = "O header X-Company-Id é obrigatório")
+    private UUID companyId;
 
     @NotBlank(message = "O header User-Agent é obrigatório")
     private String clientId;

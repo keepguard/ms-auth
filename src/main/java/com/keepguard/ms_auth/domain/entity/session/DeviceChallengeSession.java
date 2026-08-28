@@ -14,7 +14,7 @@ import java.io.Serializable;
 public class DeviceChallengeSession implements Serializable {
     private String challengeSessionId;
     private String codeUser;
-    private String tenantId;
+    private String companyId;
     private String username;
     private String email;
     private String phone;

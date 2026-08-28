@@ -22,7 +22,6 @@ public record UserGetByEmailView(
     LocalDateTime lastLogin,
     List<String> roles,
     UUID companyId,
-    UUID companyCode,
-    UUID tenantId
+    UUID companyCode
 ) {}
 

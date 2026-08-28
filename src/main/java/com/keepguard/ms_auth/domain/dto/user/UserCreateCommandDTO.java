@@ -46,9 +46,6 @@ public class UserCreateCommandDTO {
 
     private UUID companyCode;
 
-    @jakarta.validation.constraints.NotNull(message = "O header X-Tenant-Id é obrigatório")
-    private UUID tenantId;
-
     private List<String> roles;
 }
 

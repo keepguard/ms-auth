@@ -113,14 +113,14 @@ public class UserCommandService {
         log.info("Deleting user with external ID: {}", command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getCompanyId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "delete"));
                 return new NotFoundException("Usuário não encontrado: " + command.getIdUserExternal());
             });
 
-        User actor = requireActor(command.getActorCodeUser(), command.getTenantId());
+        User actor = requireActor(command.getActorCodeUser(), command.getCompanyId());
         accountLifecyclePolicy.assertAllowed(actor, user, AccountLifecycleAction.DELETE);
 
         user.markAsDeleted();
@@ -151,7 +151,7 @@ public class UserCommandService {
         log.info("Hard deleting user with external ID: {}", command.idUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.idUserExternal());
-        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.tenantId())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.companyId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "hard_delete"));
@@ -188,14 +188,14 @@ public class UserCommandService {
         log.info("Blocking user with external ID: {}", command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getCompanyId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "block"));
                 return new NotFoundException("Usuário não encontrado: " + command.getIdUserExternal());
             });
 
-        User actor = requireActor(command.getActorCodeUser(), command.getTenantId());
+        User actor = requireActor(command.getActorCodeUser(), command.getCompanyId());
         accountLifecyclePolicy.assertAllowed(actor, user, AccountLifecycleAction.BLOCK);
 
         user.block();
@@ -226,14 +226,14 @@ public class UserCommandService {
         log.info("Unlocking user with external ID: {}", command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getCompanyId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "unlock"));
                 return new NotFoundException("Usuário não encontrado: " + command.getIdUserExternal());
             });
 
-        User actor = requireActor(command.getActorCodeUser(), command.getTenantId());
+        User actor = requireActor(command.getActorCodeUser(), command.getCompanyId());
         accountLifecyclePolicy.assertAllowed(actor, user, AccountLifecycleAction.UNBLOCK);
 
         user.unlock();
@@ -263,7 +263,7 @@ public class UserCommandService {
         log.info("Validating email for user with external ID: {}", command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getCompanyId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "validate_email"));
@@ -290,7 +290,7 @@ public class UserCommandService {
         log.info("Adding role {} to user with external ID: {}", command.getRole(), command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getCompanyId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "add_role"));
@@ -320,7 +320,7 @@ public class UserCommandService {
         log.info("Removing role {} from user with external ID: {}", command.getRole(), command.getIdUserExternal());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getCompanyId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "remove_role"));
@@ -348,7 +348,7 @@ public class UserCommandService {
         log.info("Updating email for user with external ID: {} to: {}", command.getIdUserExternal(), command.getNewEmail());
 
         UUID idUserExternalUuid = ValidationUtils.validateAndParseUUID(command.getIdUserExternal());
-        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId())
+        User user = userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getCompanyId())
             .orElseThrow(() -> {
                 metricsPort.incrementCounter("user_business_errors_total",
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "update_email"));
@@ -393,12 +393,12 @@ public class UserCommandService {
         return role;
     }
 
-    private User requireActor(String actorCodeUser, UUID tenantId) {
+    private User requireActor(String actorCodeUser, UUID companyId) {
         if (actorCodeUser == null || actorCodeUser.isBlank()) {
             throw new ForbiddenException("Token JWT não informado ou inválido.", "JWT_REQUIRED");
         }
         UUID actorCodeUserUuid = ValidationUtils.validateAndParseUUID(actorCodeUser);
-        return userRepository.findByCodeUserAndTenantId(actorCodeUserUuid, tenantId)
+        return userRepository.findByCodeUserAndTenantId(actorCodeUserUuid, companyId)
             .orElseThrow(() -> new ForbiddenException("Ator não encontrado para o token informado.", "ACTOR_NOT_FOUND"));
     }
 
@@ -416,7 +416,7 @@ public class UserCommandService {
         }
 
         var idUserExternalUuid = UUID.fromString(command.getIdUserExternal());
-        if (userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getTenantId()).isPresent()) {
+        if (userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getCompanyId()).isPresent()) {
             metricsPort.incrementCounter("user_business_errors_total",
                 Map.of("error_code", "ID_EXTERNAL_ALREADY_EXISTS", "operation", "create"));
             throw new AlreadyExistsException("ID externo já existe: " + command.getIdUserExternal());
@@ -430,7 +430,7 @@ public class UserCommandService {
             command.getCodeUser(),
             command.getCompanyId(),
             command.getCompanyCode(),
-            command.getTenantId()
+            command.getCompanyId()
         );
         return userRepository.save(user);
     }

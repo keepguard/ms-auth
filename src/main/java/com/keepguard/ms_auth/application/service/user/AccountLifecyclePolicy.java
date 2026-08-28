@@ -34,7 +34,7 @@ public class AccountLifecyclePolicy {
             throw new ForbiddenException("Não foi possível autorizar a operação.", "LIFECYCLE_FORBIDDEN");
         }
 
-        if (!Objects.equals(actor.getTenantId(), target.getTenantId())) {
+        if (!Objects.equals(actor.getCompanyId(), target.getCompanyId())) {
             throw new ForbiddenException("Usuário alvo pertence a outro tenant.", "TENANT_MISMATCH");
         }
         if (!Objects.equals(actor.getCompanyId(), target.getCompanyId())) {

@@ -65,11 +65,5 @@ public class UserCreateRequestDTO {
             required = true)
     private String companyCode;
 
-    @JsonProperty("tenant_id")
-    @NotBlank(message = "tenantId é obrigatório")
-    @Schema(description = "Identificador único da aplicação",
-            example = "550e8400-e29b-41d4-a716-446655440002",
-            required = true)
-    private String tenantId;
 }
 

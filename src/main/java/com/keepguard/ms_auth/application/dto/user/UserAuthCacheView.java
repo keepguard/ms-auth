@@ -47,6 +47,6 @@ public record UserAuthCacheView(
     @Schema(description = "Código da empresa")
     UUID companyCode,
 
-    @Schema(description = "ID da aplicação")
+    @Schema(description = "ID do tenant (produto) para o JWT")
     UUID tenantId
 ) {}

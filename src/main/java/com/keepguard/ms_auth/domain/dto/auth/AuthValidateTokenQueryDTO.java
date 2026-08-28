@@ -17,8 +17,8 @@ public class AuthValidateTokenQueryDTO {
     @NotBlank(message = "Token é obrigatório")
     private String token;
 
-    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
-    private UUID tenantId;
+    @NotBlank(message = "O header X-Company-Id é obrigatório")
+    private UUID companyId;
 
 }
 

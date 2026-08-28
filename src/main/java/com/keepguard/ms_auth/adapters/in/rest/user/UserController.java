@@ -67,18 +67,17 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> create(
             @Parameter(description = "Dados do usuário a ser criado", required = true)
             @Valid @RequestBody UserCreateRequestDTO dto,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Criando usuário: {},     tenantIdHeader={}", dto.getUsername(), tenantIdHeader);
+        log.info("Criando usuário: {},     companyId={}", dto.getUsername(), companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toCreateCommand(dto, tenantId);
+        var command = mapper.toCreateCommand(dto, companyId);
         var view = userService.create(command);
         var response = mapper.toResponseDTO(view);
         
-        log.info("User created: {} with application: {}", response.getId(), tenantId);
+        log.info("User created: {} with application: {}", response.getId(), companyId);
         return ResponseEntity.status(201).body(response);
     }
 
@@ -101,17 +100,16 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> createAdmin(
             @Parameter(description = "Dados do administrador a ser criado", required = true)
             @Valid @RequestBody UserCreateRequestDTO dto,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Criando admin: {}, tenantIdHeader={}", dto.getUsername(), tenantIdHeader);
+        log.info("Criando admin: {}, companyId={}", dto.getUsername(), companyId);
 
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        var command = mapper.toCreateCommand(dto, tenantId);
+        var command = mapper.toCreateCommand(dto, companyId);
         var view = userService.createAdmin(command);
         var response = mapper.toResponseDTO(view);
 
-        log.info("Admin created: {} with application: {}", response.getId(), tenantId);
+        log.info("Admin created: {} with application: {}", response.getId(), companyId);
         return ResponseEntity.status(201).body(response);
     }
 
@@ -135,17 +133,16 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> createManager(
             @Parameter(description = "Dados do manager a ser criado", required = true)
             @Valid @RequestBody UserCreateRequestDTO dto,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Criando manager: {}, tenantIdHeader={}", dto.getUsername(), tenantIdHeader);
+        log.info("Criando manager: {}, companyId={}", dto.getUsername(), companyId);
 
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        var command = mapper.toCreateCommand(dto, tenantId);
+        var command = mapper.toCreateCommand(dto, companyId);
         var view = userService.createManager(command);
         var response = mapper.toResponseDTO(view);
 
-        log.info("Manager created: {} with application: {}", response.getId(), tenantId);
+        log.info("Manager created: {} with application: {}", response.getId(), companyId);
         return ResponseEntity.status(201).body(response);
     }
 
@@ -170,18 +167,17 @@ public class UserController {
             @PathVariable String idUserExternal,
             @Parameter(description = "Motivo da exclusão", required = true)
             @RequestBody UserStatusReasonRequestDTO dto,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Deletando usuário: {} - Motivo: {}, tenantIdHeader={}", idUserExternal, dto.getReason(), tenantIdHeader);
+        log.info("Deletando usuário: {} - Motivo: {}, companyId={}", idUserExternal, dto.getReason(), companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        var actorCodeUser = requireActorCodeUser(jwt, tenantId);
+        var actorCodeUser = requireActorCodeUser(jwt, companyId);
         
-        var command = mapper.toDeleteCommand(idUserExternal, dto.getReason(), tenantId, actorCodeUser);
+        var command = mapper.toDeleteCommand(idUserExternal, dto.getReason(), companyId, actorCodeUser);
         userService.delete(command);
         
-        log.info("User deleted: {} with application: {}", idUserExternal, tenantId);
+        log.info("User deleted: {} with application: {}", idUserExternal, companyId);
         return ResponseEntity.noContent().build();
     }
 
@@ -205,17 +201,16 @@ public class UserController {
     public ResponseEntity<Void> hardDelete(
             @Parameter(description = "ID externo do usuário a ser hard deleted", required = true)
             @PathVariable String idUserExternal,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Hard deleting user: {}, tenantIdHeader={}", idUserExternal, tenantIdHeader);
+        log.info("Hard deleting user: {}, companyId={}", idUserExternal, companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toHardDeleteCommand(idUserExternal, tenantId);
+        var command = mapper.toHardDeleteCommand(idUserExternal, companyId);
         userService.hardDelete(command);
         
-        log.info("User hard deleted: {} with application: {}", idUserExternal, tenantId);
+        log.info("User hard deleted: {} with application: {}", idUserExternal, companyId);
         return ResponseEntity.noContent().build();
     }
 
@@ -241,18 +236,17 @@ public class UserController {
             @PathVariable String idUserExternal,
             @Parameter(description = "Motivo do bloqueio", required = true)
             @RequestBody UserStatusReasonRequestDTO dto,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Bloqueando usuário: {} - Motivo: {}, tenantIdHeader={}", idUserExternal, dto.getReason(), tenantIdHeader);
+        log.info("Bloqueando usuário: {} - Motivo: {}, companyId={}", idUserExternal, dto.getReason(), companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        var actorCodeUser = requireActorCodeUser(jwt, tenantId);
+        var actorCodeUser = requireActorCodeUser(jwt, companyId);
         
-        var command = mapper.toBlockCommand(idUserExternal, dto.getReason(), tenantId, actorCodeUser);
+        var command = mapper.toBlockCommand(idUserExternal, dto.getReason(), companyId, actorCodeUser);
         userService.block(command);
         
-        log.info("User blocked: {} with application: {}", idUserExternal, tenantId);
+        log.info("User blocked: {} with application: {}", idUserExternal, companyId);
         return ResponseEntity.ok().build();
     }
 
@@ -278,18 +272,17 @@ public class UserController {
             @PathVariable String idUserExternal,
             @Parameter(description = "Motivo do desbloqueio", required = true)
             @RequestBody UserStatusReasonRequestDTO dto,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Desbloqueando usuário: {} - Motivo: {}, tenantIdHeader={}", idUserExternal, dto.getReason(), tenantIdHeader);
+        log.info("Desbloqueando usuário: {} - Motivo: {}, companyId={}", idUserExternal, dto.getReason(), companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        var actorCodeUser = requireActorCodeUser(jwt, tenantId);
+        var actorCodeUser = requireActorCodeUser(jwt, companyId);
         
-        var command = mapper.toUnlockCommand(idUserExternal, dto.getReason(), tenantId, actorCodeUser);
+        var command = mapper.toUnlockCommand(idUserExternal, dto.getReason(), companyId, actorCodeUser);
         userService.unlock(command);
         
-        log.info("User unlocked: {} with application: {}", idUserExternal, tenantId);
+        log.info("User unlocked: {} with application: {}", idUserExternal, companyId);
         return ResponseEntity.ok().build();
     }
 
@@ -312,17 +305,16 @@ public class UserController {
     public ResponseEntity<Void> validateEmail(
             @Parameter(description = "Dados para validação de email", required = true)
             @Valid @RequestBody UserValidateEmailRequestDTO dto,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Validando email para usuário: {}, tenantIdHeader={}", dto.getIdUserExternal(), tenantIdHeader);
+        log.info("Validando email para usuário: {}, companyId={}", dto.getIdUserExternal(), companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toValidateEmailCommand(dto, tenantId);
+        var command = mapper.toValidateEmailCommand(dto, companyId);
         userService.validateEmailUser(command);
         
-        log.info("Email validated for user: {} with application: {}", dto.getIdUserExternal(), tenantId);
+        log.info("Email validated for user: {} with application: {}", dto.getIdUserExternal(), companyId);
         return ResponseEntity.ok().build();
     }
 
@@ -349,21 +341,20 @@ public class UserController {
             @RequestParam(required = false) Integer page,
             @Parameter(description = "Tamanho da página (opcional, padrão: 10)")
             @RequestParam(required = false) Integer size,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Buscando histórico de status para usuário: {} - Página: {}, Tamanho: {}, tenantIdHeader={}", 
-            idUserExternal, page, size, tenantIdHeader);
+        log.info("Buscando histórico de status para usuário: {} - Página: {}, Tamanho: {}, companyId={}", 
+            idUserExternal, page, size, companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var query = mapper.toGetStatusHistoryQuery(idUserExternal, page, size, tenantId);
+        var query = mapper.toGetStatusHistoryQuery(idUserExternal, page, size, companyId);
         PageResultView<UserStatusHistory> pageResultView = userService.getUserStatusHistory(query);
         List<UserStatusHistoryResponseDTO> response = pageResultView.getContent().stream()
                 .map(mapper::toStatusHistoryResponseDTO)
                 .toList();
         
-        log.info("User status history retrieved: {} with application: {}", idUserExternal, tenantId);
+        log.info("User status history retrieved: {} with application: {}", idUserExternal, companyId);
         return ResponseEntity.ok(response);
     }
 
@@ -386,13 +377,12 @@ public class UserController {
             @Parameter(description = "Código único do usuário", required = true)
             @PathVariable String codeUser,
             @Parameter(description = "UUID da empresa", required = true)
-            @RequestHeader("X-Company-Id") String companyIdHeader) {
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Buscando usuário por código: {}, companyIdHeader={}", codeUser, companyIdHeader);
+        log.info("Buscando usuário por código: {}, companyId={}", codeUser, companyId);
 
-        var companyId = ValidationUtils.validateTenantId(companyIdHeader);
 
-        var query = mapper.toGetByCodeQuery(codeUser, null, companyId);
+        var query = mapper.toGetByCodeQuery(codeUser, companyId);
         var view = userService.findByCodeUser(query);
         var response = mapper.toUserByCodeResponseDTO(view);
         
@@ -418,18 +408,17 @@ public class UserController {
     public ResponseEntity<UserByIdExternalResponseDTO> getByIdUserExternal(
             @Parameter(description = "ID externo do usuário", required = true)
             @PathVariable String idUserExternal,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Buscando usuário por ID externo: {}, tenantIdHeader={}", idUserExternal, tenantIdHeader);
+        log.info("Buscando usuário por ID externo: {}, companyId={}", idUserExternal, companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var query = mapper.toGetByIdExternalQuery(idUserExternal, tenantId);
+        var query = mapper.toGetByIdExternalQuery(idUserExternal, companyId);
         var view = userService.findByIdUserExternal(query);
         var response = mapper.toUserByIdExternalResponseDTO(view);
         
-        log.info("User retrieved by external ID: {} with application: {}", idUserExternal, tenantId);
+        log.info("User retrieved by external ID: {} with application: {}", idUserExternal, companyId);
         return ResponseEntity.ok(response);
     }
 
@@ -451,21 +440,17 @@ public class UserController {
     public ResponseEntity<UserByEmailResponseDTO> getByEmail(
             @Parameter(description = "Email do usuário", required = true)
             @PathVariable String email,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
             @Parameter(description = "UUID da empresa", required = true)
-            @RequestHeader("X-Company-Id") String companyIdHeader) {
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Buscando usuário por email: {}, tenantIdHeader={}, companyIdHeader={}", email, tenantIdHeader, companyIdHeader);
-        
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        var companyId = ValidationUtils.validateTenantId(companyIdHeader);
-        
-        var query = mapper.toGetByEmailQuery(email, tenantId, companyId);
+        log.info("Buscando usuário por email: {}, companyId={}", email, companyId);
+
+
+        var query = mapper.toGetByEmailQuery(email, companyId);
         var view = userService.findByEmail(query);
         var response = mapper.toUserByEmailResponseDTO(view);
         
-        log.info("User retrieved by email: {} with application: {}", email, tenantId);
+        log.info("User retrieved by email: {} with company: {}", email, companyId);
         return ResponseEntity.ok(response);
     }
 
@@ -487,21 +472,17 @@ public class UserController {
     public ResponseEntity<UserByUsernameResponseDTO> getByUsername(
             @Parameter(description = "Nome de usuário", required = true)
             @PathVariable String username,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
             @Parameter(description = "UUID da empresa", required = true)
-            @RequestHeader("X-Company-Id") String companyIdHeader) {
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Buscando usuário por username: {}, tenantIdHeader={}, companyIdHeader={}", username, tenantIdHeader, companyIdHeader);
-        
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
-        var companyId = ValidationUtils.validateTenantId(companyIdHeader);
-        
-        var query = mapper.toGetByUsernameQuery(username, tenantId, companyId);
+        log.info("Buscando usuário por username: {}, companyId={}", username, companyId);
+
+
+        var query = mapper.toGetByUsernameQuery(username, companyId);
         var view = userService.findByUsername(query);
         var response = mapper.toUserByUsernameResponseDTO(view);
         
-        log.info("User retrieved by username: {} with application: {}", username, tenantId);
+        log.info("User retrieved by username: {} with company: {}", username, companyId);
         return ResponseEntity.ok(response);
     }
 
@@ -526,17 +507,16 @@ public class UserController {
             @PathVariable String idUserExternal,
             @Parameter(description = "Dados da role a ser adicionada (nome)", required = true)
             @Valid @RequestBody UserAddRoleToUserRequestDTO dto,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Adicionando role {} ao usuário: {}, tenantIdHeader={}", dto.getRole(), idUserExternal, tenantIdHeader);
+        log.info("Adicionando role {} ao usuário: {}, companyId={}", dto.getRole(), idUserExternal, companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toAddRoleCommand(idUserExternal, dto.getRole(), tenantId);
+        var command = mapper.toAddRoleCommand(idUserExternal, dto.getRole(), companyId);
         userService.addRoleToUser(command);
         
-        log.info("Role added to user: {} - {} with application: {}", idUserExternal, dto.getRole(), tenantId);
+        log.info("Role added to user: {} - {} with application: {}", idUserExternal, dto.getRole(), companyId);
         return ResponseEntity.status(201).build();
     }
 
@@ -561,17 +541,16 @@ public class UserController {
             @PathVariable String idUserExternal,
             @Parameter(description = "Nome da role a ser removida", required = true)
             @PathVariable String role,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Removendo role {} do usuário: {}, tenantIdHeader={}", role, idUserExternal, tenantIdHeader);
+        log.info("Removendo role {} do usuário: {}, companyId={}", role, idUserExternal, companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toRemoveRoleCommand(idUserExternal, role, tenantId);
+        var command = mapper.toRemoveRoleCommand(idUserExternal, role, companyId);
         userService.removeRoleFromUser(command);
         
-        log.info("Role removed from user: {} - {} with application: {}", idUserExternal, role, tenantId);
+        log.info("Role removed from user: {} - {} with application: {}", idUserExternal, role, companyId);
         return ResponseEntity.noContent().build();
     }
 
@@ -598,17 +577,16 @@ public class UserController {
             @PathVariable String idUserExternal,
             @Parameter(description = "Dados para atualização de email", required = true)
             @Valid @RequestBody UserUpdateEmailRequestDTO dto,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Atualizando email do usuário: {} - Novo email: {}, tenantIdHeader={}", idUserExternal, dto.getNewEmail(), tenantIdHeader);
+        log.info("Atualizando email do usuário: {} - Novo email: {}, companyId={}", idUserExternal, dto.getNewEmail(), companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
-        var command = mapper.toUpdateEmailCommand(idUserExternal, dto.getNewEmail(), tenantId);
+        var command = mapper.toUpdateEmailCommand(idUserExternal, dto.getNewEmail(), companyId);
         userService.updateUserEmail(command);
         
-        log.info("Email updated for user: {} - New email: {} with application: {}", idUserExternal, dto.getNewEmail(), tenantId);
+        log.info("Email updated for user: {} - New email: {} with application: {}", idUserExternal, dto.getNewEmail(), companyId);
         return ResponseEntity.ok().build();
     }
 
@@ -635,19 +613,18 @@ public class UserController {
             @Parameter(description = "Código do usuário") @RequestParam(required = false) String codeUser,
             @Parameter(description = "Status do usuário") @RequestParam(required = false) String status,
             @Parameter(description = "Email verificado") @RequestParam(required = false) Boolean emailVerified,
-            @Parameter(description = "ID da empresa") @RequestParam(required = false) String companyId,
+            @Parameter(description = "ID da empresa (filtro opcional)") @RequestParam(required = false) String filterCompanyId,
             @Parameter(description = "Código da empresa") @RequestParam(required = false) String companyCode,
             @Parameter(description = "Campo de ordenação") @RequestParam(required = false) String sortBy,
             @Parameter(description = "Direção da ordenação") @RequestParam(defaultValue = "DESC") String sortDirection,
             @Parameter(description = "Página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamanho da página") @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") UUID companyId) {
 
-        log.info("Buscando usuários - username: {}, email: {}, status: {}, companyCode: {}, tenantIdHeader={}", 
-            username, email, status, companyCode, tenantIdHeader);
+        log.info("Buscando usuários - username: {}, email: {}, status: {}, companyCode: {}, companyId={}", 
+            username, email, status, companyCode, companyId);
         
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         
         var searchRequest = UserSearchRequestDTO.builder()
                 .id(id != null ? java.util.UUID.fromString(id) : null)
@@ -657,7 +634,7 @@ public class UserController {
                 .codeUser(codeUser != null ? java.util.UUID.fromString(codeUser) : null)
                 .status(status != null ? com.keepguard.ms_auth.domain.enums.UserStatus.valueOf(status.toUpperCase()) : null)
                 .emailVerified(emailVerified)
-                .companyId(companyId != null ? java.util.UUID.fromString(companyId) : null)
+                .companyId(filterCompanyId != null ? java.util.UUID.fromString(filterCompanyId) : companyId)
                 .companyCode(companyCode != null ? java.util.UUID.fromString(companyCode) : null)
                 .sortBy(sortBy)
                 .sortDirection(sortDirection)
@@ -665,7 +642,7 @@ public class UserController {
                 .size(size)
                 .build();
         
-        var query = mapper.toSearchQuery(searchRequest, tenantId);
+        var query = mapper.toSearchQuery(searchRequest, companyId);
         var pageResult = userService.searchUsers(query);
         
         var response = PageResultView.<UserResponseDTO>builder()
@@ -682,11 +659,11 @@ public class UserController {
                 .hasPrevious(pageResult.hasPrevious())
                 .build();
         
-        log.info("Users search completed. Found {} results with application: {}", response.getTotalElements(), tenantId);
+        log.info("Users search completed. Found {} results with application: {}", response.getTotalElements(), companyId);
         return ResponseEntity.ok(response);
     }
 
-    private String requireActorCodeUser(Jwt jwt, UUID tenantId) {
+    private String requireActorCodeUser(Jwt jwt, UUID companyId) {
         if (jwt == null) {
             throw new ForbiddenException("Token JWT não informado ou inválido.", "JWT_REQUIRED");
         }
@@ -695,7 +672,7 @@ public class UserController {
             throw new ForbiddenException("Token JWT sem subject.", "JWT_INVALID");
         }
         String tokenTenant = jwt.getClaimAsString("tenant_id");
-        if (tokenTenant != null && !tokenTenant.equalsIgnoreCase(tenantId.toString())) {
+        if (tokenTenant != null && !tokenTenant.equalsIgnoreCase(companyId.toString())) {
             throw new ForbiddenException("Tenant do token não corresponde ao header.", "TENANT_MISMATCH");
         }
         return subject;

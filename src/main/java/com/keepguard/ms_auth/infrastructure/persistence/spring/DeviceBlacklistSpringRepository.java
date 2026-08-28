@@ -16,7 +16,7 @@ public interface DeviceBlacklistSpringRepository extends JpaRepository<DeviceBla
 
     List<DeviceBlacklistJpaEntity> findByCodeUser(UUID codeUser);
 
-    List<DeviceBlacklistJpaEntity> findByTenantIdAndCodeUser(UUID tenantId, UUID codeUser);
+    List<DeviceBlacklistJpaEntity> findByTenantIdAndCodeUser(UUID companyId, UUID codeUser);
 
     void deleteByCodeUserAndDeviceId(UUID codeUser, String deviceId);
 

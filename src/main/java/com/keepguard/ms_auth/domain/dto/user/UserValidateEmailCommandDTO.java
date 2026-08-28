@@ -17,7 +17,7 @@ public class UserValidateEmailCommandDTO {
     @NotBlank(message = "ID externo do usuário é obrigatório")
     private String idUserExternal;
 
-    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
-    private UUID tenantId;
+    @NotBlank(message = "O header X-Company-Id é obrigatório")
+    private UUID companyId;
 }
 

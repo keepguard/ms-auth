@@ -41,28 +41,28 @@ public class AuthorityUseCaseService implements AuthorityPort {
     @Override
     public Optional<AuthorityGetByIdView> findById(AuthorityGetByIdQueryDTO command) {
         log.debug("Finding authority by ID: {}", command.getId());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         return authorityQueryService.findByIdForCompany(command.getId(), companyId);
     }
 
     @Override
     public Optional<AuthorityGetByNameView> findByName(AuthorityGetByNameQueryDTO command) {
         log.debug("Finding authority by name: {}", command.getName());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         return authorityQueryService.findByCompanyIdAndName(companyId, command.getName());
     }
 
     @Override
     public List<AuthorityListView> findAll(AuthorityGetAllQueryDTO command) {
         log.debug("Finding all authorities");
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         return authorityQueryService.findByCompanyId(companyId);
     }
 
     @Override
     public PageResultView<AuthoritySearchView> findAll(AuthoritySearchQueryDTO command) {
         log.debug("Finding all authorities with pagination");
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         return authorityQueryService.findByCompanyId(companyId, command.getPageable());
     }
 }

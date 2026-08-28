@@ -31,7 +31,7 @@ public class UserDeviceJpaEntity {
     private UUID codeUser;
 
     @Column(name = "tenant_id", nullable = false, columnDefinition = "uuid")
-    private UUID tenantId;
+    private UUID companyId;
 
     @Column(name = "device_id", nullable = false, length = 255)
     private String deviceId;

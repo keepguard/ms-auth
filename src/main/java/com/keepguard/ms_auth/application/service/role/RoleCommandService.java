@@ -45,7 +45,7 @@ public class RoleCommandService {
     @Transactional
     public RoleCreateView create(RoleCreateCommandDTO command) {
         log.info("Creating role: {}", command.getName());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
 
         if (SystemRoleNames.isReserved(command.getName())) {
             metricsPort.incrementCounter("role_business_errors_total",
@@ -87,7 +87,7 @@ public class RoleCommandService {
     @Transactional
     public RoleUpdateView update(RoleUpdateCommandDTO command) {
         log.info("Updating role with ID: {}", command.getId());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         Role existingRole = requireMutableRoleOfCompany(command.getId(), companyId, "update");
 
         if (!existingRole.getName().equals(command.getName())) {
@@ -122,7 +122,7 @@ public class RoleCommandService {
     @Transactional
     public void delete(RoleDeleteCommandDTO command) {
         log.info("Deleting role with ID: {}", command.getId());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         Role role = requireMutableRoleOfCompany(command.getId(), companyId, "delete");
 
         companyRoleRepository.deleteByCompanyIdAndRoleId(companyId, role.getId());
@@ -141,7 +141,7 @@ public class RoleCommandService {
     @Transactional
     public RoleAddAuthorityView addAuthority(RoleAddAuthorityCommandDTO command) {
         log.info("Adding authority {} to role: {}", command.getAuthorityName(), command.getRoleId());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         Role role = requireRoleOfCompany(command.getRoleId(), companyId, "add_authority");
 
         Authority authority = authorityRepository.findByCompanyIdAndName(companyId, command.getAuthorityName())
@@ -180,7 +180,7 @@ public class RoleCommandService {
     @Transactional
     public RoleRemoveAuthorityView removeAuthority(RoleRemoveAuthorityCommandDTO command) {
         log.info("Removing authority {} from role: {}", command.getAuthorityName(), command.getRoleId());
-        UUID companyId = command.getTenantId();
+        UUID companyId = command.getCompanyId();
         Role role = requireRoleOfCompany(command.getRoleId(), companyId, "remove_authority");
 
         Authority authority = authorityRepository.findByCompanyIdAndName(companyId, command.getAuthorityName())

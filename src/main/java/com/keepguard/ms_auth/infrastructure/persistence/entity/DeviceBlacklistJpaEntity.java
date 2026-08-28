@@ -28,7 +28,7 @@ public class DeviceBlacklistJpaEntity {
     private UUID id;
 
     @Column(name = "tenant_id", nullable = false, columnDefinition = "uuid")
-    private UUID tenantId;
+    private UUID companyId;
 
     @Column(name = "code_user", nullable = false, columnDefinition = "uuid")
     private UUID codeUser;

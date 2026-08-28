@@ -36,7 +36,7 @@ class UserCreateValidationTest {
                 .codeUser(UUID.randomUUID())
                 .companyId(UUID.randomUUID())
                 .companyCode(UUID.randomUUID())
-                .tenantId(UUID.randomUUID())
+                .companyId(UUID.randomUUID())
                 .build();
         Set<ConstraintViolation<UserCreateCommandDTO>> v1 = validator.validate(dto);
         assertFalse(v1.isEmpty());
@@ -50,7 +50,7 @@ class UserCreateValidationTest {
                 .codeUser(UUID.randomUUID())
                 .companyId(UUID.randomUUID())
                 .companyCode(UUID.randomUUID())
-                .tenantId(UUID.randomUUID())
+                .companyId(UUID.randomUUID())
                 .build();
         Set<ConstraintViolation<UserCreateCommandDTO>> v2 = validator.validate(dto);
         assertFalse(v2.isEmpty());
@@ -64,7 +64,7 @@ class UserCreateValidationTest {
                 .codeUser(UUID.randomUUID())
                 .companyId(UUID.randomUUID())
                 .companyCode(UUID.randomUUID())
-                .tenantId(UUID.randomUUID())
+                .companyId(UUID.randomUUID())
                 .build();
         Set<ConstraintViolation<UserCreateCommandDTO>> v3 = validator.validate(dto);
         assertFalse(v3.isEmpty());
@@ -78,7 +78,7 @@ class UserCreateValidationTest {
                 .codeUser(UUID.randomUUID())
                 .companyId(UUID.randomUUID())
                 .companyCode(UUID.randomUUID())
-                .tenantId(UUID.randomUUID())
+                .companyId(UUID.randomUUID())
                 .build();
         Set<ConstraintViolation<UserCreateCommandDTO>> v4 = validator.validate(dto);
         assertTrue(v4.isEmpty());

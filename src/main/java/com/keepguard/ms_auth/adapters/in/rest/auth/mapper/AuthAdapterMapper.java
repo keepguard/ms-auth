@@ -32,11 +32,11 @@ import java.util.UUID;
 @Slf4j
 public class AuthAdapterMapper {
 
-    public AuthLoginCommandDTO toLoginCommand(AuthLoginRequestDTO dto, UUID tenantId, String clientId) {
-        return toLoginCommand(dto, tenantId, clientId, null, null, null, null, null);
+    public AuthLoginCommandDTO toLoginCommand(AuthLoginRequestDTO dto, UUID companyId, String clientId) {
+        return toLoginCommand(dto, companyId, clientId, null, null, null, null, null);
     }
 
-    public AuthLoginCommandDTO toLoginCommand(AuthLoginRequestDTO dto, UUID tenantId, String clientId,
+    public AuthLoginCommandDTO toLoginCommand(AuthLoginRequestDTO dto, UUID companyId, String clientId,
                                               String deviceId, String deviceName, String deviceType,
                                               String ipAddress, String userAgent) {
         if (dto == null) {
@@ -47,8 +47,7 @@ public class AuthAdapterMapper {
             return AuthLoginCommandDTO.builder()
                     .username(dto.getUsername() != null ? dto.getUsername().trim().toLowerCase() : null)
                     .password(dto.getPassword())
-                    .tenantId(tenantId)
-                    .companyId(dto.getCompanyId())
+                    .companyId(companyId)
                     .clientId(clientId)
                     .deviceId(deviceId)
                     .deviceName(deviceName)
@@ -62,7 +61,7 @@ public class AuthAdapterMapper {
         }
     }
 
-    public AuthRegisterLoginCommandDTO toRegisterLoginCommand(AuthRegisterLoginRequestDTO dto, UUID tenantId, String clientId) {
+    public AuthRegisterLoginCommandDTO toRegisterLoginCommand(AuthRegisterLoginRequestDTO dto, UUID companyId, String clientId) {
         if (dto == null) {
             return null;
         }
@@ -71,8 +70,7 @@ public class AuthAdapterMapper {
             return AuthRegisterLoginCommandDTO.builder()
                     .username(dto.getUsername() != null ? dto.getUsername().trim().toLowerCase() : null)
                     .passwordHash(dto.getPasswordHash())
-                    .tenantId(tenantId)
-                    .companyId(dto.getCompanyId() != null ? UUID.fromString(dto.getCompanyId()) : null)
+                    .companyId(companyId)
                     .clientId(clientId)
                     .build();
         } catch (Exception e) {
@@ -81,7 +79,7 @@ public class AuthAdapterMapper {
         }
     }
 
-    public AuthRefreshTokenCommandDTO toRefreshTokenCommand(AuthRefreshTokenRequestDTO dto, UUID tenantId, String clientId) {
+    public AuthRefreshTokenCommandDTO toRefreshTokenCommand(AuthRefreshTokenRequestDTO dto, UUID companyId, String clientId) {
         if (dto == null) {
             return null;
         }
@@ -89,7 +87,7 @@ public class AuthAdapterMapper {
         try {
             return AuthRefreshTokenCommandDTO.builder()
                     .token(dto.getToken())
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .clientId(clientId)
                     .build();
         } catch (Exception e) {
@@ -98,7 +96,7 @@ public class AuthAdapterMapper {
         }
     }
 
-    public AuthValidateTokenQueryDTO toValidateTokenCommand(AuthValidateTokenRequestDTO dto, UUID tenantId) {
+    public AuthValidateTokenQueryDTO toValidateTokenCommand(AuthValidateTokenRequestDTO dto, UUID companyId) {
         if (dto == null) {
             return null;
         }
@@ -106,7 +104,7 @@ public class AuthAdapterMapper {
         try {
             return AuthValidateTokenQueryDTO.builder()
                     .token(dto.getToken())
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthValidateTokenRequestDTO para AuthValidateTokenQueryDTO: {}", e.getMessage(), e);
@@ -116,7 +114,7 @@ public class AuthAdapterMapper {
 
     public AuthChangePasswordCommandDTO toChangePasswordCommand(
             AuthChangePasswordRequestDTO dto,
-            UUID tenantId,
+            UUID companyId,
             String deviceId,
             String deviceName,
             String deviceType,
@@ -132,7 +130,7 @@ public class AuthAdapterMapper {
                     .currentPassword(dto.getCurrentPassword())
                     .newPassword(dto.getNewPassword())
                     .confirmNewPassword(dto.getConfirmNewPassword())
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .deviceId(deviceId)
                     .deviceName(deviceName)
                     .deviceType(deviceType)
@@ -147,7 +145,7 @@ public class AuthAdapterMapper {
 
     public AuthResetPasswordCommandDTO toResetPasswordCommand(
             AuthResetPasswordRequestDTO dto,
-            UUID tenantId,
+            UUID companyId,
             String deviceId,
             String deviceName,
             String deviceType,
@@ -165,7 +163,7 @@ public class AuthAdapterMapper {
                     .confirmNewPassword(dto.getConfirmNewPassword())
                     .messageType(dto.getMessageType())
                     .templateType(dto.getTemplateType())
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .deviceId(deviceId)
                     .deviceName(deviceName)
                     .deviceType(deviceType)
@@ -178,7 +176,7 @@ public class AuthAdapterMapper {
         }
     }
 
-    public AuthLogoutCommandDTO toLogoutCommand(String token, UUID tenantId) {
+    public AuthLogoutCommandDTO toLogoutCommand(String token, UUID companyId) {
         if (token == null) {
             return null;
         }
@@ -186,7 +184,7 @@ public class AuthAdapterMapper {
         try {
             return AuthLogoutCommandDTO.builder()
                     .token(token)
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear token para AuthLogoutCommandDTO: {}", e.getMessage(), e);
@@ -246,7 +244,7 @@ public class AuthAdapterMapper {
         }
     }
 
-    public AuthGenerateResetTokenCommandDTO toGenerateResetTokenCommand(AuthGenerateResetTokenRequestDTO dto, UUID tenantId) {
+    public AuthGenerateResetTokenCommandDTO toGenerateResetTokenCommand(AuthGenerateResetTokenRequestDTO dto, UUID companyId) {
         if (dto == null) {
             return null;
         }
@@ -257,7 +255,7 @@ public class AuthAdapterMapper {
                     .messageType(dto.getMessageType())
                     .communicationType(dto.getCommunicationType())
                     .templateType(dto.getTemplateType())
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthGenerateResetTokenRequestDTO para AuthGenerateResetTokenCommandDTO: {}", e.getMessage(), e);

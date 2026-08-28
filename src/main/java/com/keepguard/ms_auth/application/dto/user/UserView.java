@@ -18,6 +18,5 @@ public record UserView(
     LocalDateTime lastLogin,
     List<String> roles,
     UUID companyId,
-    UUID companyCode,
-    UUID tenantId
+    UUID companyCode
 ) {}

@@ -1,5 +1,7 @@
 package com.keepguard.ms_auth.adapters.out.feign;
 
+
+import java.util.UUID;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,14 +18,14 @@ import java.util.Map;
 public interface CommunicationClient {
 
     @GetMapping("/api/v1/health")
-    String health(@RequestHeader("X-Tenant-Id") String tenantIdHeader);
+    String health();
 
     @GetMapping("/api/v1/communication/test")
-    String testCommunication(@RequestHeader("X-Tenant-Id") String tenantIdHeader);
+    String testCommunication();
 
     @PostMapping("/api/v1/messages/send")
     Map<String, Object> sendMessage(
         @RequestBody Map<String, Object> request,
-        @RequestHeader("X-Tenant-Id") String tenantIdHeader
+        @RequestHeader("X-Company-Id") UUID companyId
     );
 }

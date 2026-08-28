@@ -86,10 +86,10 @@ class UserAdapterMapperTest {
         // Given
         String idUserExternal = "ext-123";
         String role = "ADMIN";
-        UUID tenantId = UUID.randomUUID();
+        UUID companyId = UUID.randomUUID();
         
         // When
-        var command = userAdapterMapper.toAddRoleCommand(idUserExternal, role, tenantId);
+        var command = userAdapterMapper.toAddRoleCommand(idUserExternal, role, companyId);
         
         // Then
         assertNotNull(command);
@@ -103,10 +103,10 @@ class UserAdapterMapperTest {
         // Given
         String idUserExternal = "ext-123";
         String reason = "Violação de políticas";
-        UUID tenantId = UUID.randomUUID();
+        UUID companyId = UUID.randomUUID();
         
         // When
-        var command = userAdapterMapper.toBlockCommand(idUserExternal, reason, tenantId, "actor-code");
+        var command = userAdapterMapper.toBlockCommand(idUserExternal, reason, companyId, "actor-code");
         
         // Then
         assertNotNull(command);
@@ -121,10 +121,10 @@ class UserAdapterMapperTest {
         // Given
         String idUserExternal = "ext-123";
         String newEmail = "newemail@example.com";
-        UUID tenantId = UUID.randomUUID();
+        UUID companyId = UUID.randomUUID();
         
         // When
-        var command = userAdapterMapper.toUpdateEmailCommand(idUserExternal, newEmail, tenantId);
+        var command = userAdapterMapper.toUpdateEmailCommand(idUserExternal, newEmail, companyId);
         
         // Then
         assertNotNull(command);
@@ -170,8 +170,7 @@ class UserAdapterMapperTest {
             null, // lastLogin
             null, // roles
             null, // companyId
-            null, // companyCode
-            null  // tenantId
+            null  // companyCode
         );
 
         // When
@@ -204,7 +203,6 @@ class UserAdapterMapperTest {
             LocalDateTime.now(),
             LocalDateTime.now(),
             List.of("ROLE_USER"),
-            UUID.randomUUID(),
             UUID.randomUUID(),
             UUID.randomUUID()
         );
@@ -252,8 +250,7 @@ class UserAdapterMapperTest {
             LocalDateTime.now(),
             List.of("ROLE_USER"),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            UUID.randomUUID() // tenantId
+            UUID.randomUUID()
         );
 
         // When
@@ -292,8 +289,7 @@ class UserAdapterMapperTest {
             LocalDateTime.now(),
             List.of("ROLE_USER"),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            UUID.randomUUID() // tenantId
+            UUID.randomUUID()
         );
 
         PageResultView<UserSearchView> pageResultView = new PageResultView<>(
@@ -381,7 +377,6 @@ class UserAdapterMapperTest {
             LocalDateTime.now(),
             List.of("ROLE_USER"),
             UUID.randomUUID(),
-            UUID.randomUUID(),
             UUID.randomUUID()
         );
 
@@ -420,7 +415,6 @@ class UserAdapterMapperTest {
             LocalDateTime.now(),
             LocalDateTime.now(),
             List.of("ROLE_USER"),
-            UUID.randomUUID(),
             UUID.randomUUID(),
             UUID.randomUUID()
         );
@@ -461,7 +455,6 @@ class UserAdapterMapperTest {
             LocalDateTime.now(),
             List.of("ROLE_USER"),
             UUID.randomUUID(),
-            UUID.randomUUID(),
             UUID.randomUUID()
         );
 
@@ -500,7 +493,6 @@ class UserAdapterMapperTest {
             LocalDateTime.now(),
             LocalDateTime.now(),
             List.of("ROLE_USER"),
-            UUID.randomUUID(),
             UUID.randomUUID(),
             UUID.randomUUID()
         );

@@ -75,7 +75,7 @@ public class AuthUseCaseService implements AuthPort {
     @RateLimiter(name = "loginAttempt", fallbackMethod = "loginRateLimitExceeded")
     public AuthLoginView login(AuthLoginCommandDTO request) {
         log.info("Processando login | username={} | application={} | clientId={}", 
-            request.getUsername(), request.getTenantId(), request.getClientId());
+            request.getUsername(), request.getCompanyId(), request.getClientId());
         
         AuthLoginView view = authCommandService.login(request);
         
@@ -86,7 +86,7 @@ public class AuthUseCaseService implements AuthPort {
     @Override
     public AuthLoginView registerLogin(AuthRegisterLoginCommandDTO request) {
         log.info("Processando register login | username={} | application={} | clientId={}", 
-            request.getUsername(), request.getTenantId(), request.getClientId());
+            request.getUsername(), request.getCompanyId(), request.getClientId());
         
         String token = authCommandService.registerLogin(request);
         
@@ -112,7 +112,7 @@ public class AuthUseCaseService implements AuthPort {
     private AuthLoginView loginRateLimitExceeded(AuthLoginCommandDTO request, RequestNotPermitted ex) {
         log.warn("RATE LIMIT EXCEDIDO | username={} | application={} | clientId={}", 
             request.getUsername(), 
-            request.getTenantId(), 
+            request.getCompanyId(), 
             request.getClientId());
         
         throw new RuntimeException(
@@ -123,35 +123,35 @@ public class AuthUseCaseService implements AuthPort {
     @Override
     public AuthRefreshTokenView refreshToken(AuthRefreshTokenCommandDTO request) {
         log.info("Processing refresh token request - application={}, clientId={}", 
-            request.getTenantId(), request.getClientId());
+            request.getCompanyId(), request.getClientId());
         String token = authCommandService.refreshToken(request);
         return new AuthRefreshTokenView(token, 3600L);
     }
 
     @Override
     public AuthLogoutView logout(AuthLogoutCommandDTO request) {
-        log.info("Processing logout request - application={}", request.getTenantId());
+        log.info("Processing logout request - application={}", request.getCompanyId());
         authCommandService.logout(request);
         return new AuthLogoutView("Logout realizado com sucesso", true);
     }
 
     @Override
     public void validateToken(AuthValidateTokenQueryDTO request) {
-        log.info("Processing token validation request - application={}", request.getTenantId());
+        log.info("Processing token validation request - application={}", request.getCompanyId());
         authCommandService.validateToken(request);
     }
 
     @Override
     public void resetPassword(AuthResetPasswordCommandDTO request) {
         log.info("Processing password reset request - codeUser={}, application={}", 
-            request.getCodeUser(), request.getTenantId());
+            request.getCodeUser(), request.getCompanyId());
         authCommandService.resetPassword(request);
     }
 
     @Override
     public void changePassword(AuthChangePasswordCommandDTO request) {
         log.info("Processing password change request - codeUser={}, application={}", 
-            request.getCodeUser(), request.getTenantId());
+            request.getCodeUser(), request.getCompanyId());
         authCommandService.changePassword(request);
     }
 

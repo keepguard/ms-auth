@@ -345,7 +345,7 @@ public class RoleAdapterMapper {
 
     // ========== COMMAND DTO CONVERSIONS ==========
 
-    public RoleCreateCommandDTO toCreateCommand(RoleCreateDTO dto, UUID tenantId) {
+    public RoleCreateCommandDTO toCreateCommand(RoleCreateDTO dto, UUID companyId) {
         if (dto == null) {
             return null;
         }
@@ -353,7 +353,7 @@ public class RoleAdapterMapper {
             return RoleCreateCommandDTO.builder()
                     .name(dto.getName())
                     .description(dto.getDescription())
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear RoleCreateDTO para RoleCreateCommandDTO: {}", e.getMessage(), e);
@@ -361,7 +361,7 @@ public class RoleAdapterMapper {
         }
     }
 
-    public RoleUpdateCommandDTO toUpdateCommand(UUID id, RoleUpdateDTO dto, UUID tenantId) {
+    public RoleUpdateCommandDTO toUpdateCommand(UUID id, RoleUpdateDTO dto, UUID companyId) {
         if (dto == null) {
             return null;
         }
@@ -370,7 +370,7 @@ public class RoleAdapterMapper {
                     .id(id)
                     .name(dto.getName())
                     .description(dto.getDescription())
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear RoleUpdateDTO para RoleUpdateCommandDTO: {}", e.getMessage(), e);
@@ -378,11 +378,11 @@ public class RoleAdapterMapper {
         }
     }
 
-    public RoleDeleteCommandDTO toDeleteCommand(UUID id, UUID tenantId) {
+    public RoleDeleteCommandDTO toDeleteCommand(UUID id, UUID companyId) {
         try {
             return RoleDeleteCommandDTO.builder()
                     .id(id)
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar RoleDeleteCommandDTO: {}", e.getMessage(), e);
@@ -390,11 +390,11 @@ public class RoleAdapterMapper {
         }
     }
 
-    public RoleGetByIdQueryDTO toGetByIdCommand(UUID id, UUID tenantId) {
+    public RoleGetByIdQueryDTO toGetByIdCommand(UUID id, UUID companyId) {
         try {
             return RoleGetByIdQueryDTO.builder()
                     .id(id)
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar RoleGetByIdQueryDTO: {}", e.getMessage(), e);
@@ -402,11 +402,11 @@ public class RoleAdapterMapper {
         }
     }
 
-    public RoleGetByNameQueryDTO toGetByNameCommand(String name, UUID tenantId) {
+    public RoleGetByNameQueryDTO toGetByNameCommand(String name, UUID companyId) {
         try {
             return RoleGetByNameQueryDTO.builder()
                     .name(name)
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar RoleGetByNameQueryDTO: {}", e.getMessage(), e);
@@ -414,10 +414,10 @@ public class RoleAdapterMapper {
         }
     }
 
-    public RoleGetAllQueryDTO toGetAllCommand(UUID tenantId) {
+    public RoleGetAllQueryDTO toGetAllCommand(UUID companyId) {
         try {
             return RoleGetAllQueryDTO.builder()
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar RoleGetAllQueryDTO: {}", e.getMessage(), e);
@@ -425,11 +425,11 @@ public class RoleAdapterMapper {
         }
     }
 
-    public RoleSearchQueryDTO toSearchCommand(org.springframework.data.domain.Pageable pageable, UUID tenantId) {
+    public RoleSearchQueryDTO toSearchCommand(org.springframework.data.domain.Pageable pageable, UUID companyId) {
         try {
             return RoleSearchQueryDTO.builder()
                     .pageable(pageable)
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar RoleSearchQueryDTO: {}", e.getMessage(), e);
@@ -439,7 +439,7 @@ public class RoleAdapterMapper {
 
     // ========== ROLE-AUTHORITY RELATIONSHIP CONVERSIONS ==========
 
-    public RoleAddAuthorityCommandDTO toAddAuthorityCommand(RoleAddAuthorityRequestDTO dto, UUID tenantId) {
+    public RoleAddAuthorityCommandDTO toAddAuthorityCommand(RoleAddAuthorityRequestDTO dto, UUID companyId) {
         if (dto == null) {
             return null;
         }
@@ -447,7 +447,7 @@ public class RoleAdapterMapper {
             return RoleAddAuthorityCommandDTO.builder()
                     .roleId(dto.getRoleId())
                     .authorityName(dto.getAuthorityName())
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear RoleAddAuthorityRequestDTO para RoleAddAuthorityCommandDTO: {}", e.getMessage(), e);
@@ -470,7 +470,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public RoleRemoveAuthorityCommandDTO toRemoveAuthorityCommand(RoleRemoveAuthorityRequestDTO dto, UUID tenantId) {
+    public RoleRemoveAuthorityCommandDTO toRemoveAuthorityCommand(RoleRemoveAuthorityRequestDTO dto, UUID companyId) {
         if (dto == null) {
             return null;
         }
@@ -478,7 +478,7 @@ public class RoleAdapterMapper {
             return RoleRemoveAuthorityCommandDTO.builder()
                     .roleId(dto.getRoleId())
                     .authorityName(dto.getAuthorityName())
-                    .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear RoleRemoveAuthorityRequestDTO para RoleRemoveAuthorityCommandDTO: {}", e.getMessage(), e);

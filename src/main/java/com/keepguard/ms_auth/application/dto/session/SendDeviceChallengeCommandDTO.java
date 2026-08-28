@@ -18,5 +18,5 @@ public class SendDeviceChallengeCommandDTO {
     @NotBlank(message = "channel é obrigatório (EMAIL, SMS, WHATSAPP)")
     private String channel;
 
-    private String tenantId;
+    private String companyId;
 }

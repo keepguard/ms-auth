@@ -18,11 +18,11 @@ public interface DeviceBlacklistRepositoryPort {
 
     List<DeviceBlacklistEntry> listByCodeUser(UUID codeUser);
 
-    List<DeviceBlacklistEntry> listByTenantIdAndCodeUser(UUID tenantId, UUID codeUser);
+    List<DeviceBlacklistEntry> listByTenantIdAndCodeUser(UUID companyId, UUID codeUser);
 
     void deleteByCodeUserAndDeviceId(UUID codeUser, String deviceId);
 
     boolean isBlacklisted(UUID codeUser, String deviceId);
 
-    Page<DeviceBlacklistEntry> search(UUID tenantId, UUID codeUser, String deviceId, String deviceName, String ipAddress, java.time.LocalDateTime from, java.time.LocalDateTime to, Pageable pageable);
+    Page<DeviceBlacklistEntry> search(UUID companyId, UUID codeUser, String deviceId, String deviceName, String ipAddress, java.time.LocalDateTime from, java.time.LocalDateTime to, Pageable pageable);
 }

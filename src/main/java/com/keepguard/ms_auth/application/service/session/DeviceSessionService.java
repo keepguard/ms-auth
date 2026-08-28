@@ -108,7 +108,7 @@ public class DeviceSessionService {
                     "subject", "Código de Verificação de Dispositivo",
                     "variables", variables
             );
-            communicationClient.sendMessage(msgPayload, challenge.getTenantId());
+            communicationClient.sendMessage(msgPayload, UUID.fromString(challenge.getCompanyId()));
             log.info("Mensagem de desafio enviada com sucesso para ms-communication | templateType={}", templateType);
         } catch (Exception e) {
             log.error("Erro ao enviar mensagem de desafio via ms-communication: {}", e.getMessage(), e);
@@ -143,13 +143,13 @@ public class DeviceSessionService {
         // Código correto: buscar usuário
         User user = userRepository.findByCodeUserAndTenantId(
                 UUID.fromString(challenge.getCodeUser()),
-                UUID.fromString(challenge.getTenantId())
+                UUID.fromString(challenge.getCompanyId())
         ).orElseThrow(() -> new NotFoundException("Usuário não encontrado", "USER_NOT_FOUND", Map.of()));
 
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
 
-        String token = jwtService.generateToken(user, roleNames, authorities, challenge.getTenantId(), challenge.getClientId(), challenge.getDeviceId());
+        String token = jwtService.generateToken(user, roleNames, authorities, challenge.getCompanyId(), challenge.getClientId(), challenge.getDeviceId());
 
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
@@ -164,7 +164,7 @@ public class DeviceSessionService {
         UserSession session = UserSession.builder()
                 .sessionId("sess_" + UUID.randomUUID())
                 .codeUser(challenge.getCodeUser())
-                .tenantId(challenge.getTenantId())
+                .companyId(challenge.getCompanyId())
                 .clientId(challenge.getClientId())
                 .deviceId(challenge.getDeviceId())
                 .deviceName(challenge.getDeviceName())
@@ -183,7 +183,7 @@ public class DeviceSessionService {
         // Registra/Atualiza o dispositivo no PostgreSQL
         try {
             UUID codeUserUuid = UUID.fromString(challenge.getCodeUser());
-            UUID tenantIdUuid = UUID.fromString(challenge.getTenantId());
+            UUID tenantIdUuid = UUID.fromString(challenge.getCompanyId());
             userDeviceRepository.findByCodeUserAndDeviceId(codeUserUuid, challenge.getDeviceId())
                     .ifPresentOrElse(dev -> {
                         dev.setIsTrusted(Boolean.TRUE.equals(command.getTrustDevice()));
@@ -192,7 +192,7 @@ public class DeviceSessionService {
                     }, () -> {
                         UserDevice newDevice = UserDevice.builder()
                                 .codeUser(codeUserUuid)
-                                .tenantId(tenantIdUuid)
+                                .companyId(tenantIdUuid)
                                 .deviceId(challenge.getDeviceId())
                                 .deviceName(challenge.getDeviceName())
                                 .deviceType(challenge.getDeviceType())
@@ -214,7 +214,7 @@ public class DeviceSessionService {
         com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken quickRevokeToken = com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken.builder()
                 .token(quickRevokeTokenStr)
                 .codeUser(challenge.getCodeUser())
-                .tenantId(challenge.getTenantId())
+                .companyId(challenge.getCompanyId())
                 .deviceId(challenge.getDeviceId())
                 .deviceName(challenge.getDeviceName())
                 .ipAddress(challenge.getIpAddress())
@@ -241,7 +241,7 @@ public class DeviceSessionService {
         }
 
         try {
-            String baseUrl = resolveBaseUrl(challenge.getTenantId());
+            String baseUrl = resolveBaseUrl(challenge.getCompanyId());
             String revokeUrl = baseUrl + "/api/v1/auth/device/quick-revoke?token=" + quickRevokeToken + "&blacklist=true";
 
             Map<String, Object> variables = new HashMap<>();
@@ -264,7 +264,7 @@ public class DeviceSessionService {
                     "variables", variables
             );
 
-            communicationClient.sendMessage(msgPayload, challenge.getTenantId());
+            communicationClient.sendMessage(msgPayload, UUID.fromString(challenge.getCompanyId()));
             log.info("Notificação de novo dispositivo conectado enviada | codeUser={} | email={} | revokeUrl={}",
                     challenge.getCodeUser(), challenge.getEmail(), revokeUrl);
         } catch (Exception e) {
@@ -294,7 +294,7 @@ public class DeviceSessionService {
                         com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken.builder()
                                 .token(quickRevokeTokenStr)
                                 .codeUser(command.getCodeUser())
-                                .tenantId(command.getTenantId())
+                                .companyId(command.getCompanyId())
                                 .deviceId(command.getDeviceId())
                                 .deviceName(command.getDeviceName())
                                 .ipAddress(command.getIpAddress())
@@ -304,7 +304,7 @@ public class DeviceSessionService {
                                 .build();
                 sessionCachePort.saveQuickRevokeToken(quickRevokeToken, 172800L);
 
-                String baseUrl = resolveBaseUrl(command.getTenantId());
+                String baseUrl = resolveBaseUrl(command.getCompanyId());
                 revokeUrl = baseUrl + "/api/v1/auth/device/quick-revoke?token="
                         + quickRevokeTokenStr + "&blacklist=true";
             }
@@ -335,7 +335,7 @@ public class DeviceSessionService {
                     "variables", variables
             );
 
-            communicationClient.sendMessage(msgPayload, command.getTenantId());
+            communicationClient.sendMessage(msgPayload, UUID.fromString(command.getCompanyId()));
             log.info("Notificação de senha alterada enviada | codeUser={} | email={} | hasRevokeUrl={}",
                     command.getCodeUser(), command.getEmail(), !revokeUrl.isBlank());
         } catch (Exception e) {
@@ -343,10 +343,10 @@ public class DeviceSessionService {
         }
     }
 
-    private String resolveBaseUrl(String tenantId) {
+    private String resolveBaseUrl(String companyId) {
         try {
-            if (companyClient != null && tenantId != null && !tenantId.isBlank()) {
-                Map<String, Object> company = companyClient.getCompanyByTenantId(tenantId);
+            if (companyClient != null && companyId != null && !companyId.isBlank()) {
+                Map<String, Object> company = companyClient.getCompanyByTenantId(companyId);
                 if (company != null) {
                     if (company.containsKey("apiBaseUrl") && company.get("apiBaseUrl") != null) {
                         return (String) company.get("apiBaseUrl");
@@ -357,8 +357,8 @@ public class DeviceSessionService {
                 }
             }
         } catch (Exception e) {
-            log.warn("Não foi possível carregar URLs customizadas da Company | tenantId={} | usando default: {}",
-                    tenantId, defaultApiBaseUrl);
+            log.warn("Não foi possível carregar URLs customizadas da Company | companyId={} | usando default: {}",
+                    companyId, defaultApiBaseUrl);
         }
         return defaultApiBaseUrl != null ? defaultApiBaseUrl : "http://localhost:8381";
     }
@@ -627,9 +627,9 @@ public class DeviceSessionService {
         // 2. Adicionar à blacklist se solicitado (Redis + DB)
         if (addToBlacklist) {
             UUID tenantIdUuid = null;
-            if (quickRevokeToken.getTenantId() != null && !quickRevokeToken.getTenantId().isBlank()) {
+            if (quickRevokeToken.getCompanyId() != null && !quickRevokeToken.getCompanyId().isBlank()) {
                 try {
-                    tenantIdUuid = UUID.fromString(quickRevokeToken.getTenantId());
+                    tenantIdUuid = UUID.fromString(quickRevokeToken.getCompanyId());
                 } catch (Exception ignored) {}
             }
             if (tenantIdUuid == null) {
@@ -641,7 +641,7 @@ public class DeviceSessionService {
             }
 
             com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry entry = com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry.builder()
-                    .tenantId(tenantIdUuid)
+                    .companyId(tenantIdUuid)
                     .codeUser(codeUser)
                     .deviceId(deviceId)
                     .deviceName(quickRevokeToken.getDeviceName())
@@ -694,7 +694,7 @@ public class DeviceSessionService {
             Optional<UserDevice> userDeviceOpt = userDeviceRepository.findByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId);
             if (userDeviceOpt.isPresent()) {
                 UserDevice dev = userDeviceOpt.get();
-                tenantIdUuid = dev.getTenantId();
+                tenantIdUuid = dev.getCompanyId();
                 ipAddress = dev.getIpAddress();
                 userAgent = dev.getUserAgent();
                 if (deviceName == null || deviceName.isBlank()) {
@@ -712,7 +712,7 @@ public class DeviceSessionService {
         }
 
         com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry entry = com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry.builder()
-                .tenantId(tenantIdUuid)
+                .companyId(tenantIdUuid)
                 .codeUser(codeUser)
                 .deviceId(deviceId)
                 .deviceName(deviceName != null ? deviceName : "Dispositivo Bloqueado")
@@ -757,12 +757,12 @@ public class DeviceSessionService {
     }
 
     public org.springframework.data.domain.Page<com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry> searchBlacklist(
-            UUID tenantId, UUID codeUser, String deviceId, String deviceName, String ipAddress,
+            UUID companyId, UUID codeUser, String deviceId, String deviceName, String ipAddress,
             java.time.LocalDateTime from, java.time.LocalDateTime to, org.springframework.data.domain.Pageable pageable) {
-        return deviceBlacklistRepository.search(tenantId, codeUser, deviceId, deviceName, ipAddress, from, to, pageable);
+        return deviceBlacklistRepository.search(companyId, codeUser, deviceId, deviceName, ipAddress, from, to, pageable);
     }
 
-    public void adminAddDeviceToBlacklist(UUID tenantId, String codeUser, String deviceId, String deviceName, String reason, String blockedBy, LocalDateTime expiresAt) {
+    public void adminAddDeviceToBlacklist(UUID companyId, String codeUser, String deviceId, String deviceName, String reason, String blockedBy, LocalDateTime expiresAt) {
         sessionCachePort.removeUserSession(codeUser, deviceId);
         try {
             userDeviceRepository.findByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId)
@@ -787,7 +787,7 @@ public class DeviceSessionService {
         } catch (Exception ignored) {}
 
         com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry entry = com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry.builder()
-                .tenantId(tenantId)
+                .companyId(companyId)
                 .codeUser(codeUser)
                 .deviceId(deviceId)
                 .deviceName(deviceName != null ? deviceName : "Dispositivo Bloqueado")
@@ -807,18 +807,18 @@ public class DeviceSessionService {
             log.warn("Falha ao salvar blacklist administrativo no PostgreSQL | codeUser={} | deviceId={} | erro={}", codeUser, deviceId, e.getMessage());
         }
 
-        log.info("Dispositivo adicionado à blacklist por Admin | tenantId={} | codeUser={} | deviceId={} | blockedBy={}",
-                tenantId, codeUser, deviceId, blockedBy);
+        log.info("Dispositivo adicionado à blacklist por Admin | companyId={} | codeUser={} | deviceId={} | blockedBy={}",
+                companyId, codeUser, deviceId, blockedBy);
     }
 
-    public void adminRemoveDeviceFromBlacklist(UUID tenantId, String codeUser, String deviceId) {
+    public void adminRemoveDeviceFromBlacklist(UUID companyId, String codeUser, String deviceId) {
         sessionCachePort.removeFromBlacklist(codeUser, deviceId);
         try {
             deviceBlacklistRepository.deleteByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId);
         } catch (Exception e) {
             log.warn("Falha ao remover blacklist administrativo do PostgreSQL | codeUser={} | deviceId={} | erro={}", codeUser, deviceId, e.getMessage());
         }
-        log.info("Dispositivo removido da blacklist por Admin | tenantId={} | codeUser={} | deviceId={}", tenantId, codeUser, deviceId);
+        log.info("Dispositivo removido da blacklist por Admin | companyId={} | codeUser={} | deviceId={}", companyId, codeUser, deviceId);
     }
 
     private List<String> getUserRoles(UUID userId) {

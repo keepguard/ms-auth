@@ -52,8 +52,8 @@ public class DeviceBlacklistRepositoryAdapter implements DeviceBlacklistReposito
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeviceBlacklistEntry> listByTenantIdAndCodeUser(UUID tenantId, UUID codeUser) {
-        return springRepository.findByTenantIdAndCodeUser(tenantId, codeUser).stream()
+    public List<DeviceBlacklistEntry> listByTenantIdAndCodeUser(UUID companyId, UUID codeUser) {
+        return springRepository.findByTenantIdAndCodeUser(companyId, codeUser).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -73,11 +73,11 @@ public class DeviceBlacklistRepositoryAdapter implements DeviceBlacklistReposito
     @Override
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<DeviceBlacklistEntry> search(
-            UUID tenantId, UUID codeUser, String deviceId, String deviceName, String ipAddress,
+            UUID companyId, UUID codeUser, String deviceId, String deviceName, String ipAddress,
             java.time.LocalDateTime from, java.time.LocalDateTime to, org.springframework.data.domain.Pageable pageable) {
         
         org.springframework.data.jpa.domain.Specification<DeviceBlacklistJpaEntity> spec = org.springframework.data.jpa.domain.Specification
-                .where(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withTenantId(tenantId))
+                .where(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withTenantId(companyId))
                 .and(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withCodeUser(codeUser))
                 .and(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withDeviceId(deviceId))
                 .and(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withDeviceName(deviceName))

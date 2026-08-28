@@ -66,9 +66,5 @@ public class UserByUsernameResponseDTO {
     @Schema(description = "Código da empresa à qual o usuário pertence",
             example = "550e8400-e29b-41d4-a716-446655440001")
     private UUID companyCode;
-
-    @Schema(description = "Identificador único da aplicação",
-            example = "550e8400-e29b-41d4-a716-446655440002")
-    private UUID tenantId;
 }
 
