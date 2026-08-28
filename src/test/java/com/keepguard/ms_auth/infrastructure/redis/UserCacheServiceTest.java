@@ -154,7 +154,7 @@ class UserCacheServiceTest {
         userCacheServiceAdapter.cacheUserByUsername(companyId, "testuser", userGetByUsernameView);
 
         // Then
-        verify(valueOperations).set(eq("user_cache:username:" + companyId + ":testuser"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
+        verify(valueOperations).set(eq("user_cache:auth:username:" + companyId + ":testuser"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
     }
 
     @Test
@@ -162,7 +162,7 @@ class UserCacheServiceTest {
     void shouldGetUserByUsernameFromCache() throws Exception {
         // Given
         String userJson = objectMapper.writeValueAsString(userAuthCacheViewDTO);
-        when(valueOperations.get("user_cache:username:" + companyId + ":testuser")).thenReturn(userJson);
+        when(valueOperations.get("user_cache:auth:username:" + companyId + ":testuser")).thenReturn(userJson);
 
         // When
         UserAuthCacheView result = userCacheServiceAdapter.getUserByUsernameFromCache(companyId, "testuser");
@@ -180,7 +180,7 @@ class UserCacheServiceTest {
         userCacheServiceAdapter.removeUserFromCacheByUsername(companyId, "testuser");
 
         // Then
-        verify(redisTemplate).delete("user_cache:username:" + companyId + ":testuser");
+        verify(redisTemplate).delete("user_cache:auth:username:" + companyId + ":testuser");
     }
 
     // By Email Tests
@@ -191,7 +191,7 @@ class UserCacheServiceTest {
         userCacheServiceAdapter.cacheUserByEmail(companyId, "test@example.com", userGetByEmailView);
 
         // Then
-        verify(valueOperations).set(eq("user_cache:email:" + companyId + ":test@example.com"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
+        verify(valueOperations).set(eq("user_cache:auth:email:" + companyId + ":test@example.com"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
     }
 
     @Test
@@ -199,7 +199,7 @@ class UserCacheServiceTest {
     void shouldGetUserByEmailFromCache() throws Exception {
         // Given
         String userJson = objectMapper.writeValueAsString(userAuthCacheViewDTO);
-        when(valueOperations.get("user_cache:email:" + companyId + ":test@example.com")).thenReturn(userJson);
+        when(valueOperations.get("user_cache:auth:email:" + companyId + ":test@example.com")).thenReturn(userJson);
 
         // When
         UserAuthCacheView result = userCacheServiceAdapter.getUserByEmailFromCache(companyId, "test@example.com");
@@ -216,7 +216,7 @@ class UserCacheServiceTest {
         userCacheServiceAdapter.removeUserFromCacheByEmail(companyId, "test@example.com");
 
         // Then
-        verify(redisTemplate).delete("user_cache:email:" + companyId + ":test@example.com");
+        verify(redisTemplate).delete("user_cache:auth:email:" + companyId + ":test@example.com");
     }
 
     // By CodeUser Tests
@@ -227,7 +227,7 @@ class UserCacheServiceTest {
         userCacheServiceAdapter.cacheUserByCodeUser("user123", userGetByCodeView);
 
         // Then
-        verify(valueOperations).set(eq("user_cache:codeuser:user123"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
+        verify(valueOperations).set(eq("user_cache:auth:codeuser:user123"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
     }
 
     @Test
@@ -235,7 +235,7 @@ class UserCacheServiceTest {
     void shouldGetUserByCodeUserFromCache() throws Exception {
         // Given
         String userJson = objectMapper.writeValueAsString(userAuthCacheViewDTO);
-        when(valueOperations.get("user_cache:codeuser:user123")).thenReturn(userJson);
+        when(valueOperations.get("user_cache:auth:codeuser:user123")).thenReturn(userJson);
 
         // When
         UserAuthCacheView result = userCacheServiceAdapter.getUserByCodeUserFromCache("user123");
@@ -251,7 +251,7 @@ class UserCacheServiceTest {
         userCacheServiceAdapter.removeUserFromCacheByCodeUser("user123");
 
         // Then
-        verify(redisTemplate).delete("user_cache:codeuser:user123");
+        verify(redisTemplate).delete("user_cache:auth:codeuser:user123");
     }
 
     // By IdExternal Tests
@@ -262,7 +262,7 @@ class UserCacheServiceTest {
         userCacheServiceAdapter.cacheUserByIdExternal("ext123", userAuthCacheViewDTO);
 
         // Then
-        verify(valueOperations).set(eq("user_cache:external:ext123"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
+        verify(valueOperations).set(eq("user_cache:auth:external:ext123"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
     }
 
     @Test
@@ -270,7 +270,7 @@ class UserCacheServiceTest {
     void shouldGetUserByIdExternalFromCache() throws Exception {
         // Given
         String userJson = objectMapper.writeValueAsString(userAuthCacheViewDTO);
-        when(valueOperations.get("user_cache:external:ext123")).thenReturn(userJson);
+        when(valueOperations.get("user_cache:auth:external:ext123")).thenReturn(userJson);
 
         // When
         UserAuthCacheView result = userCacheServiceAdapter.getUserByIdExternalFromCache("ext123");
@@ -286,7 +286,7 @@ class UserCacheServiceTest {
         userCacheServiceAdapter.removeUserFromCacheByIdExternal("ext123");
 
         // Then
-        verify(redisTemplate).delete("user_cache:external:ext123");
+        verify(redisTemplate).delete("user_cache:auth:external:ext123");
     }
 
     // User Roles Tests
@@ -297,7 +297,7 @@ class UserCacheServiceTest {
         userCacheServiceAdapter.cacheUserRoles("user123", userRolesCacheViewDTO);
 
         // Then
-        verify(valueOperations).set(eq("user_roles_cache:user123"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
+        verify(valueOperations).set(eq("user_cache:auth:roles:user123"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
     }
 
     @Test
@@ -305,7 +305,7 @@ class UserCacheServiceTest {
     void shouldGetUserRolesFromCache() throws Exception {
         // Given
         String rolesJson = objectMapper.writeValueAsString(userRolesCacheViewDTO);
-        when(valueOperations.get("user_roles_cache:user123")).thenReturn(rolesJson);
+        when(valueOperations.get("user_cache:auth:roles:user123")).thenReturn(rolesJson);
 
         // When
         UserRolesCacheView result = userCacheServiceAdapter.getUserRolesFromCache("user123");
@@ -324,7 +324,7 @@ class UserCacheServiceTest {
         userCacheServiceAdapter.removeUserRolesFromCache("user123");
 
         // Then
-        verify(redisTemplate).delete("user_roles_cache:user123");
+        verify(redisTemplate).delete("user_cache:auth:roles:user123");
     }
 
     // Null Tests
@@ -332,7 +332,7 @@ class UserCacheServiceTest {
     @DisplayName("Deve retornar null quando usuário não existe no cache por username")
     void shouldReturnNullWhenUserDoesNotExistInCacheByUsername() {
         // Given
-        when(valueOperations.get("user_cache:username:" + companyId + ":nonexistent")).thenReturn(null);
+        when(valueOperations.get("user_cache:auth:username:" + companyId + ":nonexistent")).thenReturn(null);
 
         // When
         UserAuthCacheView result = userCacheServiceAdapter.getUserByUsernameFromCache(companyId, "nonexistent");
@@ -345,7 +345,7 @@ class UserCacheServiceTest {
     @DisplayName("Deve retornar null quando roles não existem no cache")
     void shouldReturnNullWhenRolesDoNotExistInCache() {
         // Given
-        when(valueOperations.get("user_roles_cache:user123")).thenReturn(null);
+        when(valueOperations.get("user_cache:auth:roles:user123")).thenReturn(null);
 
         // When
         UserRolesCacheView result = userCacheServiceAdapter.getUserRolesFromCache("user123");

@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class UserCacheService implements UserCachePort {
 
+    private static final String CONTEXT = "auth";
+
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
@@ -53,11 +55,11 @@ public class UserCacheService implements UserCachePort {
         try {
             var key = scopedKey("username", companyId, username);
             var value = redisTemplate.opsForValue().get(key);
-            
+
             if (value == null || value.isBlank()) {
                 return null;
             }
-            
+
             return objectMapper.readValue(value, UserAuthCacheView.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -76,7 +78,7 @@ public class UserCacheService implements UserCachePort {
     @CircuitBreaker(name = "redisCache")
     public void cacheUserByEmail(UUID companyId, String email, UserGetByEmailView user) {
         try {
-            String key = scopedKey("email", companyId, email.toLowerCase().trim());
+            String key = scopedKey("email", companyId, email);
             String value = objectMapper.writeValueAsString(user);
             redisTemplate.opsForValue().set(key, value, userTtlSeconds, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -88,13 +90,13 @@ public class UserCacheService implements UserCachePort {
     @Retry(name = "redisCache")
     public UserAuthCacheView getUserByEmailFromCache(UUID companyId, String email) {
         try {
-            var key = scopedKey("email", companyId, email.toLowerCase().trim());
+            var key = scopedKey("email", companyId, email);
             var value = redisTemplate.opsForValue().get(key);
-            
+
             if (value == null || value.isBlank()) {
                 return null;
             }
-            
+
             return objectMapper.readValue(value, UserAuthCacheView.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -104,7 +106,7 @@ public class UserCacheService implements UserCachePort {
     @CircuitBreaker(name = "redisCache")
     public void removeUserFromCacheByEmail(UUID companyId, String email) {
         try {
-            redisTemplate.delete(scopedKey("email", companyId, email.toLowerCase().trim()));
+            redisTemplate.delete(scopedKey("email", companyId, email));
         } catch (Exception e) {
             log.warn("Falha ao remover usuario do cache | email={} | erro={}", email, e.getMessage());
         }
@@ -113,7 +115,7 @@ public class UserCacheService implements UserCachePort {
     @CircuitBreaker(name = "redisCache")
     public void cacheUserByCodeUser(String codeUser, UserGetByCodeView user) {
         try {
-            String key = userCachePrefix + ":codeuser:" + codeUser;
+            String key = authKey("codeuser", codeUser);
             String value = objectMapper.writeValueAsString(user);
             redisTemplate.opsForValue().set(key, value, userTtlSeconds, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -125,13 +127,13 @@ public class UserCacheService implements UserCachePort {
     @Retry(name = "redisCache")
     public UserAuthCacheView getUserByCodeUserFromCache(String codeUser) {
         try {
-            var key = "%s:codeuser:%s".formatted(userCachePrefix, codeUser);
+            var key = authKey("codeuser", codeUser);
             var value = redisTemplate.opsForValue().get(key);
-            
+
             if (value == null || value.isBlank()) {
                 return null;
             }
-            
+
             return objectMapper.readValue(value, UserAuthCacheView.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -141,8 +143,7 @@ public class UserCacheService implements UserCachePort {
     @CircuitBreaker(name = "redisCache")
     public void removeUserFromCacheByCodeUser(String codeUser) {
         try {
-            String key = userCachePrefix + ":codeuser:" + codeUser;
-            redisTemplate.delete(key);
+            redisTemplate.delete(authKey("codeuser", codeUser));
         } catch (Exception e) {
             log.warn("Falha ao remover usuario do cache | codeUser={} | erro={}", codeUser, e.getMessage());
         }
@@ -151,7 +152,7 @@ public class UserCacheService implements UserCachePort {
     @CircuitBreaker(name = "redisCache")
     public void cacheUserByIdExternal(String idUserExternal, UserAuthCacheView user) {
         try {
-            String key = userCachePrefix + ":external:" + idUserExternal;
+            String key = authKey("external", idUserExternal);
             String value = objectMapper.writeValueAsString(user);
             redisTemplate.opsForValue().set(key, value, userTtlSeconds, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -163,13 +164,13 @@ public class UserCacheService implements UserCachePort {
     @Retry(name = "redisCache")
     public UserAuthCacheView getUserByIdExternalFromCache(String idUserExternal) {
         try {
-            var key = "%s:external:%s".formatted(userCachePrefix, idUserExternal);
+            var key = authKey("external", idUserExternal);
             var value = redisTemplate.opsForValue().get(key);
-            
+
             if (value == null || value.isBlank()) {
                 return null;
             }
-            
+
             return objectMapper.readValue(value, UserAuthCacheView.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -179,8 +180,7 @@ public class UserCacheService implements UserCachePort {
     @CircuitBreaker(name = "redisCache")
     public void removeUserFromCacheByIdExternal(String idUserExternal) {
         try {
-            String key = userCachePrefix + ":external:" + idUserExternal;
-            redisTemplate.delete(key);
+            redisTemplate.delete(authKey("external", idUserExternal));
         } catch (Exception e) {
             log.warn("Falha ao remover usuario do cache | idExternal={} | erro={}", idUserExternal, e.getMessage());
         }
@@ -189,7 +189,7 @@ public class UserCacheService implements UserCachePort {
     @CircuitBreaker(name = "redisCache")
     public void cacheUserRoles(String codeUser, UserRolesCacheView userRoles) {
         try {
-            String key = userRolesCachePrefix + ":" + codeUser;
+            String key = rolesKey(codeUser);
             String value = objectMapper.writeValueAsString(userRoles);
             redisTemplate.opsForValue().set(key, value, userRolesTtlSeconds, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -201,13 +201,13 @@ public class UserCacheService implements UserCachePort {
     @Retry(name = "redisCache")
     public UserRolesCacheView getUserRolesFromCache(String codeUser) {
         try {
-            var key = "%s:%s".formatted(userRolesCachePrefix, codeUser);
+            var key = rolesKey(codeUser);
             var value = redisTemplate.opsForValue().get(key);
-            
+
             if (value == null || value.isBlank()) {
                 return null;
             }
-            
+
             return objectMapper.readValue(value, UserRolesCacheView.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -217,8 +217,7 @@ public class UserCacheService implements UserCachePort {
     @CircuitBreaker(name = "redisCache")
     public void removeUserRolesFromCache(String codeUser) {
         try {
-            String key = userRolesCachePrefix + ":" + codeUser;
-            redisTemplate.delete(key);
+            redisTemplate.delete(rolesKey(codeUser));
         } catch (Exception e) {
             log.warn("Falha ao remover roles do cache | codeUser={} | erro={}", codeUser, e.getMessage());
         }
@@ -234,22 +233,23 @@ public class UserCacheService implements UserCachePort {
     @CircuitBreaker(name = "redisCache")
     public void clearAllUserCache() {
         try {
-            var userPattern = userCachePrefix + ":*";
-            var rolesPattern = userRolesCachePrefix + ":*";
-            
+            var userPattern = basePrefix() + ":" + CONTEXT + ":*";
             var userKeys = redisTemplate.keys(userPattern);
-            var rolesKeys = redisTemplate.keys(rolesPattern);
-            
+
             long deletedCount = 0;
-            
+
             if (userKeys != null && !userKeys.isEmpty()) {
                 deletedCount += redisTemplate.delete(userKeys);
             }
-            
-            if (rolesKeys != null && !rolesKeys.isEmpty()) {
-                deletedCount += redisTemplate.delete(rolesKeys);
+
+            if (userRolesCachePrefix != null && !userRolesCachePrefix.isBlank()) {
+                var rolesPattern = userRolesCachePrefix.replaceAll(":+$", "") + ":*";
+                var rolesKeys = redisTemplate.keys(rolesPattern);
+                if (rolesKeys != null && !rolesKeys.isEmpty()) {
+                    deletedCount += redisTemplate.delete(rolesKeys);
+                }
             }
-            
+
             if (deletedCount > 0) {
                 log.info("Cache de usuarios limpo | chaves removidas={}", deletedCount);
             }
@@ -258,24 +258,43 @@ public class UserCacheService implements UserCachePort {
         }
     }
 
+    private String basePrefix() {
+        if (userCachePrefix == null || userCachePrefix.isBlank()) {
+            return "user_cache";
+        }
+        return userCachePrefix.replaceAll(":+$", "");
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().toLowerCase();
+    }
+
+    private String authKey(String lookup, String id) {
+        return basePrefix() + ":" + CONTEXT + ":" + lookup + ":" + normalize(id);
+    }
+
     private String scopedKey(String kind, UUID companyId, String value) {
-        return userCachePrefix + ":" + kind + ":" + companyId + ":" + value;
+        return basePrefix() + ":" + CONTEXT + ":" + kind + ":" + companyId + ":" + normalize(value);
+    }
+
+    private String rolesKey(String codeUser) {
+        return authKey("roles", codeUser);
     }
 
     private UserAuthCacheView cacheFallback(String param, Exception ex) {
-        log.warn("FALLBACK: Redis indisponivel, buscando do banco | param={} | erro={}", 
+        log.warn("FALLBACK: Redis indisponivel, buscando do banco | param={} | erro={}",
             param, ex.getClass().getSimpleName());
         return null;
     }
 
     private UserAuthCacheView scopedCacheFallback(UUID companyId, String param, Exception ex) {
-        log.warn("FALLBACK: Redis indisponivel, buscando do banco | companyId={} | param={} | erro={}", 
+        log.warn("FALLBACK: Redis indisponivel, buscando do banco | companyId={} | param={} | erro={}",
             companyId, param, ex.getClass().getSimpleName());
         return null;
     }
 
     private UserRolesCacheView cacheRolesFallback(String codeUser, Exception ex) {
-        log.warn("FALLBACK: Redis indisponivel, buscando roles do banco | codeUser={} | erro={}", 
+        log.warn("FALLBACK: Redis indisponivel, buscando roles do banco | codeUser={} | erro={}",
             codeUser, ex.getClass().getSimpleName());
         return null;
     }
