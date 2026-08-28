@@ -256,7 +256,8 @@ app:
     frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:3000}
     api-base-url: ${API_BASE_URL:http://localhost:8381}
   geo:
-    lookup-url: ${GEO_LOOKUP_URL:https://ipwho.is/%s?fields=success,city,region,country}
+    lookup-url: ${GEO_LOOKUP_URL:https://get.geojs.io/v1/ip/geo/%s.json}
+    fallback-url: ${GEO_FALLBACK_URL:https://ipwho.is/%s?fields=success,city,region,country,country_code}
 
 ---
 spring:

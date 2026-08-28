@@ -34,6 +34,7 @@ public class AuthLoginCommandDTO {
     private String deviceName;
     private String deviceType;
     private String ipAddress;
+    private String location;
     private String userAgent;
 }
 

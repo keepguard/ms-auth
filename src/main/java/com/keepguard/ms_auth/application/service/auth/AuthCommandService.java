@@ -38,6 +38,7 @@ import com.keepguard.ms_auth.application.dto.session.PasswordChangedNotifyComman
 import com.keepguard.ms_auth.application.port.out.geo.GeoLocationPort;
 import com.keepguard.ms_auth.domain.entity.session.DeviceChallengeSession;
 import com.keepguard.ms_auth.domain.entity.session.UserSession;
+import com.keepguard.ms_auth.infrastructure.util.ClientLocation;
 import com.keepguard.ms_auth.infrastructure.util.IpAddressUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -207,7 +208,10 @@ public class AuthCommandService {
         tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getExpiration());
 
         String ipAddress = IpAddressUtils.firstIp(request.getIpAddress());
-        String location = geoLocationPort.resolve(ipAddress);
+        String locationHint = ClientLocation.sanitize(request.getLocation());
+        String location = ClientLocation.isUsable(locationHint)
+                ? locationHint
+                : geoLocationPort.resolve(ipAddress);
 
         // Salva/Atualiza sessão por dispositivo no Redis (30 dias)
         UserSession session = UserSession.builder()

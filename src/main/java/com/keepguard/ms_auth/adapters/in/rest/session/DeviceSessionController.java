@@ -10,6 +10,7 @@ import com.keepguard.ms_auth.application.dto.session.SendDeviceChallengeCommandD
 import com.keepguard.ms_auth.application.dto.session.VerifyDeviceChallengeCommandDTO;
 import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
 import com.keepguard.ms_auth.infrastructure.util.ClientIpResolver;
+import com.keepguard.ms_auth.infrastructure.util.ClientLocation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -75,7 +76,7 @@ public class DeviceSessionController {
         String codeUser = jwt.getSubject();
         String deviceId = currentDeviceId != null ? currentDeviceId : jwt.getClaimAsString("device_id");
         List<DeviceSessionView> sessions = deviceSessionService.listUserSessions(
-                codeUser, deviceId, ClientIpResolver.from(httpRequest));
+                codeUser, deviceId, ClientIpResolver.from(httpRequest), ClientLocation.from(httpRequest));
         return ResponseEntity.ok(sessions);
     }
 

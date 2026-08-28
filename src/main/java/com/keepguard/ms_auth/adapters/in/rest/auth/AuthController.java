@@ -25,6 +25,7 @@ import com.keepguard.ms_auth.application.port.in.AuthPort;
 import com.keepguard.ms_auth.adapters.in.rest.auth.mapper.AuthAdapterMapper;
 
 import com.keepguard.ms_auth.infrastructure.util.ClientIpResolver;
+import com.keepguard.ms_auth.infrastructure.util.ClientLocation;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -83,6 +84,9 @@ public class AuthController {
         var ipAddress = ClientIpResolver.from(httpRequest);
         
         var command = mapper.toLoginCommand(request, tenantId, clientId, deviceId, deviceName, deviceType, ipAddress, userAgent);
+        if (command != null) {
+            command.setLocation(ClientLocation.from(httpRequest));
+        }
         var view = authService.login(command);
         var response = mapper.toLoginResponseDTO(view);
         

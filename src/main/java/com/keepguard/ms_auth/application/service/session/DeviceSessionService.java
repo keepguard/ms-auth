@@ -24,6 +24,7 @@ import com.keepguard.ms_auth.domain.entity.session.UserDevice;
 import com.keepguard.ms_auth.domain.entity.session.UserSession;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import com.keepguard.ms_auth.infrastructure.config.security.JwtService;
+import com.keepguard.ms_auth.infrastructure.util.ClientLocation;
 import com.keepguard.ms_auth.infrastructure.util.IpAddressUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -363,10 +364,14 @@ public class DeviceSessionService {
     }
 
     public List<DeviceSessionView> listUserSessions(String codeUser, String currentDeviceId) {
-        return listUserSessions(codeUser, currentDeviceId, null);
+        return listUserSessions(codeUser, currentDeviceId, null, null);
     }
 
     public List<DeviceSessionView> listUserSessions(String codeUser, String currentDeviceId, String requestIp) {
+        return listUserSessions(codeUser, currentDeviceId, requestIp, null);
+    }
+
+    public List<DeviceSessionView> listUserSessions(String codeUser, String currentDeviceId, String requestIp, String requestLocation) {
         List<UserSession> activeSessions = sessionCachePort.listUserSessions(codeUser);
         Map<String, UserSession> activeSessionMap = activeSessions.stream()
                 .filter(s -> s.getDeviceId() != null)
@@ -391,7 +396,7 @@ public class DeviceSessionService {
                             isCurrent ? requestIp : null
                     );
                     persistDeviceIpIfMissing(dev, ipAddress);
-                    String location = resolveAndPersistLocation(active, ipAddress);
+                    String location = resolveAndPersistLocation(active, ipAddress, isCurrent ? requestLocation : null);
 
                     result.add(new DeviceSessionView(
                             active != null ? active.getSessionId() : "device_" + dev.getDeviceId(),
@@ -422,7 +427,7 @@ public class DeviceSessionService {
                     s.getDeviceName(),
                     s.getDeviceType(),
                     ipAddress,
-                    resolveAndPersistLocation(s, ipAddress),
+                    resolveAndPersistLocation(s, ipAddress, isCurrent ? requestLocation : null),
                     isCurrent,
                     s.getIsTrusted(),
                     s.getLastActiveAt(),
@@ -431,7 +436,15 @@ public class DeviceSessionService {
         }).collect(Collectors.toList());
     }
 
-    private String resolveAndPersistLocation(UserSession session, String ipAddress) {
+    private String resolveAndPersistLocation(UserSession session, String ipAddress, String preferredLocation) {
+        String preferred = ClientLocation.sanitize(preferredLocation);
+        if (ClientLocation.isUsable(preferred)) {
+            if (session != null && !preferred.equals(session.getLocation())) {
+                session.setLocation(preferred);
+                sessionCachePort.saveUserSession(session, 2592000L);
+            }
+            return preferred;
+        }
         String ip = IpAddressUtils.firstIp(ipAddress);
         boolean publicIp = ip != null && !IpAddressUtils.isPrivate(ip);
         String existing = session != null ? session.getLocation() : null;
@@ -445,11 +458,16 @@ public class DeviceSessionService {
                 && IpAddressUtils.isIpv4(ip)
                 && session != null
                 && IpAddressUtils.isIpv6(session.getIpAddress());
-        if (!staleLocation && !replacingPrivateSession && !replacingIpv6WithIpv4) {
-            return existing;
-        }
         String resolved = geoLocationPort.resolve(ip);
-        if (session != null && resolved != null && (!resolved.equals(existing) || replacingIpv6WithIpv4)) {
+        boolean resolvedUsable = ClientLocation.isUsable(resolved);
+        if (!resolvedUsable) {
+            return ClientLocation.isUsable(existing) ? existing : resolved;
+        }
+        boolean shouldPersist = session != null && (staleLocation
+                || replacingPrivateSession
+                || replacingIpv6WithIpv4
+                || !resolved.equals(existing));
+        if (shouldPersist) {
             session.setLocation(resolved);
             if (ip != null && (session.getIpAddress() == null || session.getIpAddress().isBlank()
                     || (publicIp && IpAddressUtils.isPrivate(session.getIpAddress()))
