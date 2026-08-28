@@ -458,6 +458,9 @@ public class DeviceSessionService {
                 && IpAddressUtils.isIpv4(ip)
                 && session != null
                 && IpAddressUtils.isIpv6(session.getIpAddress());
+        if (!staleLocation && !replacingPrivateSession && !replacingIpv6WithIpv4) {
+            return existing;
+        }
         String resolved = geoLocationPort.resolve(ip);
         boolean resolvedUsable = ClientLocation.isUsable(resolved);
         if (!resolvedUsable) {
