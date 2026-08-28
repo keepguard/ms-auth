@@ -1,6 +1,7 @@
 package com.keepguard.ms_auth.adapters.in.rest.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +21,7 @@ public class AuthLoginRequestDTO {
     @NotBlank(message = "Password é obrigatório")
     private String password;
 
-    @NotBlank(message = "companyId é obrigatório")
+    @NotNull(message = "companyId é obrigatório")
     private UUID companyId;
 
 }

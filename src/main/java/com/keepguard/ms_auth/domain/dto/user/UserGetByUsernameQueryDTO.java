@@ -1,6 +1,7 @@
 package com.keepguard.ms_auth.domain.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,10 +18,10 @@ public class UserGetByUsernameQueryDTO {
     @NotBlank(message = "Username é obrigatório")
     private String username;
 
-    @NotBlank(message = "O header X-Tenant-Id é obrigatório")
+    @NotNull(message = "O header X-Tenant-Id é obrigatório")
     private UUID tenantId;
 
-    @NotBlank(message = "companyId é obrigatório")
+    @NotNull(message = "companyId é obrigatório")
     private UUID companyId;
 }
 
