@@ -43,6 +43,18 @@ class LoginAttemptServiceTest {
     }
 
     @Test
+    @DisplayName("Deve normalizar username para lowercase nas chaves de tentativa")
+    void shouldNormalizeUsernameToLowercaseInAttemptKeys() {
+        when(valueOperations.increment("login_attempts:testuser")).thenReturn(1L);
+        when(redisTemplate.hasKey("account_locked:testuser")).thenReturn(false);
+
+        assertDoesNotThrow(() -> loginAttemptService.recordFailedAttempt("TestUser"));
+
+        verify(valueOperations).increment("login_attempts:testuser");
+        verify(redisTemplate).expire("login_attempts:testuser", attemptsTtlHours, TimeUnit.HOURS);
+    }
+
+    @Test
     @DisplayName("Deve registrar tentativa falhada com sucesso")
     void shouldRecordFailedAttemptSuccessfully() {
         // Given

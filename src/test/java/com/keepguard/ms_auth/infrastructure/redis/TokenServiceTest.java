@@ -81,6 +81,17 @@ class TokenServiceTest {
     }
 
     @Test
+    @DisplayName("Deve normalizar codeUser para lowercase na chave do token")
+    void shouldNormalizeCodeUserInTokenKey() {
+        String token = "jwt-token-123";
+        long ttlMillis = 3600000L;
+
+        tokenCacheService.saveToken("USER123", token, ttlMillis);
+
+        verify(valueOperations).set(eq("tokenlogin:user123:jwt-token-123"), anyString(), eq(ttlMillis), eq(TimeUnit.MILLISECONDS));
+    }
+
+    @Test
     @DisplayName("Deve verificar se token é válido")
     void shouldCheckIfTokenIsValid() {
         // Given

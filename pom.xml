@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.keepguard</groupId>
 	<artifactId>ms-auth</artifactId>
-	<version>1.0.26</version>
+	<version>1.0.27</version>
 	<name>ms-auth</name>
 	<description>Auth</description>
 	<url/>

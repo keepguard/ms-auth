@@ -48,7 +48,7 @@ public class TokenCacheService implements TokenCachePort {
     @CircuitBreaker(name = "redisCache")
     public void saveToken(String codeUser, String token, long ttlMillis) {
         try {
-            String key = tokenPrefix + ":" + codeUser + ":" + token;
+            String key = loginTokenKey(codeUser, token);
             Instant now = Instant.now();
             Instant expiresAt = now.plusMillis(ttlMillis);
             
@@ -66,7 +66,7 @@ public class TokenCacheService implements TokenCachePort {
     @Retry(name = "redisCache")
     public boolean isTokenValid(String codeUser, String token) {
         try {
-            String key = tokenPrefix + ":" + codeUser + ":" + token;
+            String key = loginTokenKey(codeUser, token);
             return Boolean.TRUE.equals(redisTemplate.hasKey(key));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -83,7 +83,7 @@ public class TokenCacheService implements TokenCachePort {
     @CircuitBreaker(name = "redisCache")
     public void removeAllTokens(String codeUser) {
         try {
-            Set<String> keys = redisTemplate.keys(tokenPrefix + ":" + codeUser + ":*");
+            Set<String> keys = redisTemplate.keys(tokenBasePrefix() + ":" + normalize(codeUser) + ":*");
             if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
                 log.info("Tokens removidos | codeUser={} | quantidade={}", codeUser, keys.size());
@@ -97,7 +97,7 @@ public class TokenCacheService implements TokenCachePort {
     @CircuitBreaker(name = "redisCache")
     public void removeToken(String codeUser, String token) {
         try {
-            String key = tokenPrefix + ":" + codeUser + ":" + token;
+            String key = loginTokenKey(codeUser, token);
             redisTemplate.delete(key);
         } catch (Exception e) {
             log.warn("Falha ao remover token | codeUser={} | erro={}", codeUser, e.getMessage());
@@ -178,7 +178,7 @@ public class TokenCacheService implements TokenCachePort {
             saveToken(codeUser, messageType, templateType, token, ttlMillis);
 
             // Define o cooldown para novas gerações
-            String cooldownKey = RESET_TOKEN_COOLDOWN_PREFIX + codeUser;
+            String cooldownKey = buildCooldownKey(codeUser);
             redisTemplate.opsForValue().set(cooldownKey, Instant.now().toString(), resetTokenCooldownSeconds, TimeUnit.SECONDS);
 
             // Limpa tentativas anteriores
@@ -199,7 +199,7 @@ public class TokenCacheService implements TokenCachePort {
     @CircuitBreaker(name = "redisCache")
     public boolean isResetTokenCooldownActive(String codeUser) {
         try {
-            String cooldownKey = RESET_TOKEN_COOLDOWN_PREFIX + codeUser;
+            String cooldownKey = buildCooldownKey(codeUser);
             return Boolean.TRUE.equals(redisTemplate.hasKey(cooldownKey));
         } catch (Exception e) {
             log.warn("Falha ao verificar cooldown | codeUser={} | erro={}", codeUser, e.getMessage());
@@ -211,7 +211,7 @@ public class TokenCacheService implements TokenCachePort {
     @CircuitBreaker(name = "redisCache")
     public long getResetTokenCooldownRemaining(String codeUser) {
         try {
-            String cooldownKey = RESET_TOKEN_COOLDOWN_PREFIX + codeUser;
+            String cooldownKey = buildCooldownKey(codeUser);
             Long ttl = redisTemplate.getExpire(cooldownKey, TimeUnit.SECONDS);
             return ttl != null && ttl > 0 ? ttl : 0;
         } catch (Exception e) {
@@ -276,7 +276,7 @@ public class TokenCacheService implements TokenCachePort {
      * Formato: resetpassword:codeUser:messageType:templateType
      */
     private String buildResetTokenKey(String codeUser, String messageType, String templateType) {
-        return String.format("%s:%s:%s:%s", resetTokenPrefix, codeUser, messageType, templateType);
+        return String.format("%s:%s:%s:%s", resetTokenBasePrefix(), normalize(codeUser), messageType, templateType);
     }
 
     /**
@@ -284,7 +284,33 @@ public class TokenCacheService implements TokenCachePort {
      * Formato: reset_token_attempts:codeUser:messageType:templateType
      */
     private String buildResetTokenAttemptsKey(String codeUser, String messageType, String templateType) {
-        return String.format("%s%s:%s:%s", RESET_TOKEN_ATTEMPTS_PREFIX, codeUser, messageType, templateType);
+        return String.format("%s%s:%s:%s", RESET_TOKEN_ATTEMPTS_PREFIX, normalize(codeUser), messageType, templateType);
+    }
+
+    private String loginTokenKey(String codeUser, String token) {
+        return tokenBasePrefix() + ":" + normalize(codeUser) + ":" + token;
+    }
+
+    private String buildCooldownKey(String codeUser) {
+        return RESET_TOKEN_COOLDOWN_PREFIX + normalize(codeUser);
+    }
+
+    private String tokenBasePrefix() {
+        if (tokenPrefix == null || tokenPrefix.isBlank()) {
+            return "tokenlogin";
+        }
+        return tokenPrefix.replaceAll(":+$", "");
+    }
+
+    private String resetTokenBasePrefix() {
+        if (resetTokenPrefix == null || resetTokenPrefix.isBlank()) {
+            return "resetpassword";
+        }
+        return resetTokenPrefix.replaceAll(":+$", "");
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().toLowerCase();
     }
 
     public record TokenInfo(

@@ -31,7 +31,7 @@ public class LoginAttemptService {
     private static final String ACCOUNT_LOCKED_PREFIX = "account_locked:";
 
     public void recordFailedAttempt(String username) {
-        String attemptsKey = LOGIN_ATTEMPTS_PREFIX + username;
+        String attemptsKey = buildAttemptsKey(username);
 
         // Verificar se a conta está bloqueada
         if (isAccountLocked(username)) {
@@ -60,8 +60,8 @@ public class LoginAttemptService {
     }
 
     public void recordSuccessfulAttempt(String username) {
-        String attemptsKey = LOGIN_ATTEMPTS_PREFIX + username;
-        String lockedKey = ACCOUNT_LOCKED_PREFIX + username;
+        String attemptsKey = buildAttemptsKey(username);
+        String lockedKey = buildLockedKey(username);
 
         // Limpar tentativas e bloqueio
         redisTemplate.delete(attemptsKey);
@@ -71,24 +71,24 @@ public class LoginAttemptService {
     }
 
     public boolean isAccountLocked(String username) {
-        String lockedKey = ACCOUNT_LOCKED_PREFIX + username;
+        String lockedKey = buildLockedKey(username);
         return Boolean.TRUE.equals(redisTemplate.hasKey(lockedKey));
     }
 
     private void lockAccount(String username) {
-        String lockedKey = ACCOUNT_LOCKED_PREFIX + username;
+        String lockedKey = buildLockedKey(username);
         redisTemplate.opsForValue().set(lockedKey, LocalDateTime.now().toString(),
                 lockoutDurationMinutes, TimeUnit.MINUTES);
     }
 
     public long getRemainingLockoutTime(String username) {
-        String lockedKey = ACCOUNT_LOCKED_PREFIX + username;
+        String lockedKey = buildLockedKey(username);
         Long ttl = redisTemplate.getExpire(lockedKey, TimeUnit.MINUTES);
         return ttl != null ? ttl : 0;
     }
 
     public int getRemainingAttempts(String username) {
-        String attemptsKey = LOGIN_ATTEMPTS_PREFIX + username;
+        String attemptsKey = buildAttemptsKey(username);
         String attempts = redisTemplate.opsForValue().get(attemptsKey);
         if (attempts == null) {
             return maxAttempts;
@@ -98,12 +98,24 @@ public class LoginAttemptService {
     }
 
     public void forceUnlockAccount(String username) {
-        String attemptsKey = LOGIN_ATTEMPTS_PREFIX + username;
-        String lockedKey = ACCOUNT_LOCKED_PREFIX + username;
+        String attemptsKey = buildAttemptsKey(username);
+        String lockedKey = buildLockedKey(username);
 
         redisTemplate.delete(attemptsKey);
         redisTemplate.delete(lockedKey);
 
         log.info("Conta desbloqueada forçadamente para usuário: {}", username);
+    }
+
+    private String buildAttemptsKey(String username) {
+        return LOGIN_ATTEMPTS_PREFIX + normalize(username);
+    }
+
+    private String buildLockedKey(String username) {
+        return ACCOUNT_LOCKED_PREFIX + normalize(username);
+    }
+
+    private String normalize(String username) {
+        return username == null ? "" : username.trim().toLowerCase();
     }
 }

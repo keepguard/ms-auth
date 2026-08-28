@@ -79,8 +79,8 @@ cache:
       user-roles: "user_roles_cache:"
       role: "role_cache:"
       application: "application_cache:"
-      token: "tokenlogin:"
-      reset-token: "resetpassword:"
+      token: "tokenlogin"
+      reset-token: "resetpassword"
 
 resilience4j:
   ratelimiter:
