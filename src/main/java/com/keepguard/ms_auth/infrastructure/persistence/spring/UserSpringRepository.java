@@ -37,6 +37,9 @@ public interface UserSpringRepository extends JpaRepository<UserJpaEntity, UUID>
     
     @Query("SELECT u FROM UserJpaEntity u WHERE u.codeUser = :codeUser AND u.tenantId = :tenantId")
     Optional<UserJpaEntity> findByCodeUserAndTenantId(@Param("codeUser") UUID codeUser, @Param("tenantId") UUID tenantId);
+
+    @Query("SELECT u FROM UserJpaEntity u WHERE u.codeUser = :codeUser AND u.companyId = :companyId")
+    Optional<UserJpaEntity> findByCodeUserAndCompanyId(@Param("codeUser") UUID codeUser, @Param("companyId") UUID companyId);
     
     List<UserJpaEntity> findAllByStatus(UserStatus status);
 

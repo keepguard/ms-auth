@@ -134,6 +134,12 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public Optional<User> findByCodeUserAndCompanyId(UUID codeUser, UUID companyId) {
+        return springRepository.findByCodeUserAndCompanyId(codeUser, companyId)
+                .map(mapper::toDomain);
+    }
+
+    @Override
     public List<User> findAllByStatus(UserStatus status) {
         return springRepository.findAllByStatus(status).stream()
                 .map(mapper::toDomain)

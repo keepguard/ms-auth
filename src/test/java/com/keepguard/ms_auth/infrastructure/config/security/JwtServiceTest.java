@@ -241,6 +241,7 @@ class JwtServiceTest {
         assertNotNull(claims.get("authorities", List.class));
         assertEquals("test-client", claims.get("client_id"));
         assertEquals("password", claims.get("login_method"));
+        assertEquals(user.getCompanyId().toString(), claims.get("companyId", String.class));
         assertNotNull(claims.getIssuedAt());
         assertNotNull(claims.getExpiration());
     }
@@ -437,5 +438,21 @@ class JwtServiceTest {
 
         assertNull(claims.get("display_handle"));
         assertEquals("dev_123", claims.get("device_id", String.class));
+    }
+
+    @Test
+    @DisplayName("Deve sanitizar client_id com vírgula e incluir companyId")
+    void shouldSanitizeCommaClientIdAndIncludeCompanyId() {
+        String token = jwtService.generateToken(user, List.of("USER"), List.of("READ_USER"), "test-app", "keepguard-web, keepguard-web");
+
+        Claims claims = Jwts.parser()
+            .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+
+        assertEquals("keepguard-web", claims.get("client_id"));
+        assertEquals("keepguard-web", claims.getAudience().iterator().next());
+        assertEquals(user.getCompanyId().toString(), claims.get("companyId", String.class));
     }
 }

@@ -121,11 +121,12 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserGetByCodeQueryDTO toGetByCodeQuery(String codeUser, UUID tenantId) {
+    public UserGetByCodeQueryDTO toGetByCodeQuery(String codeUser, UUID tenantId, UUID companyId) {
         try {
             return UserGetByCodeQueryDTO.builder()
                     .codeUser(codeUser)
                     .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserGetByCodeQueryDTO: {}", e.getMessage(), e);

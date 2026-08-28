@@ -47,6 +47,8 @@ public interface UserRepositoryPort {
 
     Optional<User> findByCodeUserAndTenantId(UUID codeUser, UUID tenantId);
 
+    Optional<User> findByCodeUserAndCompanyId(UUID codeUser, UUID companyId);
+
     List<User> findAllByStatus(UserStatus status);
 
     long countByCompanyIdAndStatusNot(UUID companyId, UserStatus status);

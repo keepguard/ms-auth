@@ -386,13 +386,16 @@ public class UserController {
             @Parameter(description = "Código único do usuário", required = true)
             @PathVariable String codeUser,
             @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") String companyIdHeader) {
 
-        log.info("Buscando usuário por código: {}, tenantIdHeader={}", codeUser, tenantIdHeader);
+        log.info("Buscando usuário por código: {}, tenantIdHeader={}, companyIdHeader={}", codeUser, tenantIdHeader, companyIdHeader);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        var companyId = ValidationUtils.validateTenantId(companyIdHeader);
         
-        var query = mapper.toGetByCodeQuery(codeUser, tenantId);
+        var query = mapper.toGetByCodeQuery(codeUser, tenantId, companyId);
         var view = userService.findByCodeUser(query);
         var response = mapper.toUserByCodeResponseDTO(view);
         

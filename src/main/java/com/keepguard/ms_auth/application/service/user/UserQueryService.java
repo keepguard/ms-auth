@@ -76,7 +76,7 @@ public class UserQueryService {
 
     public UserGetByCodeView findByCodeUser(UserGetByCodeQueryDTO query) {
         UUID codeUserUuid = UUID.fromString(query.getCodeUser());
-        User user = userRepository.findByCodeUserAndTenantId(codeUserUuid, query.getTenantId())
+        User user = userRepository.findByCodeUserAndCompanyId(codeUserUuid, query.getCompanyId())
             .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + query.getCodeUser(),
                 "USER_NOT_FOUND", Map.of("codeUser", query.getCodeUser())));
 

@@ -510,6 +510,14 @@ public class UserTestBuilder {
             .companyId(companyId)
             .build();
     }
+
+    public UserGetByCodeQueryDTO buildGetByCodeCommand() {
+        return UserGetByCodeQueryDTO.builder()
+            .codeUser(codeUser.toString())
+            .tenantId(tenantId)
+            .companyId(companyId)
+            .build();
+    }
     
     public UserGetByIdExternalQueryDTO buildGetByIdExternalCommand() {
         return UserGetByIdExternalQueryDTO.builder()

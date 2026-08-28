@@ -567,6 +567,7 @@ class UserControllerTest {
         UserGetByCodeQueryDTO query = UserGetByCodeQueryDTO.builder()
             .codeUser(codeUser)
             .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         UserByCodeResponseDTO userByCodeResponseDTO = UserByCodeResponseDTO.builder()
@@ -580,13 +581,15 @@ class UserControllerTest {
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
                 .thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(companyIdStr))
+                .thenReturn(companyId);
             
-            when(mapper.toGetByCodeQuery(codeUser, tenantId)).thenReturn(query);
+            when(mapper.toGetByCodeQuery(codeUser, tenantId, companyId)).thenReturn(query);
             when(userService.findByCodeUser(query)).thenReturn(userGetByCodeView);
             when(mapper.toUserByCodeResponseDTO(userGetByCodeView)).thenReturn(userByCodeResponseDTO);
             
             // When
-            ResponseEntity<UserByCodeResponseDTO> response = userController.getByCodeUser(codeUser, tenantIdStr);
+            ResponseEntity<UserByCodeResponseDTO> response = userController.getByCodeUser(codeUser, tenantIdStr, companyIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -597,7 +600,7 @@ class UserControllerTest {
             assertEquals("testuser", responseBody.getUsername());
             assertEquals("test@example.com", responseBody.getEmail());
             
-            verify(mapper, times(1)).toGetByCodeQuery(codeUser, tenantId);
+            verify(mapper, times(1)).toGetByCodeQuery(codeUser, tenantId, companyId);
             verify(userService, times(1)).findByCodeUser(query);
             verify(mapper, times(1)).toUserByCodeResponseDTO(userGetByCodeView);
         }

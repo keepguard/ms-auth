@@ -31,7 +31,7 @@ public class JwtService {
     }
 
     public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId, String clientId, String deviceId) {
-        String finalClientId = (clientId == null || clientId.isBlank()) ? "keepguard-default-client" : clientId;
+        String finalClientId = sanitizeClientId(clientId);
         var builder = Jwts.builder()
                 .issuer("ms-auth")
                 .audience().add(finalClientId).and()
@@ -42,6 +42,9 @@ public class JwtService {
                 .claim("client_id", finalClientId)
                 .claim("tenant_id", tenantId)
                 .claim("login_method", "password");
+        if (user.getCompanyId() != null) {
+            builder.claim("companyId", user.getCompanyId().toString());
+        }
 
         if (deviceId != null && !deviceId.isBlank()) {
             builder.claim("device_id", deviceId);
@@ -92,5 +95,14 @@ public class JwtService {
 
     public long getExpiration() {
         return expiration;
+    }
+
+    private String sanitizeClientId(String clientId) {
+        String value = (clientId == null || clientId.isBlank()) ? "keepguard-default-client" : clientId.trim();
+        if (value.contains(",")) {
+            String first = value.split(",")[0].trim();
+            return first.isBlank() ? "keepguard-default-client" : first;
+        }
+        return value;
     }
 }

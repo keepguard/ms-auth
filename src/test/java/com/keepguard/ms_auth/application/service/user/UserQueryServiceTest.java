@@ -116,6 +116,22 @@ class UserQueryServiceTest {
     }
 
     @Test
+    @DisplayName("Deve encontrar usuário por codeUser e companyId com sucesso")
+    void shouldFindUserByCodeUserAndCompanyIdSuccessfully() {
+        var command = userTestBuilder.buildGetByCodeCommand();
+        var view = userTestBuilder.buildGetByCodeView();
+        when(userRepository.findByCodeUserAndCompanyId(user.getCodeUser(), command.getCompanyId()))
+            .thenReturn(Optional.of(user));
+        when(userMapper.toUserGetByCodeView(eq(user), anyList())).thenReturn(view);
+
+        UserGetByCodeView result = userQueryService.findByCodeUser(command);
+
+        assertNotNull(result);
+        verify(userRepository).findByCodeUserAndCompanyId(user.getCodeUser(), command.getCompanyId());
+        verify(userCachePort).cacheUserByCodeUser(command.getCodeUser(), view);
+    }
+
+    @Test
     @DisplayName("Deve lançar exceção quando usuário não encontrado por username")
     void shouldThrowExceptionWhenUserNotFoundByUsername() {
         // Given
