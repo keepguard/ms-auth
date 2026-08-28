@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -15,14 +16,14 @@ public class AuthQueryService {
 
     private final UserRepositoryPort userRepository;
 
-    public Optional<User> findByUsername(String username) {
-        log.debug("Finding user by username: {}", username);
-        return userRepository.findByUsername(username);
+    public Optional<User> findByUsername(String username, UUID companyId) {
+        log.debug("Finding user by username and company: {}", username);
+        return userRepository.findByUsernameAndCompanyId(username, companyId);
     }
 
-    public Optional<User> findByEmail(String email) {
-        log.debug("Finding user by email: {}", email);
-        return userRepository.findByEmail(email);
+    public Optional<User> findByEmail(String email, UUID companyId) {
+        log.debug("Finding user by email and company: {}", email);
+        return userRepository.findByEmailAndCompanyId(email, companyId);
     }
 
     public Optional<User> findByIdUserExternal(java.util.UUID idUserExternal) {

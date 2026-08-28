@@ -92,7 +92,7 @@ public class AuthCommandService {
                     "Conta temporariamente bloqueada. Tente novamente em " + remainingTime + " minutos.");
         }
 
-        User user = userRepository.findByUsernameAndTenantId(request.getUsername(), request.getTenantId())
+        User user = userRepository.findByUsernameAndCompanyId(request.getUsername(), request.getCompanyId())
                 .orElseThrow(() -> {
                     log.warn("Login failed - User not found: username={}, application={}", request.getUsername(), request.getTenantId());
                     loginAttemptService.recordFailedAttempt(request.getUsername());
@@ -325,7 +325,7 @@ public class AuthCommandService {
     public String registerLogin(AuthRegisterLoginCommandDTO request) {
         log.info("Processing register login for username: {}", request.getUsername());
 
-        User user = userRepository.findByUsernameAndTenantId(request.getUsername(), request.getTenantId())
+        User user = userRepository.findByUsernameAndCompanyId(request.getUsername(), request.getCompanyId())
                 .orElseThrow(() -> {
                     log.warn("Register login failed - User not found: username={}, application={}", request.getUsername(), request.getTenantId());
                     return new InvalidCredentialsException("User not found", "USER_NOT_FOUND", 

@@ -24,6 +24,7 @@ class AuthAdapterMapperTest {
         AuthLoginRequestDTO dto = AuthLoginRequestDTO.builder()
                 .username("  TesT.User  ")
                 .password("pass")
+                .companyId(UUID.randomUUID())
                 .build();
 
         AuthLoginCommandDTO cmd = mapper.toLoginCommand(dto, UUID.randomUUID(), "UA");

@@ -145,11 +145,12 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserGetByEmailQueryDTO toGetByEmailQuery(String email, UUID tenantId) {
+    public UserGetByEmailQueryDTO toGetByEmailQuery(String email, UUID tenantId, UUID companyId) {
         try {
             return UserGetByEmailQueryDTO.builder()
                     .email(email)
                     .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserGetByEmailQueryDTO: {}", e.getMessage(), e);
@@ -157,11 +158,12 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserGetByUsernameQueryDTO toGetByUsernameQuery(String username, UUID tenantId) {
+    public UserGetByUsernameQueryDTO toGetByUsernameQuery(String username, UUID tenantId, UUID companyId) {
         try {
             return UserGetByUsernameQueryDTO.builder()
                     .username(username != null ? username.trim().toLowerCase() : null)
                     .tenantId(tenantId)
+                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserGetByUsernameQueryDTO: {}", e.getMessage(), e);

@@ -125,7 +125,7 @@ class AuthCommandServiceTest {
     @DisplayName("Deve realizar login com sucesso")
     void shouldLoginSuccessfully() {
         // Given
-        when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameAndCompanyId(username, user.getCompanyId())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPasswordHash())).thenReturn(true);
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
         when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn(token);
@@ -142,6 +142,7 @@ class AuthCommandServiceTest {
             .username(username)
             .password(password)
             .tenantId(tenantId)
+            .companyId(user.getCompanyId())
             .deviceId("dev_test_123")
             .build();
         var result = authCommandService.login(loginRequest);
@@ -150,7 +151,7 @@ class AuthCommandServiceTest {
         assertNotNull(result);
         assertEquals(token, result.token());
         assertEquals("AUTHENTICATED", result.status());
-        verify(userRepository, times(1)).findByUsernameAndTenantId(username, tenantId);
+        verify(userRepository, times(1)).findByUsernameAndCompanyId(username, user.getCompanyId());
         verify(passwordEncoder, times(1)).matches(password, user.getPasswordHash());
         verify(userRoleRepository, times(2)).findByUserId(user.getId()); // Chamado 2x: getUserRoles e getUserAuthorities
         verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any());
@@ -165,7 +166,7 @@ class AuthCommandServiceTest {
     @DisplayName("Deve rejeitar login quando dispositivo está na blacklist")
     void shouldRejectLoginWhenDeviceIsBlacklisted() {
         // Given
-        when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameAndCompanyId(username, user.getCompanyId())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPasswordHash())).thenReturn(true);
         when(sessionCachePort.isDeviceBlacklisted(codeUser.toString(), "dev_blacklisted")).thenReturn(true);
 
@@ -174,6 +175,7 @@ class AuthCommandServiceTest {
             .username(username)
             .password(password)
             .tenantId(tenantId)
+            .companyId(user.getCompanyId())
             .deviceId("dev_blacklisted")
             .build();
 
@@ -196,6 +198,7 @@ class AuthCommandServiceTest {
             .username(username)
             .password(password)
             .tenantId(tenantId)
+            .companyId(user.getCompanyId())
             .build();
         
         com.keepguard.ms_auth.application.service.exception.AccountLockedException exception =
@@ -204,26 +207,27 @@ class AuthCommandServiceTest {
             });
 
         assertTrue(exception.getMessage().contains("Conta temporariamente bloqueada"));
-        verify(userRepository, never()).findByUsernameAndTenantId(anyString(), any());
+        verify(userRepository, never()).findByUsernameAndCompanyId(anyString(), any());
     }
     
     @Test
     @DisplayName("Deve lançar exceção quando usuário não encontrado")
     void shouldThrowExceptionWhenUserNotFound() {
         // Given
-        when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByUsernameAndCompanyId(username, user.getCompanyId())).thenReturn(Optional.empty());
         
         // When & Then
         AuthLoginCommandDTO loginRequest = AuthLoginCommandDTO.builder()
             .username(username)
             .password(password)
             .tenantId(tenantId)
+            .companyId(user.getCompanyId())
             .build();
         assertThrows(InvalidCredentialsException.class, () -> {
             authCommandService.login(loginRequest);
         });
         
-        verify(userRepository, times(1)).findByUsernameAndTenantId(username, tenantId);
+        verify(userRepository, times(1)).findByUsernameAndCompanyId(username, user.getCompanyId());
         verify(passwordEncoder, never()).matches(anyString(), anyString());
         verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any());
     }
@@ -232,7 +236,7 @@ class AuthCommandServiceTest {
     @DisplayName("Deve lançar exceção quando senha incorreta")
     void shouldThrowExceptionWhenPasswordIncorrect() {
         // Given
-        when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameAndCompanyId(username, user.getCompanyId())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPasswordHash())).thenReturn(false);
         
         // When & Then
@@ -240,12 +244,13 @@ class AuthCommandServiceTest {
             .username(username)
             .password(password)
             .tenantId(tenantId)
+            .companyId(user.getCompanyId())
             .build();
         assertThrows(InvalidCredentialsException.class, () -> {
             authCommandService.login(loginRequest);
         });
         
-        verify(userRepository, times(1)).findByUsernameAndTenantId(username, tenantId);
+        verify(userRepository, times(1)).findByUsernameAndCompanyId(username, user.getCompanyId());
         verify(passwordEncoder, times(1)).matches(password, user.getPasswordHash());
         verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any());
     }
@@ -260,7 +265,7 @@ class AuthCommandServiceTest {
             .asBlocked()
             .buildDomain();
         
-        when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.of(blockedUser));
+        when(userRepository.findByUsernameAndCompanyId(username, user.getCompanyId())).thenReturn(Optional.of(blockedUser));
         when(passwordEncoder.matches(password, blockedUser.getPasswordHash())).thenReturn(true);
         
         // When & Then
@@ -268,13 +273,14 @@ class AuthCommandServiceTest {
             .username(username)
             .password(password)
             .tenantId(tenantId)
+            .companyId(user.getCompanyId())
             .build();
         InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> {
             authCommandService.login(loginRequest);
         });
         
         assertEquals("User is not active", exception.getMessage());
-        verify(userRepository, times(1)).findByUsernameAndTenantId(username, tenantId);
+        verify(userRepository, times(1)).findByUsernameAndCompanyId(username, user.getCompanyId());
         verify(passwordEncoder, times(1)).matches(password, blockedUser.getPasswordHash());
         verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any());
     }
@@ -289,7 +295,7 @@ class AuthCommandServiceTest {
             .withEmailVerified(false)
             .buildDomain();
         
-        when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.of(unverifiedUser));
+        when(userRepository.findByUsernameAndCompanyId(username, user.getCompanyId())).thenReturn(Optional.of(unverifiedUser));
         when(passwordEncoder.matches(password, unverifiedUser.getPasswordHash())).thenReturn(true);
         
         // When & Then
@@ -297,12 +303,13 @@ class AuthCommandServiceTest {
             .username(username)
             .password(password)
             .tenantId(tenantId)
+            .companyId(user.getCompanyId())
             .build();
         assertThrows(EmailNotVerifiedException.class, () -> {
             authCommandService.login(loginRequest);
         });
         
-        verify(userRepository, times(1)).findByUsernameAndTenantId(username, tenantId);
+        verify(userRepository, times(1)).findByUsernameAndCompanyId(username, user.getCompanyId());
         verify(passwordEncoder, times(1)).matches(password, unverifiedUser.getPasswordHash());
         verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any());
     }
@@ -311,7 +318,7 @@ class AuthCommandServiceTest {
     @DisplayName("Deve atualizar último login do usuário")
     void shouldUpdateUserLastLogin() {
         // Given
-        when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameAndCompanyId(username, user.getCompanyId())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPasswordHash())).thenReturn(true);
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
         when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn(token);
@@ -325,6 +332,7 @@ class AuthCommandServiceTest {
             .username(username)
             .password(password)
             .tenantId(tenantId)
+            .companyId(user.getCompanyId())
             .deviceId("dev_test_123")
             .build();
         authCommandService.login(loginRequest);
@@ -548,19 +556,20 @@ class AuthCommandServiceTest {
     @DisplayName("Deve lidar com exceções durante o login")
     void shouldHandleExceptionsDuringLogin() {
         // Given
-        when(userRepository.findByUsernameAndTenantId(username, tenantId)).thenThrow(new RuntimeException("Database error"));
+        when(userRepository.findByUsernameAndCompanyId(username, user.getCompanyId())).thenThrow(new RuntimeException("Database error"));
         
         // When & Then
         AuthLoginCommandDTO loginRequest = AuthLoginCommandDTO.builder()
             .username(username)
             .password(password)
             .tenantId(tenantId)
+            .companyId(user.getCompanyId())
             .build();
         assertThrows(RuntimeException.class, () -> {
             authCommandService.login(loginRequest);
         });
         
-        verify(userRepository, times(1)).findByUsernameAndTenantId(username, tenantId);
+        verify(userRepository, times(1)).findByUsernameAndCompanyId(username, user.getCompanyId());
         verify(passwordEncoder, never()).matches(anyString(), anyString());
     }
     

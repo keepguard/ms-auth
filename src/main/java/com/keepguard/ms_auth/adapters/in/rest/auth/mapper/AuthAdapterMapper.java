@@ -47,6 +47,7 @@ public class AuthAdapterMapper {
                     .username(dto.getUsername() != null ? dto.getUsername().trim().toLowerCase() : null)
                     .password(dto.getPassword())
                     .tenantId(tenantId)
+                    .companyId(dto.getCompanyId())
                     .clientId(clientId)
                     .deviceId(deviceId)
                     .deviceName(deviceName)
@@ -70,6 +71,7 @@ public class AuthAdapterMapper {
                     .username(dto.getUsername() != null ? dto.getUsername().trim().toLowerCase() : null)
                     .passwordHash(dto.getPasswordHash())
                     .tenantId(tenantId)
+                    .companyId(dto.getCompanyId() != null ? UUID.fromString(dto.getCompanyId()) : null)
                     .clientId(clientId)
                     .build();
         } catch (Exception e) {

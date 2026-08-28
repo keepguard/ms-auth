@@ -51,13 +51,17 @@ class UserControllerTest {
     private UserGetByIdExternalView userGetByIdExternalView;
     private UUID userId;
     private UUID tenantId;
+    private UUID companyId;
     private String tenantIdStr;
+    private String companyIdStr;
     
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
         tenantId = UUID.randomUUID();
+        companyId = UUID.randomUUID();
         tenantIdStr = tenantId.toString();
+        companyIdStr = companyId.toString();
         
         userCreateDTO = UserTestBuilder.builder()
             .buildCreateRequestDTO();
@@ -653,6 +657,7 @@ class UserControllerTest {
         UserGetByEmailQueryDTO query = UserGetByEmailQueryDTO.builder()
             .email(email)
             .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         UserByEmailResponseDTO userByEmailResponseDTO = UserByEmailResponseDTO.builder()
@@ -666,13 +671,15 @@ class UserControllerTest {
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
                 .thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(companyIdStr))
+                .thenReturn(companyId);
             
-            when(mapper.toGetByEmailQuery(email, tenantId)).thenReturn(query);
+            when(mapper.toGetByEmailQuery(email, tenantId, companyId)).thenReturn(query);
             when(userService.findByEmail(query)).thenReturn(userGetByEmailView);
             when(mapper.toUserByEmailResponseDTO(userGetByEmailView)).thenReturn(userByEmailResponseDTO);
             
             // When
-            ResponseEntity<UserByEmailResponseDTO> response = userController.getByEmail(email, tenantIdStr);
+            ResponseEntity<UserByEmailResponseDTO> response = userController.getByEmail(email, tenantIdStr, companyIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -683,7 +690,7 @@ class UserControllerTest {
             assertEquals("testuser", responseBody.getUsername());
             assertEquals("test@example.com", responseBody.getEmail());
             
-            verify(mapper, times(1)).toGetByEmailQuery(email, tenantId);
+            verify(mapper, times(1)).toGetByEmailQuery(email, tenantId, companyId);
             verify(userService, times(1)).findByEmail(query);
             verify(mapper, times(1)).toUserByEmailResponseDTO(userGetByEmailView);
         }
@@ -698,6 +705,7 @@ class UserControllerTest {
         UserGetByUsernameQueryDTO query = UserGetByUsernameQueryDTO.builder()
             .username(username)
             .tenantId(tenantId)
+            .companyId(companyId)
             .build();
         
         UserByUsernameResponseDTO userByUsernameResponseDTO = UserByUsernameResponseDTO.builder()
@@ -711,13 +719,15 @@ class UserControllerTest {
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
                 .thenReturn(tenantId);
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(companyIdStr))
+                .thenReturn(companyId);
             
-            when(mapper.toGetByUsernameQuery(username, tenantId)).thenReturn(query);
+            when(mapper.toGetByUsernameQuery(username, tenantId, companyId)).thenReturn(query);
             when(userService.findByUsername(query)).thenReturn(userGetByUsernameView);
             when(mapper.toUserByUsernameResponseDTO(userGetByUsernameView)).thenReturn(userByUsernameResponseDTO);
             
             // When
-            ResponseEntity<UserByUsernameResponseDTO> response = userController.getByUsername(username, tenantIdStr);
+            ResponseEntity<UserByUsernameResponseDTO> response = userController.getByUsername(username, tenantIdStr, companyIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -728,7 +738,7 @@ class UserControllerTest {
             assertEquals("testuser", responseBody.getUsername());
             assertEquals("test@example.com", responseBody.getEmail());
             
-            verify(mapper, times(1)).toGetByUsernameQuery(username, tenantId);
+            verify(mapper, times(1)).toGetByUsernameQuery(username, tenantId, companyId);
             verify(userService, times(1)).findByUsername(query);
             verify(mapper, times(1)).toUserByUsernameResponseDTO(userGetByUsernameView);
         }

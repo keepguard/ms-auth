@@ -163,16 +163,16 @@ public class AuthUseCaseService implements AuthPort {
     }
 
     @Override
-    public Optional<UserView> findByUsername(String username) {
+    public Optional<UserView> findByUsername(String username, UUID companyId) {
         log.debug("Finding user by username: {}", username);
-            return authQueryService.findByUsername(username)
+            return authQueryService.findByUsername(username, companyId)
                     .map(authApplicationMapper::toUserView);
     }
 
     @Override
-    public Optional<UserView> findByEmail(String email) {
+    public Optional<UserView> findByEmail(String email, UUID companyId) {
         log.debug("Finding user by email: {}", email);
-            return authQueryService.findByEmail(email)
+            return authQueryService.findByEmail(email, companyId)
                     .map(authApplicationMapper::toUserView);
     }
 

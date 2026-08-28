@@ -42,7 +42,7 @@ class UserAdapterMapperNormalizationTest {
     @Test
     @DisplayName("toGetByUsernameQuery deve normalizar username para lowercase e trim")
     void toGetByUsernameQuery_shouldNormalizeUsername() {
-        UserGetByUsernameQueryDTO q = mapper.toGetByUsernameQuery("  ABC.DEF  ", UUID.randomUUID());
+        UserGetByUsernameQueryDTO q = mapper.toGetByUsernameQuery("  ABC.DEF  ", UUID.randomUUID(), UUID.randomUUID());
         assertNotNull(q);
         assertEquals("abc.def", q.getUsername());
     }

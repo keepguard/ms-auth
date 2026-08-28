@@ -35,9 +35,9 @@ public interface AuthPort {
 
     AuthGenerateResetTokenViewDTO generateResetToken(AuthGenerateResetTokenCommandDTO request);
 
-    Optional<UserView> findByUsername(String username);
+    Optional<UserView> findByUsername(String username, UUID companyId);
 
-    Optional<UserView> findByEmail(String email);
+    Optional<UserView> findByEmail(String email, UUID companyId);
 
     Optional<UserView> findByIdUserExternal(UUID idUserExternal);
 

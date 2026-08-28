@@ -23,6 +23,12 @@ public interface UserSpringRepository extends JpaRepository<UserJpaEntity, UUID>
     
     Optional<UserJpaEntity> findByUsernameAndStatus(String username, UserStatus status);
     Optional<UserJpaEntity> findByEmailAndStatus(String email, UserStatus status);
+    @Query("SELECT u FROM UserJpaEntity u WHERE u.username = :username AND u.companyId = :companyId")
+    Optional<UserJpaEntity> findByUsernameAndCompanyId(@Param("username") String username, @Param("companyId") UUID companyId);
+
+    @Query("SELECT u FROM UserJpaEntity u WHERE u.email = :email AND u.companyId = :companyId")
+    Optional<UserJpaEntity> findByEmailAndCompanyId(@Param("email") String email, @Param("companyId") UUID companyId);
+
     @Query("SELECT u FROM UserJpaEntity u WHERE u.username = :username AND u.tenantId = :tenantId")
     Optional<UserJpaEntity> findByUsernameAndTenantId(@Param("username") String username, @Param("tenantId") UUID tenantId);
     

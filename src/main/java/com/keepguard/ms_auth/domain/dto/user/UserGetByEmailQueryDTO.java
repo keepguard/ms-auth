@@ -21,5 +21,8 @@ public class UserGetByEmailQueryDTO {
 
     @NotBlank(message = "O header X-Tenant-Id é obrigatório")
     private UUID tenantId;
+
+    @NotBlank(message = "companyId é obrigatório")
+    private UUID companyId;
 }
 

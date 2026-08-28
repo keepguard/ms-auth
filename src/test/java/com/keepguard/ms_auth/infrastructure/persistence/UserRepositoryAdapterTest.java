@@ -396,6 +396,38 @@ class UserRepositoryAdapterTest {
         assertTrue(result.isEmpty());
         verify(jpaRepository, times(1)).findByEmailAndTenantId(email, tenantId);
     }
+
+    @Test
+    @DisplayName("Deve buscar usuário por username e companyId com sucesso")
+    void shouldFindUserByUsernameAndCompanyIdSuccessfully() {
+        String username = "testuser";
+        UUID companyId = UUID.randomUUID();
+        when(jpaRepository.findByUsernameAndCompanyId(username, companyId)).thenReturn(Optional.of(userJpaEntity));
+        when(userJpaMapper.toDomain(userJpaEntity)).thenReturn(user);
+
+        Optional<User> result = userRepositoryAdapter.findByUsernameAndCompanyId(username, companyId);
+
+        assertTrue(result.isPresent());
+        assertEquals(user, result.get());
+        verify(jpaRepository, times(1)).findByUsernameAndCompanyId(username, companyId);
+        verify(userJpaMapper, times(1)).toDomain(userJpaEntity);
+    }
+
+    @Test
+    @DisplayName("Deve buscar usuário por email e companyId com sucesso")
+    void shouldFindUserByEmailAndCompanyIdSuccessfully() {
+        String email = "test@example.com";
+        UUID companyId = UUID.randomUUID();
+        when(jpaRepository.findByEmailAndCompanyId(email, companyId)).thenReturn(Optional.of(userJpaEntity));
+        when(userJpaMapper.toDomain(userJpaEntity)).thenReturn(user);
+
+        Optional<User> result = userRepositoryAdapter.findByEmailAndCompanyId(email, companyId);
+
+        assertTrue(result.isPresent());
+        assertEquals(user, result.get());
+        verify(jpaRepository, times(1)).findByEmailAndCompanyId(email, companyId);
+        verify(userJpaMapper, times(1)).toDomain(userJpaEntity);
+    }
     
     @Test
     @DisplayName("Deve buscar todos os usuários por status com sucesso")

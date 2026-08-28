@@ -41,14 +41,14 @@ public class UserQueryService {
     private final UserApplicationMapper userMapper;
 
     public UserGetByUsernameView findByUsername(UserGetByUsernameQueryDTO query) {
-        User user = userRepository.findByUsernameAndTenantId(query.getUsername(), query.getTenantId())
+        User user = userRepository.findByUsernameAndCompanyId(query.getUsername(), query.getCompanyId())
             .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + query.getUsername(),
                 "USER_NOT_FOUND", Map.of("username", query.getUsername())));
 
         List<String> userRoles = getUserRoles(user.getId());
 
         UserGetByUsernameView userView = userMapper.toUserGetByUsernameView(user, userRoles);
-        userCachePort.cacheUserByUsername(query.getUsername(), userView);
+        userCachePort.cacheUserByUsername(query.getCompanyId(), query.getUsername(), userView);
 
         metricsPort.incrementCounter("user_queries_total",
             Map.of("query_type", "find_by_username", "status", "success"));
@@ -58,14 +58,14 @@ public class UserQueryService {
 
     public UserGetByEmailView findByEmail(UserGetByEmailQueryDTO query) {
 
-        User user = userRepository.findByEmailAndTenantId(query.getEmail(), query.getTenantId())
+        User user = userRepository.findByEmailAndCompanyId(query.getEmail(), query.getCompanyId())
             .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + query.getEmail(),
                 "USER_NOT_FOUND", Map.of("email", query.getEmail())));
 
         List<String> userRoles = getUserRoles(user.getId());
 
         UserGetByEmailView userView = userMapper.toUserGetByEmailView(user, userRoles);
-        userCachePort.cacheUserByEmail(query.getEmail(), userView);
+        userCachePort.cacheUserByEmail(query.getCompanyId(), query.getEmail(), userView);
 
         metricsPort.incrementCounter("user_queries_total",
             Map.of("query_type", "find_by_email", "status", "success"));

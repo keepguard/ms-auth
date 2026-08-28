@@ -197,7 +197,7 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Header X-Tenant-Id inválido");
         problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         problemDetail.setProperty("path", request.getDescription(false).replace("uri=", ""));
-        problemDetail.setProperty("errorCode", "INVALID_X_APPLICATION");
+        problemDetail.setProperty("errorCode", "INVALID_TENANT_ID");
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }

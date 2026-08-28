@@ -3,17 +3,19 @@ package com.keepguard.ms_auth.application.port.out.cache;
 import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.ms_auth.domain.entity.user.User;
 
+import java.util.UUID;
+
 public interface UserCachePort {
 
     // By Username
-    void cacheUserByUsername(String username, UserGetByUsernameView user);
-    UserAuthCacheView getUserByUsernameFromCache(String username);
-    void removeUserFromCacheByUsername(String username);
+    void cacheUserByUsername(UUID companyId, String username, UserGetByUsernameView user);
+    UserAuthCacheView getUserByUsernameFromCache(UUID companyId, String username);
+    void removeUserFromCacheByUsername(UUID companyId, String username);
 
     // By Email
-    void cacheUserByEmail(String email, UserGetByEmailView user);
-    UserAuthCacheView getUserByEmailFromCache(String email);
-    void removeUserFromCacheByEmail(String email);
+    void cacheUserByEmail(UUID companyId, String email, UserGetByEmailView user);
+    UserAuthCacheView getUserByEmailFromCache(UUID companyId, String email);
+    void removeUserFromCacheByEmail(UUID companyId, String email);
 
     // By CodeUser
     void cacheUserByCodeUser(String codeUser, UserGetByCodeView user);

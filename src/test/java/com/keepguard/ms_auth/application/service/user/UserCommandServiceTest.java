@@ -92,8 +92,8 @@ class UserCommandServiceTest {
     @DisplayName("Deve criar usuário com sucesso")
     void shouldCreateUserSuccessfully() {
         // Given
-        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
-        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByUsernameAndCompanyId("testuser", user.getCompanyId())).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndCompanyId("test@example.com", user.getCompanyId())).thenReturn(Optional.empty());
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(companyRoleRepository.findEnabledDefaultsByCompanyId(user.getCompanyId()))
@@ -107,8 +107,8 @@ class UserCommandServiceTest {
 
         // Then
         assertNotNull(result);
-        verify(userRepository).findByUsernameAndTenantId("testuser", tenantId);
-        verify(userRepository).findByEmailAndTenantId("test@example.com", tenantId);
+        verify(userRepository).findByUsernameAndCompanyId("testuser", user.getCompanyId());
+        verify(userRepository).findByEmailAndCompanyId("test@example.com", user.getCompanyId());
         verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
         verify(userRepository).save(any(User.class));
         verify(companyRoleRepository).findEnabledDefaultsByCompanyId(user.getCompanyId());
@@ -121,7 +121,7 @@ class UserCommandServiceTest {
     @DisplayName("Deve lançar exceção quando username já existe")
     void shouldThrowExceptionWhenUsernameAlreadyExists() {
         // Given
-        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameAndCompanyId("testuser", user.getCompanyId())).thenReturn(Optional.of(user));
 
         // When & Then
         AlreadyExistsException exception = assertThrows(AlreadyExistsException.class, 
@@ -135,8 +135,8 @@ class UserCommandServiceTest {
     @DisplayName("Deve lançar exceção quando email já existe")
     void shouldThrowExceptionWhenEmailAlreadyExists() {
         // Given
-        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
-        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameAndCompanyId("testuser", user.getCompanyId())).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndCompanyId("test@example.com", user.getCompanyId())).thenReturn(Optional.of(user));
 
         // When & Then
         AlreadyExistsException exception = assertThrows(AlreadyExistsException.class, 
@@ -150,8 +150,8 @@ class UserCommandServiceTest {
     @DisplayName("Deve lançar exceção quando ID externo já existe")
     void shouldThrowExceptionWhenIdExternalAlreadyExists() {
         // Given
-        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
-        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByUsernameAndCompanyId("testuser", user.getCompanyId())).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndCompanyId("test@example.com", user.getCompanyId())).thenReturn(Optional.empty());
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
 
         // When & Then
@@ -343,7 +343,7 @@ class UserCommandServiceTest {
         // Given
         String newEmail = "newemail@example.com";
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
-        when(userRepository.findByEmailAndTenantId(newEmail, tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndCompanyId(newEmail, user.getCompanyId())).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
@@ -354,7 +354,7 @@ class UserCommandServiceTest {
 
         // Then
         verify(userRepository).findByIdUserExternalAndTenantId(idUserExternal, tenantId);
-        verify(userRepository).findByEmailAndTenantId(newEmail, tenantId);
+        verify(userRepository).findByEmailAndCompanyId(newEmail, user.getCompanyId());
         verify(userRepository).save(any(User.class));
         verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
         verify(userCachePort).removeUserFromCache(any(User.class));
@@ -366,8 +366,9 @@ class UserCommandServiceTest {
     void shouldThrowExceptionWhenNewEmailAlreadyExists() {
         // Given
         String newEmail = "newemail@example.com";
+        User otherUser = UserTestBuilder.builder().withId(UUID.randomUUID()).withTenantId(tenantId).buildDomain();
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
-        when(userRepository.findByEmailAndTenantId(newEmail, tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailAndCompanyId(newEmail, user.getCompanyId())).thenReturn(Optional.of(otherUser));
 
         // When & Then
         AlreadyExistsException exception = assertThrows(AlreadyExistsException.class, 
@@ -378,6 +379,23 @@ class UserCommandServiceTest {
         
         assertEquals("Email já existe: " + newEmail, exception.getMessage());
         verify(metricsPort).incrementCounter(eq("user_business_errors_total"), any());
+    }
+
+    @Test
+    @DisplayName("Deve permitir atualizar email para o próprio valor já cadastrado")
+    void shouldAllowUpdatingEmailToOwnCurrentEmail() {
+        String currentEmail = user.getEmail();
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailAndCompanyId(currentEmail, user.getCompanyId())).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
+        doNothing().when(userCachePort).removeUserFromCache(any(User.class));
+
+        var updateEmailCommand = userTestBuilder.buildUpdateEmailCommand(idUserExternal, currentEmail);
+        assertDoesNotThrow(() -> userCommandService.updateUserEmail(updateEmailCommand));
+
+        verify(userRepository).save(any(User.class));
+        verify(metricsPort).incrementCounter(eq("user_email_updated_total"), any());
     }
     
     @Test
@@ -584,8 +602,8 @@ class UserCommandServiceTest {
         userCreateCommand.setRoles(java.util.List.of());
         CompanyRole defaultRole = CompanyRole.create(user.getCompanyId(), role.getId(), true, true);
 
-        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
-        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByUsernameAndCompanyId("testuser", user.getCompanyId())).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndCompanyId("test@example.com", user.getCompanyId())).thenReturn(Optional.empty());
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(companyRoleRepository.findEnabledDefaultsByCompanyId(user.getCompanyId())).thenReturn(java.util.List.of(defaultRole));
@@ -608,8 +626,8 @@ class UserCommandServiceTest {
             .withCompanyId(user.getCompanyId())
             .buildDomain();
 
-        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
-        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByUsernameAndCompanyId("testuser", user.getCompanyId())).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndCompanyId("test@example.com", user.getCompanyId())).thenReturn(Optional.empty());
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(roleRepository.findByCompanyIdAndName(user.getCompanyId(), SystemRoleNames.ROLE_ADMIN)).thenReturn(Optional.of(adminRole));
@@ -635,8 +653,8 @@ class UserCommandServiceTest {
             .withCompanyId(user.getCompanyId())
             .buildDomain();
 
-        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
-        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByUsernameAndCompanyId("testuser", user.getCompanyId())).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndCompanyId("test@example.com", user.getCompanyId())).thenReturn(Optional.empty());
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(roleRepository.findByCompanyIdAndName(user.getCompanyId(), SystemRoleNames.ROLE_MANAGER)).thenReturn(Optional.of(managerRole));
@@ -659,8 +677,8 @@ class UserCommandServiceTest {
     void shouldFailCreateWhenCompanyHasNoDefaultRoles() {
         userCreateCommand.setRoles(null);
 
-        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
-        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByUsernameAndCompanyId("testuser", user.getCompanyId())).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndCompanyId("test@example.com", user.getCompanyId())).thenReturn(Optional.empty());
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(companyRoleRepository.findEnabledDefaultsByCompanyId(user.getCompanyId())).thenReturn(java.util.List.of());

@@ -43,12 +43,14 @@ class UserCacheServiceTest {
     private UserGetByEmailView userGetByEmailView;
     private UserGetByCodeView userGetByCodeView;
     private UserRolesCacheView userRolesCacheViewDTO;
+    private UUID companyId;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
         userCacheServiceAdapter = new UserCacheService(redisTemplate, objectMapper);
+        companyId = UUID.fromString("11111111-1111-1111-1111-111111111111");
         
         // Use reflection to set the @Value fields
         try {
@@ -152,10 +154,10 @@ class UserCacheServiceTest {
     @DisplayName("Deve cachear usuário por username com sucesso")
     void shouldCacheUserByUsernameSuccessfully() {
         // When
-        userCacheServiceAdapter.cacheUserByUsername("testuser", userGetByUsernameView);
+        userCacheServiceAdapter.cacheUserByUsername(companyId, "testuser", userGetByUsernameView);
 
         // Then
-        verify(valueOperations).set(eq("user_cache:username:testuser"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
+        verify(valueOperations).set(eq("user_cache:username:" + companyId + ":testuser"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
     }
 
     @Test
@@ -163,10 +165,10 @@ class UserCacheServiceTest {
     void shouldGetUserByUsernameFromCache() throws Exception {
         // Given
         String userJson = objectMapper.writeValueAsString(userAuthCacheViewDTO);
-        when(valueOperations.get("user_cache:username:testuser")).thenReturn(userJson);
+        when(valueOperations.get("user_cache:username:" + companyId + ":testuser")).thenReturn(userJson);
 
         // When
-        UserAuthCacheView result = userCacheServiceAdapter.getUserByUsernameFromCache("testuser");
+        UserAuthCacheView result = userCacheServiceAdapter.getUserByUsernameFromCache(companyId, "testuser");
 
         // Then
         assertNotNull(result);
@@ -178,10 +180,10 @@ class UserCacheServiceTest {
     @DisplayName("Deve remover usuário do cache por username")
     void shouldRemoveUserFromCacheByUsername() {
         // When
-        userCacheServiceAdapter.removeUserFromCacheByUsername("testuser");
+        userCacheServiceAdapter.removeUserFromCacheByUsername(companyId, "testuser");
 
         // Then
-        verify(redisTemplate).delete("user_cache:username:testuser");
+        verify(redisTemplate).delete("user_cache:username:" + companyId + ":testuser");
     }
 
     // By Email Tests
@@ -189,10 +191,10 @@ class UserCacheServiceTest {
     @DisplayName("Deve cachear usuário por email com sucesso")
     void shouldCacheUserByEmailSuccessfully() {
         // When
-        userCacheServiceAdapter.cacheUserByEmail("test@example.com", userGetByEmailView);
+        userCacheServiceAdapter.cacheUserByEmail(companyId, "test@example.com", userGetByEmailView);
 
         // Then
-        verify(valueOperations).set(eq("user_cache:email:test@example.com"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
+        verify(valueOperations).set(eq("user_cache:email:" + companyId + ":test@example.com"), anyString(), eq(604800L), eq(TimeUnit.SECONDS));
     }
 
     @Test
@@ -200,10 +202,10 @@ class UserCacheServiceTest {
     void shouldGetUserByEmailFromCache() throws Exception {
         // Given
         String userJson = objectMapper.writeValueAsString(userAuthCacheViewDTO);
-        when(valueOperations.get("user_cache:email:test@example.com")).thenReturn(userJson);
+        when(valueOperations.get("user_cache:email:" + companyId + ":test@example.com")).thenReturn(userJson);
 
         // When
-        UserAuthCacheView result = userCacheServiceAdapter.getUserByEmailFromCache("test@example.com");
+        UserAuthCacheView result = userCacheServiceAdapter.getUserByEmailFromCache(companyId, "test@example.com");
 
         // Then
         assertNotNull(result);
@@ -214,10 +216,10 @@ class UserCacheServiceTest {
     @DisplayName("Deve remover usuário do cache por email")
     void shouldRemoveUserFromCacheByEmail() {
         // When
-        userCacheServiceAdapter.removeUserFromCacheByEmail("test@example.com");
+        userCacheServiceAdapter.removeUserFromCacheByEmail(companyId, "test@example.com");
 
         // Then
-        verify(redisTemplate).delete("user_cache:email:test@example.com");
+        verify(redisTemplate).delete("user_cache:email:" + companyId + ":test@example.com");
     }
 
     // By CodeUser Tests
@@ -333,10 +335,10 @@ class UserCacheServiceTest {
     @DisplayName("Deve retornar null quando usuário não existe no cache por username")
     void shouldReturnNullWhenUserDoesNotExistInCacheByUsername() {
         // Given
-        when(valueOperations.get("user_cache:username:nonexistent")).thenReturn(null);
+        when(valueOperations.get("user_cache:username:" + companyId + ":nonexistent")).thenReturn(null);
 
         // When
-        UserAuthCacheView result = userCacheServiceAdapter.getUserByUsernameFromCache("nonexistent");
+        UserAuthCacheView result = userCacheServiceAdapter.getUserByUsernameFromCache(companyId, "nonexistent");
 
         // Then
         assertNull(result);

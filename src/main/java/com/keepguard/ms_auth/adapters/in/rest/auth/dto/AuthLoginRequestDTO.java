@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.aspectj.weaver.loadtime.Agent;
 
 import java.util.UUID;
 
@@ -20,5 +19,8 @@ public class AuthLoginRequestDTO {
 
     @NotBlank(message = "Password é obrigatório")
     private String password;
+
+    @NotBlank(message = "companyId é obrigatório")
+    private UUID companyId;
 
 }

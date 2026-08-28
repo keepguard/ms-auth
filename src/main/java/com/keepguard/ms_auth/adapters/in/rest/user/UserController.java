@@ -452,13 +452,16 @@ public class UserController {
             @Parameter(description = "Email do usuário", required = true)
             @PathVariable String email,
             @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") String companyIdHeader) {
 
-        log.info("Buscando usuário por email: {}, tenantIdHeader={}", email, tenantIdHeader);
+        log.info("Buscando usuário por email: {}, tenantIdHeader={}, companyIdHeader={}", email, tenantIdHeader, companyIdHeader);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        var companyId = ValidationUtils.validateTenantId(companyIdHeader);
         
-        var query = mapper.toGetByEmailQuery(email, tenantId);
+        var query = mapper.toGetByEmailQuery(email, tenantId, companyId);
         var view = userService.findByEmail(query);
         var response = mapper.toUserByEmailResponseDTO(view);
         
@@ -485,13 +488,16 @@ public class UserController {
             @Parameter(description = "Nome de usuário", required = true)
             @PathVariable String username,
             @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @Parameter(description = "UUID da empresa", required = true)
+            @RequestHeader("X-Company-Id") String companyIdHeader) {
 
-        log.info("Buscando usuário por username: {}, tenantIdHeader={}", username, tenantIdHeader);
+        log.info("Buscando usuário por username: {}, tenantIdHeader={}, companyIdHeader={}", username, tenantIdHeader, companyIdHeader);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        var companyId = ValidationUtils.validateTenantId(companyIdHeader);
         
-        var query = mapper.toGetByUsernameQuery(username, tenantId);
+        var query = mapper.toGetByUsernameQuery(username, tenantId, companyId);
         var view = userService.findByUsername(query);
         var response = mapper.toUserByUsernameResponseDTO(view);
         

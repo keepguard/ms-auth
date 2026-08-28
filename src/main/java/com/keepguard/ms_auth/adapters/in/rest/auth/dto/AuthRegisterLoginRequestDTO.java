@@ -27,4 +27,7 @@ public class AuthRegisterLoginRequestDTO {
 
     @Schema(description = "UUID da aplicação", example = "123e4567-e89b-12d3-a456-426614174000")
     private String tenantId;
+
+    @Schema(description = "ID interno da empresa (resolvido pelo BFF a partir do tenant)", example = "123e4567-e89b-12d3-a456-426614174000")
+    private String companyId;
 }

@@ -483,6 +483,7 @@ public class UserTestBuilder {
         return UserGetByUsernameQueryDTO.builder()
             .username(username)
             .tenantId(tenantId)
+            .companyId(companyId)
             .build();
     }
     
@@ -490,6 +491,7 @@ public class UserTestBuilder {
         return UserGetByUsernameQueryDTO.builder()
             .username(username)
             .tenantId(tenantId)
+            .companyId(companyId)
             .build();
     }
     
@@ -497,6 +499,7 @@ public class UserTestBuilder {
         return UserGetByEmailQueryDTO.builder()
             .email(email)
             .tenantId(tenantId)
+            .companyId(companyId)
             .build();
     }
     
@@ -504,6 +507,7 @@ public class UserTestBuilder {
         return UserGetByEmailQueryDTO.builder()
             .email(email)
             .tenantId(tenantId)
+            .companyId(companyId)
             .build();
     }
     

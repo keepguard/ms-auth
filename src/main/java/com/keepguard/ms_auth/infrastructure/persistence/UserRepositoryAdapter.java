@@ -104,6 +104,18 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public Optional<User> findByUsernameAndCompanyId(String username, UUID companyId) {
+        return springRepository.findByUsernameAndCompanyId(username, companyId)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<User> findByEmailAndCompanyId(String email, UUID companyId) {
+        return springRepository.findByEmailAndCompanyId(email, companyId)
+                .map(mapper::toDomain);
+    }
+
+    @Override
     public Optional<User> findByUsernameAndTenantId(String username, UUID tenantId) {
         return springRepository.findByUsernameAndTenantId(username, tenantId)
                 .map(mapper::toDomain);

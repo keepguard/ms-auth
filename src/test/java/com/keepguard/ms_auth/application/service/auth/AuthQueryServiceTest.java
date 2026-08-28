@@ -36,6 +36,7 @@ class AuthQueryServiceTest {
     private String email;
     private UUID idUserExternal;
     private UUID codeUser;
+    private UUID companyId;
     
     @BeforeEach
     void setUp() {
@@ -43,12 +44,14 @@ class AuthQueryServiceTest {
         email = "test@example.com";
         idUserExternal = UUID.randomUUID();
         codeUser = UUID.randomUUID();
+        companyId = UUID.randomUUID();
         
         user = UserTestBuilder.aUser()
             .withUsername(username)
             .withEmail(email)
             .withIdUserExternal(idUserExternal)
             .withCodeUser(codeUser)
+            .withCompanyId(companyId)
             .asActive()
             .buildDomain();
     }
@@ -57,58 +60,58 @@ class AuthQueryServiceTest {
     @DisplayName("Deve encontrar usuário por username")
     void shouldFindUserByUsername() {
         // Given
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameAndCompanyId(username, companyId)).thenReturn(Optional.of(user));
         
         // When
-        Optional<User> result = authQueryService.findByUsername(username);
+        Optional<User> result = authQueryService.findByUsername(username, companyId);
         
         // Then
         assertTrue(result.isPresent());
         assertEquals(user, result.get());
-        verify(userRepository, times(1)).findByUsername(username);
+        verify(userRepository, times(1)).findByUsernameAndCompanyId(username, companyId);
     }
     
     @Test
     @DisplayName("Deve retornar Optional vazio quando usuário não encontrado por username")
     void shouldReturnEmptyOptionalWhenUserNotFoundByUsername() {
         // Given
-        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+        when(userRepository.findByUsernameAndCompanyId(username, companyId)).thenReturn(Optional.empty());
         
         // When
-        Optional<User> result = authQueryService.findByUsername(username);
+        Optional<User> result = authQueryService.findByUsername(username, companyId);
         
         // Then
         assertTrue(result.isEmpty());
-        verify(userRepository, times(1)).findByUsername(username);
+        verify(userRepository, times(1)).findByUsernameAndCompanyId(username, companyId);
     }
     
     @Test
     @DisplayName("Deve encontrar usuário por email")
     void shouldFindUserByEmail() {
         // Given
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailAndCompanyId(email, companyId)).thenReturn(Optional.of(user));
         
         // When
-        Optional<User> result = authQueryService.findByEmail(email);
+        Optional<User> result = authQueryService.findByEmail(email, companyId);
         
         // Then
         assertTrue(result.isPresent());
         assertEquals(user, result.get());
-        verify(userRepository, times(1)).findByEmail(email);
+        verify(userRepository, times(1)).findByEmailAndCompanyId(email, companyId);
     }
     
     @Test
     @DisplayName("Deve retornar Optional vazio quando usuário não encontrado por email")
     void shouldReturnEmptyOptionalWhenUserNotFoundByEmail() {
         // Given
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndCompanyId(email, companyId)).thenReturn(Optional.empty());
         
         // When
-        Optional<User> result = authQueryService.findByEmail(email);
+        Optional<User> result = authQueryService.findByEmail(email, companyId);
         
         // Then
         assertTrue(result.isEmpty());
-        verify(userRepository, times(1)).findByEmail(email);
+        verify(userRepository, times(1)).findByEmailAndCompanyId(email, companyId);
     }
     
     @Test
@@ -174,13 +177,13 @@ class AuthQueryServiceTest {
     void shouldCallRepositoryWithCorrectParametersForFindByUsername() {
         // Given
         String specificUsername = "specificuser";
-        when(userRepository.findByUsername(specificUsername)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameAndCompanyId(specificUsername, companyId)).thenReturn(Optional.of(user));
         
         // When
-        authQueryService.findByUsername(specificUsername);
+        authQueryService.findByUsername(specificUsername, companyId);
         
         // Then
-        verify(userRepository, times(1)).findByUsername(specificUsername);
+        verify(userRepository, times(1)).findByUsernameAndCompanyId(specificUsername, companyId);
         verify(userRepository, never()).findByEmail(anyString());
         verify(userRepository, never()).findByIdUserExternal(any());
         verify(userRepository, never()).findByCodeUser(any());
@@ -191,13 +194,13 @@ class AuthQueryServiceTest {
     void shouldCallRepositoryWithCorrectParametersForFindByEmail() {
         // Given
         String specificEmail = "specific@example.com";
-        when(userRepository.findByEmail(specificEmail)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailAndCompanyId(specificEmail, companyId)).thenReturn(Optional.of(user));
         
         // When
-        authQueryService.findByEmail(specificEmail);
+        authQueryService.findByEmail(specificEmail, companyId);
         
         // Then
-        verify(userRepository, times(1)).findByEmail(specificEmail);
+        verify(userRepository, times(1)).findByEmailAndCompanyId(specificEmail, companyId);
         verify(userRepository, never()).findByUsername(anyString());
         verify(userRepository, never()).findByIdUserExternal(any());
         verify(userRepository, never()).findByCodeUser(any());
@@ -241,13 +244,13 @@ class AuthQueryServiceTest {
     @DisplayName("Deve lidar com exceções do repository")
     void shouldHandleRepositoryExceptions() {
         // Given
-        when(userRepository.findByUsername(username)).thenThrow(new RuntimeException("Database error"));
+        when(userRepository.findByUsernameAndCompanyId(username, companyId)).thenThrow(new RuntimeException("Database error"));
         
         // When & Then
         assertThrows(RuntimeException.class, () -> {
-            authQueryService.findByUsername(username);
+            authQueryService.findByUsername(username, companyId);
         });
         
-        verify(userRepository, times(1)).findByUsername(username);
+        verify(userRepository, times(1)).findByUsernameAndCompanyId(username, companyId);
     }
 }

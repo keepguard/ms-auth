@@ -58,6 +58,7 @@ class AuthUseCaseServiceTest {
             .username("testuser")
             .password("password123")
             .tenantId(UUID.randomUUID())
+            .companyId(UUID.randomUUID())
             .clientId("test-client-id")
             .build();
         
@@ -201,17 +202,17 @@ class AuthUseCaseServiceTest {
     void shouldFindUserByUsernameSuccessfully() {
         // Given
         String username = "testuser";
-        when(authQueryService.findByUsername(username)).thenReturn(Optional.of(user));
+        when(authQueryService.findByUsername(username, user.getCompanyId())).thenReturn(Optional.of(user));
         when(authApplicationMapper.toUserView(user)).thenReturn(userView);
         
         // When
-        Optional<UserView> result = authUseCaseService.findByUsername(username);
+        Optional<UserView> result = authUseCaseService.findByUsername(username, user.getCompanyId());
         
         // Then
         assertTrue(result.isPresent());
         assertEquals(userView, result.get());
         
-        verify(authQueryService, times(1)).findByUsername(username);
+        verify(authQueryService, times(1)).findByUsername(username, user.getCompanyId());
         verify(authApplicationMapper, times(1)).toUserView(user);
     }
     
@@ -220,15 +221,15 @@ class AuthUseCaseServiceTest {
     void shouldReturnEmptyOptionalWhenUserNotFoundByUsername() {
         // Given
         String username = "nonexistentuser";
-        when(authQueryService.findByUsername(username)).thenReturn(Optional.empty());
+        when(authQueryService.findByUsername(username, user.getCompanyId())).thenReturn(Optional.empty());
         
         // When
-        Optional<UserView> result = authUseCaseService.findByUsername(username);
+        Optional<UserView> result = authUseCaseService.findByUsername(username, user.getCompanyId());
         
         // Then
         assertTrue(result.isEmpty());
         
-        verify(authQueryService, times(1)).findByUsername(username);
+        verify(authQueryService, times(1)).findByUsername(username, user.getCompanyId());
     }
     
     @Test
@@ -236,17 +237,17 @@ class AuthUseCaseServiceTest {
     void shouldFindUserByEmailSuccessfully() {
         // Given
         String email = "test@example.com";
-        when(authQueryService.findByEmail(email)).thenReturn(Optional.of(user));
+        when(authQueryService.findByEmail(email, user.getCompanyId())).thenReturn(Optional.of(user));
         when(authApplicationMapper.toUserView(user)).thenReturn(userView);
         
         // When
-        Optional<UserView> result = authUseCaseService.findByEmail(email);
+        Optional<UserView> result = authUseCaseService.findByEmail(email, user.getCompanyId());
         
         // Then
         assertTrue(result.isPresent());
         assertEquals(userView, result.get());
         
-        verify(authQueryService, times(1)).findByEmail(email);
+        verify(authQueryService, times(1)).findByEmail(email, user.getCompanyId());
         verify(authApplicationMapper, times(1)).toUserView(user);
     }
     
@@ -255,15 +256,15 @@ class AuthUseCaseServiceTest {
     void shouldReturnEmptyOptionalWhenUserNotFoundByEmail() {
         // Given
         String email = "nonexistent@example.com";
-        when(authQueryService.findByEmail(email)).thenReturn(Optional.empty());
+        when(authQueryService.findByEmail(email, user.getCompanyId())).thenReturn(Optional.empty());
         
         // When
-        Optional<UserView> result = authUseCaseService.findByEmail(email);
+        Optional<UserView> result = authUseCaseService.findByEmail(email, user.getCompanyId());
         
         // Then
         assertTrue(result.isEmpty());
         
-        verify(authQueryService, times(1)).findByEmail(email);
+        verify(authQueryService, times(1)).findByEmail(email, user.getCompanyId());
     }
     
     @Test
@@ -418,15 +419,15 @@ class AuthUseCaseServiceTest {
     void shouldHandleExceptionsDuringUserSearch() {
         // Given
         String username = "testuser";
-        when(authQueryService.findByUsername(username))
+        when(authQueryService.findByUsername(username, user.getCompanyId()))
             .thenThrow(new RuntimeException("Service error"));
         
         // When & Then
         assertThrows(RuntimeException.class, () -> {
-            authUseCaseService.findByUsername(username);
+            authUseCaseService.findByUsername(username, user.getCompanyId());
         });
         
-        verify(authQueryService, times(1)).findByUsername(username);
+        verify(authQueryService, times(1)).findByUsername(username, user.getCompanyId());
     }
     
     @Test

@@ -37,6 +37,10 @@ public interface UserRepositoryPort {
 
     Optional<User> findByEmailAndStatus(String email, UserStatus status);
 
+    Optional<User> findByUsernameAndCompanyId(String username, UUID companyId);
+
+    Optional<User> findByEmailAndCompanyId(String email, UUID companyId);
+
     Optional<User> findByUsernameAndTenantId(String username, UUID tenantId);
 
     Optional<User> findByEmailAndTenantId(String email, UUID tenantId);

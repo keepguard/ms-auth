@@ -97,7 +97,7 @@ class UserQueryServiceTest {
     void shouldFindUserByUsernameSuccessfully() {
         // Given
         var command = userTestBuilder.buildGetByUsernameCommand("testuser");
-        when(userRepository.findByUsernameAndTenantId("testuser", command.getTenantId()))
+        when(userRepository.findByUsernameAndCompanyId("testuser", command.getCompanyId()))
             .thenReturn(Optional.of(user));
         when(userMapper.toUserGetByUsernameView(eq(user), anyList())).thenReturn(userGetByUsernameView);
 
@@ -109,9 +109,9 @@ class UserQueryServiceTest {
         assertEquals(user.getId(), result.id());
         assertEquals("testuser", result.username());
         assertEquals("test@example.com", result.email());
-        verify(userRepository).findByUsernameAndTenantId("testuser", command.getTenantId());
+        verify(userRepository).findByUsernameAndCompanyId("testuser", command.getCompanyId());
         verify(userMapper).toUserGetByUsernameView(eq(user), anyList());
-        verify(userCachePort).cacheUserByUsername("testuser", userGetByUsernameView);
+        verify(userCachePort).cacheUserByUsername(command.getCompanyId(), "testuser", userGetByUsernameView);
         verify(metricsPort, times(2)).incrementCounter(eq("user_queries_total"), any());
     }
 
@@ -120,7 +120,7 @@ class UserQueryServiceTest {
     void shouldThrowExceptionWhenUserNotFoundByUsername() {
         // Given
         var command = userTestBuilder.buildGetByUsernameCommand("testuser");
-        when(userRepository.findByUsernameAndTenantId("testuser", command.getTenantId()))
+        when(userRepository.findByUsernameAndCompanyId("testuser", command.getCompanyId()))
             .thenReturn(Optional.empty());
 
         // When & Then
@@ -136,7 +136,7 @@ class UserQueryServiceTest {
     void shouldFindUserByEmailSuccessfully() {
         // Given
         var command = userTestBuilder.buildGetByEmailCommand("test@example.com");
-        when(userRepository.findByEmailAndTenantId("test@example.com", command.getTenantId()))
+        when(userRepository.findByEmailAndCompanyId("test@example.com", command.getCompanyId()))
             .thenReturn(Optional.of(user));
         when(userMapper.toUserGetByEmailView(eq(user), anyList())).thenReturn(userGetByEmailView);
 
@@ -148,9 +148,9 @@ class UserQueryServiceTest {
         assertEquals(user.getId(), result.id());
         assertEquals("testuser", result.username());
         assertEquals("test@example.com", result.email());
-        verify(userRepository).findByEmailAndTenantId("test@example.com", command.getTenantId());
+        verify(userRepository).findByEmailAndCompanyId("test@example.com", command.getCompanyId());
         verify(userMapper).toUserGetByEmailView(eq(user), anyList());
-        verify(userCachePort).cacheUserByEmail("test@example.com", userGetByEmailView);
+        verify(userCachePort).cacheUserByEmail(command.getCompanyId(), "test@example.com", userGetByEmailView);
         verify(metricsPort, times(2)).incrementCounter(eq("user_queries_total"), any());
     }
 
@@ -159,7 +159,7 @@ class UserQueryServiceTest {
     void shouldThrowExceptionWhenUserNotFoundByEmail() {
         // Given
         var command = userTestBuilder.buildGetByEmailCommand("test@example.com");
-        when(userRepository.findByEmailAndTenantId("test@example.com", command.getTenantId()))
+        when(userRepository.findByEmailAndCompanyId("test@example.com", command.getCompanyId()))
             .thenReturn(Optional.empty());
 
         // When & Then

@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -355,7 +356,8 @@ public class UserCommandService {
             });
 
 
-        if (userRepository.findByEmailAndTenantId(command.getNewEmail(), command.getTenantId()).isPresent()) {
+        Optional<User> existingEmail = userRepository.findByEmailAndCompanyId(command.getNewEmail(), user.getCompanyId());
+        if (existingEmail.isPresent() && !existingEmail.get().getId().equals(user.getId())) {
             metricsPort.incrementCounter("user_business_errors_total",
                 Map.of("error_code", "EMAIL_ALREADY_EXISTS", "operation", "update_email"));
             throw new AlreadyExistsException("Email já existe: " + command.getNewEmail());
@@ -401,13 +403,13 @@ public class UserCommandService {
     }
 
     private User persistNewUser(UserCreateCommandDTO command) {
-        if (userRepository.findByUsernameAndTenantId(command.getUsername(), command.getTenantId()).isPresent()) {
+        if (userRepository.findByUsernameAndCompanyId(command.getUsername(), command.getCompanyId()).isPresent()) {
             metricsPort.incrementCounter("user_business_errors_total",
                 Map.of("error_code", "USERNAME_ALREADY_EXISTS", "operation", "create"));
             throw new AlreadyExistsException("Username já existe: " + command.getUsername());
         }
 
-        if (userRepository.findByEmailAndTenantId(command.getEmail(), command.getTenantId()).isPresent()) {
+        if (userRepository.findByEmailAndCompanyId(command.getEmail(), command.getCompanyId()).isPresent()) {
             metricsPort.incrementCounter("user_business_errors_total",
                 Map.of("error_code", "EMAIL_ALREADY_EXISTS", "operation", "create"));
             throw new AlreadyExistsException("Email já existe: " + command.getEmail());
