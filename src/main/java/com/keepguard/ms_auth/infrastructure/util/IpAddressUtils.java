@@ -8,25 +8,33 @@ public final class IpAddressUtils {
     }
 
     public static String firstIp(String raw) {
+        String firstPublic = firstPublic(raw);
+        if (firstPublic != null) {
+            return firstPublic;
+        }
         if (raw == null || raw.isBlank()) {
             return null;
         }
-        String firstPublic = null;
-        String firstAny = null;
         for (String part : raw.split(",")) {
             String ip = stripPort(part.trim());
-            if (ip == null) {
-                continue;
-            }
-            if (firstAny == null) {
-                firstAny = ip;
-            }
-            if (!isPrivate(ip)) {
-                firstPublic = ip;
-                break;
+            if (ip != null) {
+                return ip;
             }
         }
-        return firstPublic != null ? firstPublic : firstAny;
+        return null;
+    }
+
+    public static String firstPublic(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        for (String part : raw.split(",")) {
+            String ip = stripPort(part.trim());
+            if (ip != null && !isPrivate(ip)) {
+                return ip;
+            }
+        }
+        return null;
     }
 
     public static boolean isPrivate(String ip) {

@@ -24,6 +24,8 @@ import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthRegisterLoginRequestD
 import com.keepguard.ms_auth.application.port.in.AuthPort;
 import com.keepguard.ms_auth.adapters.in.rest.auth.mapper.AuthAdapterMapper;
 
+import com.keepguard.ms_auth.infrastructure.util.ClientIpResolver;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,6 +34,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,13 +73,14 @@ public class AuthController {
             @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
             @RequestHeader(value = "X-Device-Name", required = false) String deviceName,
             @RequestHeader(value = "X-Device-Type", required = false) String deviceType,
-            @RequestHeader(value = "X-Forwarded-For", required = false) String ipAddress,
-            @RequestHeader(value = "User-Agent", required = false) String userAgent) {
+            @RequestHeader(value = "User-Agent", required = false) String userAgent,
+            HttpServletRequest httpRequest) {
 
         log.info("Realizando login para usuário: {}, tenantIdHeader={}, clientId={}, deviceId={}", 
             request.getUsername(), tenantIdHeader, clientId, deviceId);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        var ipAddress = ClientIpResolver.from(httpRequest);
         
         var command = mapper.toLoginCommand(request, tenantId, clientId, deviceId, deviceName, deviceType, ipAddress, userAgent);
         var view = authService.login(command);
@@ -248,13 +252,14 @@ public class AuthController {
             @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
             @RequestHeader(value = "X-Device-Name", required = false) String deviceName,
             @RequestHeader(value = "X-Device-Type", required = false) String deviceType,
-            @RequestHeader(value = "X-Forwarded-For", required = false) String ipAddress,
-            @RequestHeader(value = "User-Agent", required = false) String userAgent) {
+            @RequestHeader(value = "User-Agent", required = false) String userAgent,
+            HttpServletRequest httpRequest) {
 
         log.info("Alterando senha para usuário: {}, tenantIdHeader={}, deviceId={}",
                 request.getCodeUser(), tenantIdHeader, deviceId);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        var ipAddress = ClientIpResolver.from(httpRequest);
         var command = mapper.toChangePasswordCommand(
                 request, tenantId, deviceId, deviceName, deviceType, ipAddress, userAgent);
         authService.changePassword(command);
@@ -285,13 +290,14 @@ public class AuthController {
             @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
             @RequestHeader(value = "X-Device-Name", required = false) String deviceName,
             @RequestHeader(value = "X-Device-Type", required = false) String deviceType,
-            @RequestHeader(value = "X-Forwarded-For", required = false) String ipAddress,
-            @RequestHeader(value = "User-Agent", required = false) String userAgent) {
+            @RequestHeader(value = "User-Agent", required = false) String userAgent,
+            HttpServletRequest httpRequest) {
 
         log.info("Resetando senha para usuário: {}, tenantIdHeader={}, deviceId={}, resetToken={}", 
             request.getCodeUser(), tenantIdHeader, deviceId, request.getResetToken());
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        var ipAddress = ClientIpResolver.from(httpRequest);
         var command = mapper.toResetPasswordCommand(
                 request, tenantId, deviceId, deviceName, deviceType, ipAddress, userAgent);
         authService.resetPassword(command);

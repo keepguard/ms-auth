@@ -37,7 +37,7 @@ public class IpWhoIsGeoLocationAdapter implements GeoLocationPort {
         this.objectMapper = objectMapper;
         this.lookupUrlTemplate = lookupUrlTemplate;
         this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofMillis(800))
+                .connectTimeout(Duration.ofMillis(2000))
                 .build();
     }
 
@@ -57,7 +57,7 @@ public class IpWhoIsGeoLocationAdapter implements GeoLocationPort {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(lookupUrlTemplate.formatted(ip)))
-                    .timeout(Duration.ofMillis(1200))
+                    .timeout(Duration.ofMillis(3000))
                     .GET()
                     .build();
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());

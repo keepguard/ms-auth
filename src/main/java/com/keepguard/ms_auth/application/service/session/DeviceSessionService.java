@@ -390,6 +390,7 @@ public class DeviceSessionService {
                             active != null ? active.getIpAddress() : null,
                             isCurrent ? requestIp : null
                     );
+                    persistDeviceIpIfMissing(dev, ipAddress);
                     String location = resolveAndPersistLocation(active, ipAddress);
 
                     result.add(new DeviceSessionView(
@@ -444,6 +445,17 @@ public class DeviceSessionService {
             sessionCachePort.saveUserSession(session, 2592000L);
         }
         return resolved;
+    }
+
+    private void persistDeviceIpIfMissing(UserDevice device, String ipAddress) {
+        if (device == null || ipAddress == null || ipAddress.isBlank()) {
+            return;
+        }
+        if (device.getIpAddress() != null && !device.getIpAddress().isBlank()) {
+            return;
+        }
+        device.updateActivity(ipAddress, null, device.getLastActiveAt());
+        userDeviceRepository.save(device);
     }
 
     private static String firstNonBlank(String... values) {

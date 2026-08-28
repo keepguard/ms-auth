@@ -9,6 +9,7 @@ import com.keepguard.ms_auth.application.dto.session.DeviceSessionView;
 import com.keepguard.ms_auth.application.dto.session.SendDeviceChallengeCommandDTO;
 import com.keepguard.ms_auth.application.dto.session.VerifyDeviceChallengeCommandDTO;
 import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
+import com.keepguard.ms_auth.infrastructure.util.ClientIpResolver;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -67,11 +70,12 @@ public class DeviceSessionController {
     public ResponseEntity<List<DeviceSessionView>> listSessions(
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader(value = "X-Device-Id", required = false) String currentDeviceId,
-            @RequestHeader(value = "X-Forwarded-For", required = false) String forwardedFor) {
+            HttpServletRequest httpRequest) {
 
         String codeUser = jwt.getSubject();
         String deviceId = currentDeviceId != null ? currentDeviceId : jwt.getClaimAsString("device_id");
-        List<DeviceSessionView> sessions = deviceSessionService.listUserSessions(codeUser, deviceId, forwardedFor);
+        List<DeviceSessionView> sessions = deviceSessionService.listUserSessions(
+                codeUser, deviceId, ClientIpResolver.from(httpRequest));
         return ResponseEntity.ok(sessions);
     }
 

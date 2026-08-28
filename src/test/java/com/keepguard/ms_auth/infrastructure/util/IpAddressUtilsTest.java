@@ -23,4 +23,10 @@ class IpAddressUtilsTest {
         assertTrue(IpAddressUtils.isPrivate("192.168.1.10"));
         assertFalse(IpAddressUtils.isPrivate("8.8.8.8"));
     }
+
+    @Test
+    void firstPublicIgnoresPrivateAddresses() {
+        assertEquals("189.45.12.8", IpAddressUtils.firstPublic("10.42.0.1, 189.45.12.8"));
+        assertNull(IpAddressUtils.firstPublic("10.42.0.1, 192.168.0.8"));
+    }
 }

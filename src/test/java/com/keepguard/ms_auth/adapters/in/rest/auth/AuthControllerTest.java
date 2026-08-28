@@ -19,6 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -34,6 +36,9 @@ class AuthControllerTest {
     
     @Mock
     private AuthAdapterMapper authAdapterMapper;
+
+    @Mock
+    private HttpServletRequest httpRequest;
     
     @InjectMocks
     private AuthController authController;
@@ -88,7 +93,7 @@ class AuthControllerTest {
             .build());
         
         // When
-        ResponseEntity<AuthLoginResponseDTO> response = authController.login(authRequest, "550e8400-e29b-41d4-a716-446655440000", "Mozilla/5.0", null, null, null, null, null);
+        ResponseEntity<AuthLoginResponseDTO> response = authController.login(authRequest, "550e8400-e29b-41d4-a716-446655440000", "Mozilla/5.0", null, null, null, null, httpRequest);
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -166,7 +171,7 @@ class AuthControllerTest {
         
         // When & Then
         assertThrows(RuntimeException.class, () -> {
-            authController.login(authRequest, "550e8400-e29b-41d4-a716-446655440000", "Mozilla/5.0", null, null, null, null, null);
+            authController.login(authRequest, "550e8400-e29b-41d4-a716-446655440000", "Mozilla/5.0", null, null, null, null, httpRequest);
         });
         
         verify(authService, times(1)).login(any(AuthLoginCommandDTO.class));
@@ -244,7 +249,7 @@ class AuthControllerTest {
         doNothing().when(authService).changePassword(any(AuthChangePasswordCommandDTO.class));
         
         // When
-        ResponseEntity<Void> response = authController.changePassword(changePasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, null);
+        ResponseEntity<Void> response = authController.changePassword(changePasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, httpRequest);
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -261,7 +266,7 @@ class AuthControllerTest {
         doNothing().when(authService).resetPassword(any(AuthResetPasswordCommandDTO.class));
         
         // When
-        ResponseEntity<Void> response = authController.resetPassword(resetPasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, null);
+        ResponseEntity<Void> response = authController.resetPassword(resetPasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, httpRequest);
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -279,7 +284,7 @@ class AuthControllerTest {
         
         // When & Then
         assertThrows(RuntimeException.class, () -> {
-            authController.changePassword(changePasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, null);
+            authController.changePassword(changePasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, httpRequest);
         });
         
         verify(authService, times(1)).changePassword(any(AuthChangePasswordCommandDTO.class));
@@ -294,7 +299,7 @@ class AuthControllerTest {
         
         // When & Then
         assertThrows(RuntimeException.class, () -> {
-            authController.resetPassword(resetPasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, null);
+            authController.resetPassword(resetPasswordRequest, "550e8400-e29b-41d4-a716-446655440000", null, null, null, null, httpRequest);
         });
         
         verify(authService, times(1)).resetPassword(any(AuthResetPasswordCommandDTO.class));

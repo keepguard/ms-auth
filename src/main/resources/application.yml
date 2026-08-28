@@ -1,5 +1,6 @@
 server:
   port: 8581
+  forward-headers-strategy: none
 
 spring:
   threads:
