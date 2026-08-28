@@ -140,8 +140,8 @@ public class DeviceSessionService {
                     Map.of("attemptsRemaining", (challenge.getMaxAttempts() - challenge.getAttempts())));
         }
 
-        // Código correto: buscar usuário
-        User user = userRepository.findByCodeUserAndTenantId(
+        // Código correto: buscar usuário (companyId do challenge é o PK da empresa)
+        User user = userRepository.findByCodeUserAndCompanyId(
                 UUID.fromString(challenge.getCodeUser()),
                 UUID.fromString(challenge.getCompanyId())
         ).orElseThrow(() -> new NotFoundException("Usuário não encontrado", "USER_NOT_FOUND", Map.of()));
@@ -149,7 +149,10 @@ public class DeviceSessionService {
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
 
-        String token = jwtService.generateToken(user, roleNames, authorities, challenge.getCompanyId(), challenge.getClientId(), challenge.getDeviceId());
+        String tenantClaim = user.getTenantId() != null
+                ? user.getTenantId().toString()
+                : challenge.getCompanyId();
+        String token = jwtService.generateToken(user, roleNames, authorities, tenantClaim, challenge.getClientId(), challenge.getDeviceId());
 
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);

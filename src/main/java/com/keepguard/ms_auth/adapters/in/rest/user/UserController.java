@@ -68,12 +68,14 @@ public class UserController {
             @Parameter(description = "Dados do usuário a ser criado", required = true)
             @Valid @RequestBody UserCreateRequestDTO dto,
             @Parameter(description = "UUID da empresa", required = true)
-            @RequestHeader("X-Company-Id") UUID companyId) {
+            @RequestHeader("X-Company-Id") UUID companyId,
+            @Parameter(description = "TenantId da empresa")
+            @RequestHeader(value = "X-Tenant-Id", required = false) UUID tenantId) {
 
         log.info("Criando usuário: {},     companyId={}", dto.getUsername(), companyId);
         
         
-        var command = mapper.toCreateCommand(dto, companyId);
+        var command = mapper.toCreateCommand(dto, companyId, tenantId);
         var view = userService.create(command);
         var response = mapper.toResponseDTO(view);
         
@@ -101,11 +103,13 @@ public class UserController {
             @Parameter(description = "Dados do administrador a ser criado", required = true)
             @Valid @RequestBody UserCreateRequestDTO dto,
             @Parameter(description = "UUID da empresa", required = true)
-            @RequestHeader("X-Company-Id") UUID companyId) {
+            @RequestHeader("X-Company-Id") UUID companyId,
+            @Parameter(description = "TenantId da empresa")
+            @RequestHeader(value = "X-Tenant-Id", required = false) UUID tenantId) {
 
         log.info("Criando admin: {}, companyId={}", dto.getUsername(), companyId);
 
-        var command = mapper.toCreateCommand(dto, companyId);
+        var command = mapper.toCreateCommand(dto, companyId, tenantId);
         var view = userService.createAdmin(command);
         var response = mapper.toResponseDTO(view);
 
@@ -134,11 +138,13 @@ public class UserController {
             @Parameter(description = "Dados do manager a ser criado", required = true)
             @Valid @RequestBody UserCreateRequestDTO dto,
             @Parameter(description = "UUID da empresa", required = true)
-            @RequestHeader("X-Company-Id") UUID companyId) {
+            @RequestHeader("X-Company-Id") UUID companyId,
+            @Parameter(description = "TenantId da empresa")
+            @RequestHeader(value = "X-Tenant-Id", required = false) UUID tenantId) {
 
         log.info("Criando manager: {}, companyId={}", dto.getUsername(), companyId);
 
-        var command = mapper.toCreateCommand(dto, companyId);
+        var command = mapper.toCreateCommand(dto, companyId, tenantId);
         var view = userService.createManager(command);
         var response = mapper.toResponseDTO(view);
 

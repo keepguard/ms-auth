@@ -120,6 +120,7 @@ class AuthCommandServiceTest {
         user = UserTestBuilder.aUser()
             .withUsername(username)
             .withCodeUser(codeUser)
+            .withCompanyId(companyId)
             .withTenantId(companyId)
             .asActive()
             .buildDomain();
@@ -350,7 +351,7 @@ class AuthCommandServiceTest {
         when(jwtService.validateToken(token)).thenReturn(true);
         when(jwtService.extractUserId(token)).thenReturn(codeUser);
         when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
-        when(userRepository.findByCodeUserAndTenantId(codeUser, companyId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndCompanyId(codeUser, companyId)).thenReturn(Optional.of(user));
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
         when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn("new-token");
         when(jwtService.getExpiration()).thenReturn(3600L);
@@ -363,7 +364,7 @@ class AuthCommandServiceTest {
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
-        verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUser, companyId);
+        verify(userRepository, times(1)).findByCodeUserAndCompanyId(codeUser, companyId);
         verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any());
         verify(tokenCachePort, times(1)).removeToken(codeUser.toString(), token);
         verify(tokenCachePort, times(1)).saveToken(codeUser.toString(), "new-token", 3600L);
@@ -413,7 +414,7 @@ class AuthCommandServiceTest {
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
-        verify(userRepository, never()).findByCodeUserAndTenantId(any(), any());
+        verify(userRepository, never()).findByCodeUserAndCompanyId(any(), any());
         verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any());
     }
     
@@ -429,7 +430,7 @@ class AuthCommandServiceTest {
         when(jwtService.validateToken(token)).thenReturn(true);
         when(jwtService.extractUserId(token)).thenReturn(codeUser);
         when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
-        when(userRepository.findByCodeUserAndTenantId(codeUser, companyId)).thenReturn(Optional.empty());
+        when(userRepository.findByCodeUserAndCompanyId(codeUser, companyId)).thenReturn(Optional.empty());
         
         // When & Then
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
@@ -440,7 +441,7 @@ class AuthCommandServiceTest {
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
-        verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUser, companyId);
+        verify(userRepository, times(1)).findByCodeUserAndCompanyId(codeUser, companyId);
         verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any());
     }
     
@@ -460,7 +461,7 @@ class AuthCommandServiceTest {
         when(jwtService.validateToken(token)).thenReturn(true);
         when(jwtService.extractUserId(token)).thenReturn(codeUser);
         when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
-        when(userRepository.findByCodeUserAndTenantId(codeUser, companyId)).thenReturn(Optional.of(blockedUser));
+        when(userRepository.findByCodeUserAndCompanyId(codeUser, companyId)).thenReturn(Optional.of(blockedUser));
         
         // When & Then
         InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> {
@@ -471,7 +472,7 @@ class AuthCommandServiceTest {
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
-        verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUser, companyId);
+        verify(userRepository, times(1)).findByCodeUserAndCompanyId(codeUser, companyId);
         verify(jwtService, never()).generateToken(any(), any(), any(), anyString(), any(), any());
     }
     
@@ -579,7 +580,7 @@ class AuthCommandServiceTest {
         
         when(jwtService.validateToken(token)).thenReturn(true);
         when(jwtService.extractUserId(token)).thenReturn(codeUser);
-        when(userRepository.findByCodeUserAndTenantId(codeUser, companyId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndCompanyId(codeUser, companyId)).thenReturn(Optional.of(user));
         when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
         
         // When
@@ -588,7 +589,7 @@ class AuthCommandServiceTest {
         // Then
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
-        verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUser, companyId);
+        verify(userRepository, times(1)).findByCodeUserAndCompanyId(codeUser, companyId);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
         verify(metricsPort, times(1)).incrementCounter(anyString(), any());
     }
@@ -626,7 +627,7 @@ class AuthCommandServiceTest {
         
         when(jwtService.validateToken(token)).thenReturn(true);
         when(jwtService.extractUserId(token)).thenReturn(codeUser);
-        when(userRepository.findByCodeUserAndTenantId(codeUser, companyId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndCompanyId(codeUser, companyId)).thenReturn(Optional.of(user));
         when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(false);
         
         // When & Then
@@ -637,7 +638,7 @@ class AuthCommandServiceTest {
         assertEquals("Token inválido ou expirado", exception.getMessage());
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
-        verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUser, companyId);
+        verify(userRepository, times(1)).findByCodeUserAndCompanyId(codeUser, companyId);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
         verify(metricsPort, never()).incrementCounter(anyString(), any());
     }
@@ -656,7 +657,7 @@ class AuthCommandServiceTest {
             .companyId(companyId)
             .build();
         
-        when(userRepository.findByCodeUserAndTenantId(codeUserUuid, companyId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndCompanyId(codeUserUuid, companyId)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("oldpassword", "hashedpassword")).thenReturn(true);
         when(passwordEncoder.encode("newpassword123")).thenReturn("encoded-new-password");
         when(passwordHistoryRepository.findTop5ByUserIdOrderByCreatedAtDesc(user.getId())).thenReturn(List.of());
@@ -665,7 +666,7 @@ class AuthCommandServiceTest {
         authCommandService.changePassword(changePasswordRequest);
         
         // Then
-        verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUserUuid, companyId);
+        verify(userRepository, times(1)).findByCodeUserAndCompanyId(codeUserUuid, companyId);
         verify(passwordEncoder, times(1)).matches("oldpassword", "hashedpassword");
         verify(passwordEncoder, times(1)).encode("newpassword123");
         verify(userRepository, times(1)).save(user);
@@ -691,7 +692,7 @@ class AuthCommandServiceTest {
             authCommandService.changePassword(changePasswordRequest);
         });
         
-        verify(userRepository, never()).findByCodeUserAndTenantId(any(), any());
+        verify(userRepository, never()).findByCodeUserAndCompanyId(any(), any());
     }
     
     @Test
@@ -710,7 +711,7 @@ class AuthCommandServiceTest {
             .companyId(companyId)
             .build();
         
-        when(userRepository.findByCodeUserAndTenantId(codeUserUuid, companyId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndCompanyId(codeUserUuid, companyId)).thenReturn(Optional.of(user));
         when(tokenCachePort.isResetTokenValid(codeUserString, "EMAIL", "RECUPERACAO_SENHA", "reset-token")).thenReturn(true);
         when(passwordEncoder.encode("newpassword123")).thenReturn("encoded-new-password");
         when(passwordHistoryRepository.findTop5ByUserIdOrderByCreatedAtDesc(user.getId())).thenReturn(List.of());
@@ -719,7 +720,7 @@ class AuthCommandServiceTest {
         authCommandService.resetPassword(resetPasswordRequest);
         
         // Then
-        verify(userRepository, times(1)).findByCodeUserAndTenantId(codeUserUuid, companyId);
+        verify(userRepository, times(1)).findByCodeUserAndCompanyId(codeUserUuid, companyId);
         verify(tokenCachePort, times(1)).isResetTokenValid(codeUserString, "EMAIL", "RECUPERACAO_SENHA", "reset-token");
         verify(passwordEncoder, times(1)).encode("newpassword123");
         verify(userRepository, times(1)).save(user);
@@ -752,7 +753,7 @@ class AuthCommandServiceTest {
             });
 
         assertTrue(exception.getMessage().contains("Aguarde 45 segundos"));
-        verify(userRepository, never()).findByCodeUserAndTenantId(any(), any());
+        verify(userRepository, never()).findByCodeUserAndCompanyId(any(), any());
     }
 
     @Test
@@ -771,7 +772,7 @@ class AuthCommandServiceTest {
             .companyId(companyId)
             .build();
 
-        when(userRepository.findByCodeUserAndTenantId(codeUserUuid, companyId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndCompanyId(codeUserUuid, companyId)).thenReturn(Optional.of(user));
         when(tokenCachePort.isResetTokenValid(codeUserString, "EMAIL", "RECUPERACAO_SENHA", "wrong-token")).thenReturn(false);
         when(tokenCachePort.recordResetTokenFailedAttempt(codeUserString, "EMAIL", "RECUPERACAO_SENHA")).thenReturn(1L);
 

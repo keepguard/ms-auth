@@ -65,5 +65,10 @@ public class UserCreateRequestDTO {
             required = true)
     private String companyCode;
 
+    @JsonProperty("tenant_id")
+    @Schema(description = "TenantId da empresa (X-Tenant-Id). Distinto do company_id.",
+            example = "550e8400-e29b-41d4-a716-446655440002")
+    private String tenantId;
+
 }
 

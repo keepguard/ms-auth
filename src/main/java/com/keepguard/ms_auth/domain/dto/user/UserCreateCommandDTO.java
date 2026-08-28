@@ -46,6 +46,8 @@ public class UserCreateCommandDTO {
 
     private UUID companyCode;
 
+    private UUID tenantId;
+
     private List<String> roles;
 }
 

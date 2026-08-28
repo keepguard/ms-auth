@@ -398,7 +398,7 @@ public class UserCommandService {
             throw new ForbiddenException("Token JWT não informado ou inválido.", "JWT_REQUIRED");
         }
         UUID actorCodeUserUuid = ValidationUtils.validateAndParseUUID(actorCodeUser);
-        return userRepository.findByCodeUserAndTenantId(actorCodeUserUuid, companyId)
+        return userRepository.findByCodeUserAndCompanyId(actorCodeUserUuid, companyId)
             .orElseThrow(() -> new ForbiddenException("Ator não encontrado para o token informado.", "ACTOR_NOT_FOUND"));
     }
 
@@ -416,7 +416,8 @@ public class UserCommandService {
         }
 
         var idUserExternalUuid = UUID.fromString(command.getIdUserExternal());
-        if (userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, command.getCompanyId()).isPresent()) {
+        UUID tenantId = command.getTenantId() != null ? command.getTenantId() : command.getCompanyId();
+        if (userRepository.findByIdUserExternalAndTenantId(idUserExternalUuid, tenantId).isPresent()) {
             metricsPort.incrementCounter("user_business_errors_total",
                 Map.of("error_code", "ID_EXTERNAL_ALREADY_EXISTS", "operation", "create"));
             throw new AlreadyExistsException("ID externo já existe: " + command.getIdUserExternal());
@@ -430,7 +431,7 @@ public class UserCommandService {
             command.getCodeUser(),
             command.getCompanyId(),
             command.getCompanyCode(),
-            command.getCompanyId()
+            tenantId
         );
         return userRepository.save(user);
     }

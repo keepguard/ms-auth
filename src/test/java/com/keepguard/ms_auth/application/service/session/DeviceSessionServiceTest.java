@@ -197,7 +197,7 @@ class DeviceSessionServiceTest {
         user.setEmail("test@example.com");
         user.setStatus(UserStatus.ACTIVE);
 
-        when(userRepository.findByCodeUserAndTenantId(UUID.fromString(codeUser), UUID.fromString(companyId)))
+        when(userRepository.findByCodeUserAndCompanyId(UUID.fromString(codeUser), UUID.fromString(companyId)))
                 .thenReturn(Optional.of(user));
         when(jwtService.generateToken(any(), any(), any(), any(), any(), any()))
                 .thenReturn("mock-jwt-token");
@@ -291,7 +291,7 @@ class DeviceSessionServiceTest {
                 .status(UserStatus.ACTIVE)
                 .build();
 
-        when(userRepository.findByCodeUserAndTenantId(UUID.fromString(codeUser), UUID.fromString(companyId)))
+        when(userRepository.findByCodeUserAndCompanyId(UUID.fromString(codeUser), UUID.fromString(companyId)))
                 .thenReturn(Optional.of(mockUser));
         when(jwtService.generateToken(any(), any(), any(), any(), any(), any()))
                 .thenReturn("mock_jwt_token");

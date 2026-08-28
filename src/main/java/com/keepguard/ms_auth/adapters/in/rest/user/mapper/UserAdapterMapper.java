@@ -17,11 +17,22 @@ import java.util.UUID;
 public class UserAdapterMapper {
 
     public UserCreateCommandDTO toCreateCommand(UserCreateRequestDTO dto, UUID companyId) {
+        return toCreateCommand(dto, companyId, companyId);
+    }
+
+    public UserCreateCommandDTO toCreateCommand(UserCreateRequestDTO dto, UUID companyId, UUID tenantIdHeader) {
         if (dto == null) {
             return null;
         }
 
         try {
+            UUID tenantId = parseUuid(dto.getTenantId());
+            if (tenantId == null) {
+                tenantId = tenantIdHeader;
+            }
+            if (tenantId == null) {
+                throw new IllegalArgumentException("tenantId é obrigatório (body tenant_id ou header X-Tenant-Id)");
+            }
             return UserCreateCommandDTO.builder()
                     .username(dto.getUsername() != null ? dto.getUsername().trim().toLowerCase() : null)
                     .email(dto.getEmail())
@@ -31,12 +42,20 @@ public class UserAdapterMapper {
                     .codeUser(dto.getCodeUser() != null ? UUID.fromString(dto.getCodeUser()) : null)
                     .companyId(companyId)
                     .companyCode(dto.getCompanyCode() != null ? UUID.fromString(dto.getCompanyCode()) : null)
+                    .tenantId(tenantId)
                     .roles(List.of())
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear UserCreateRequestDTO para UserCreateCommandDTO: {}", e.getMessage(), e);
             throw e;
         }
+    }
+
+    private static UUID parseUuid(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return UUID.fromString(value.trim());
     }
 
     public UserDeleteCommandDTO toDeleteCommand(String idUserExternal, String reason, UUID companyId, String actorCodeUser) {

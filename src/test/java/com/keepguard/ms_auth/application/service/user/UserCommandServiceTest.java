@@ -74,6 +74,7 @@ class UserCommandServiceTest {
         userTestBuilder = UserTestBuilder.builder()
             .withId(userId)
             .withIdUserExternal(idUserExternal)
+            .withCompanyId(companyId)
             .withTenantId(companyId);
             
         user = userTestBuilder.buildDomain();
@@ -167,7 +168,7 @@ class UserCommandServiceTest {
     void shouldDeleteUserSuccessfully() {
         // Given
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, companyId)).thenReturn(Optional.of(user));
-        when(userRepository.findByCodeUserAndTenantId(user.getCodeUser(), companyId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndCompanyId(user.getCodeUser(), companyId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
@@ -207,7 +208,7 @@ class UserCommandServiceTest {
     void shouldBlockUserSuccessfully() {
         // Given
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, companyId)).thenReturn(Optional.of(user));
-        when(userRepository.findByCodeUserAndTenantId(user.getCodeUser(), companyId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndCompanyId(user.getCodeUser(), companyId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
@@ -231,7 +232,7 @@ class UserCommandServiceTest {
     void shouldUnlockUserSuccessfully() {
         // Given
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, companyId)).thenReturn(Optional.of(user));
-        when(userRepository.findByCodeUserAndTenantId(user.getCodeUser(), companyId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndCompanyId(user.getCodeUser(), companyId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));

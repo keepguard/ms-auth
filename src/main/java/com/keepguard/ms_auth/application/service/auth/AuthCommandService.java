@@ -105,10 +105,6 @@ public class AuthCommandService {
                                "companyId", request.getCompanyId() != null ? request.getCompanyId().toString() : "null"));
                 });
 
-        if (user.getTenantId() != null) {
-            request.setCompanyId(user.getTenantId());
-        }
-
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             log.warn("Login failed - Invalid password: username={}, userId={}, application={}", 
                 request.getUsername(), user.getCodeUser(), request.getCompanyId());
@@ -204,7 +200,7 @@ public class AuthCommandService {
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
 
-        String token = jwtService.generateToken(user, roleNames, authorities, request.getCompanyId().toString(), request.getClientId(), deviceId);
+        String token = jwtService.generateToken(user, roleNames, authorities, jwtTenantClaim(user), request.getClientId(), deviceId);
 
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
@@ -375,7 +371,7 @@ public class AuthCommandService {
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
 
-        String token = jwtService.generateToken(user, roleNames, authorities, request.getCompanyId().toString(), request.getClientId());
+        String token = jwtService.generateToken(user, roleNames, authorities, jwtTenantClaim(user), request.getClientId());
 
         // Atualizar último login
         user.setLastLogin(LocalDateTime.now());
@@ -421,7 +417,7 @@ public class AuthCommandService {
                 Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
         }
         
-        User user = userRepository.findByCodeUserAndTenantId(codeUser, request.getCompanyId())
+        User user = userRepository.findByCodeUserAndCompanyId(codeUser, request.getCompanyId())
                 .orElseThrow(() -> {
                     log.warn("Refresh token failed - User not found: codeUser={}, application={}", codeUser, request.getCompanyId());
                     return new NotFoundException("User not found", "USER_NOT_FOUND", 
@@ -440,7 +436,7 @@ public class AuthCommandService {
         List<String> authorities = getUserAuthorities(user.getId());
 
         String deviceId = jwtService.extractDeviceId(request.getToken());
-        String newToken = jwtService.generateToken(user, roleNames, authorities, request.getCompanyId().toString(), request.getClientId(), deviceId);
+        String newToken = jwtService.generateToken(user, roleNames, authorities, jwtTenantClaim(user), request.getClientId(), deviceId);
 
         // Remove o token antigo e salva o novo (rotação de token)
         tokenCachePort.removeToken(codeUser.toString(), request.getToken());
@@ -508,7 +504,7 @@ public class AuthCommandService {
 
         UUID codeUser = jwtService.extractUserId(request.getToken());
 
-        userRepository.findByCodeUserAndTenantId(codeUser, request.getCompanyId())
+        userRepository.findByCodeUserAndCompanyId(codeUser, request.getCompanyId())
                 .orElseThrow(() -> {
                     log.warn("Refresh token failed - User not found: codeUser={}, application={}", codeUser, request.getCompanyId());
                     return new NotFoundException("User not found", "USER_NOT_FOUND", 
@@ -540,7 +536,7 @@ public class AuthCommandService {
             throw new InvalidPasswordException("New password and confirmation do not match");
         }
         
-        User user = userRepository.findByCodeUserAndTenantId(UUID.fromString(request.getCodeUser()), request.getCompanyId())
+        User user = userRepository.findByCodeUserAndCompanyId(UUID.fromString(request.getCodeUser()), request.getCompanyId())
             .orElseThrow(() -> {
                 log.warn("Change password failed - User not found: codeUser={}, application={}", request.getCodeUser(), request.getCompanyId());
             return new NotFoundException("User not found", "USER_NOT_FOUND", 
@@ -610,7 +606,7 @@ public class AuthCommandService {
         }
 
         // Valida se o usuário existe e está ativo
-        User user = userRepository.findByCodeUserAndTenantId(
+        User user = userRepository.findByCodeUserAndCompanyId(
             UUID.fromString(request.getCodeUser()), 
             request.getCompanyId())
             .orElseThrow(() -> {
@@ -671,7 +667,7 @@ public class AuthCommandService {
             throw new InvalidPasswordException("New password and confirmation do not match");
         }
         
-        User user = userRepository.findByCodeUserAndTenantId(UUID.fromString(request.getCodeUser()), request.getCompanyId())
+        User user = userRepository.findByCodeUserAndCompanyId(UUID.fromString(request.getCodeUser()), request.getCompanyId())
             .orElseThrow(() -> {
                 log.warn("Change password failed - User not found: codeUser={}, application={}", request.getCodeUser(), request.getCompanyId());
             return new NotFoundException("User not found", "USER_NOT_FOUND", 
@@ -800,6 +796,16 @@ public class AuthCommandService {
             .distinct()
             .sorted()
             .collect(Collectors.toList());
+    }
+
+    private static String jwtTenantClaim(User user) {
+        if (user.getTenantId() != null) {
+            return user.getTenantId().toString();
+        }
+        if (user.getCompanyId() != null) {
+            return user.getCompanyId().toString();
+        }
+        throw new IllegalStateException("Usuário sem tenantId e companyId para claim JWT");
     }
 
 }

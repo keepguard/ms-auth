@@ -104,12 +104,12 @@ class UserControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
                 .thenReturn(companyId);
             
-            when(mapper.toCreateCommand(userCreateDTO, companyId)).thenReturn(command);
+            when(mapper.toCreateCommand(userCreateDTO, companyId, null)).thenReturn(command);
             when(userService.create(command)).thenReturn(userView);
             when(mapper.toResponseDTO(userView)).thenReturn(userResponseDTO);
             
             // When
-            ResponseEntity<UserResponseDTO> response = userController.create(userCreateDTO, companyId);
+            ResponseEntity<UserResponseDTO> response = userController.create(userCreateDTO, companyId, null);
             
             // Then
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -120,7 +120,7 @@ class UserControllerTest {
             assertEquals("testuser", responseBody.getUsername());
             assertEquals("test@example.com", responseBody.getEmail());
             
-            verify(mapper, times(1)).toCreateCommand(userCreateDTO, companyId);
+            verify(mapper, times(1)).toCreateCommand(userCreateDTO, companyId, null);
             verify(userService, times(1)).create(command);
             verify(mapper, times(1)).toResponseDTO(userView);
         }
@@ -137,11 +137,11 @@ class UserControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
                 .thenReturn(companyId);
 
-            when(mapper.toCreateCommand(userCreateDTO, companyId)).thenReturn(command);
+            when(mapper.toCreateCommand(userCreateDTO, companyId, null)).thenReturn(command);
             when(userService.createAdmin(command)).thenReturn(userView);
             when(mapper.toResponseDTO(userView)).thenReturn(userResponseDTO);
 
-            ResponseEntity<UserResponseDTO> response = userController.createAdmin(userCreateDTO, companyId);
+            ResponseEntity<UserResponseDTO> response = userController.createAdmin(userCreateDTO, companyId, null);
 
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertNotNull(response.getBody());
@@ -161,11 +161,11 @@ class UserControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
                 .thenReturn(companyId);
 
-            when(mapper.toCreateCommand(userCreateDTO, companyId)).thenReturn(command);
+            when(mapper.toCreateCommand(userCreateDTO, companyId, null)).thenReturn(command);
             when(userService.createManager(command)).thenReturn(userView);
             when(mapper.toResponseDTO(userView)).thenReturn(userResponseDTO);
 
-            ResponseEntity<UserResponseDTO> response = userController.createManager(userCreateDTO, companyId);
+            ResponseEntity<UserResponseDTO> response = userController.createManager(userCreateDTO, companyId, null);
 
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertNotNull(response.getBody());
@@ -187,16 +187,16 @@ class UserControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
                 .thenReturn(companyId);
             
-            when(mapper.toCreateCommand(userCreateDTO, companyId)).thenReturn(command);
+            when(mapper.toCreateCommand(userCreateDTO, companyId, null)).thenReturn(command);
             when(userService.create(command))
                 .thenThrow(new RuntimeException("Service error"));
             
             // When & Then
             assertThrows(RuntimeException.class, () -> {
-                userController.create(userCreateDTO, companyId);
+                userController.create(userCreateDTO, companyId, null);
             });
             
-            verify(mapper, times(1)).toCreateCommand(userCreateDTO, companyId);
+            verify(mapper, times(1)).toCreateCommand(userCreateDTO, companyId, null);
             verify(userService, times(1)).create(command);
         }
     }
