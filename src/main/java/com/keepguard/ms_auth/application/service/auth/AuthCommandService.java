@@ -35,8 +35,10 @@ import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
 import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
 import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
 import com.keepguard.ms_auth.application.dto.session.PasswordChangedNotifyCommand;
+import com.keepguard.ms_auth.application.port.out.geo.GeoLocationPort;
 import com.keepguard.ms_auth.domain.entity.session.DeviceChallengeSession;
 import com.keepguard.ms_auth.domain.entity.session.UserSession;
+import com.keepguard.ms_auth.infrastructure.util.IpAddressUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,6 +70,7 @@ public class AuthCommandService {
     private final CompanyClient companyClient;
     private final LoginAttemptService loginAttemptService;
     private final DeviceSessionService deviceSessionService;
+    private final GeoLocationPort geoLocationPort;
 
     @Value("${cache.redis.ttl.reset-token}")
     private long resetTokenTtlSeconds;
@@ -203,6 +206,9 @@ public class AuthCommandService {
         // Salva token legado para compatibilidade
         tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getExpiration());
 
+        String ipAddress = IpAddressUtils.firstIp(request.getIpAddress());
+        String location = geoLocationPort.resolve(ipAddress);
+
         // Salva/Atualiza sessão por dispositivo no Redis (30 dias)
         UserSession session = UserSession.builder()
                 .sessionId("sess_" + UUID.randomUUID())
@@ -212,7 +218,8 @@ public class AuthCommandService {
                 .deviceId(deviceId)
                 .deviceName(request.getDeviceName() != null ? request.getDeviceName() : "Navegador Web")
                 .deviceType(request.getDeviceType() != null ? request.getDeviceType() : "DESKTOP")
-                .ipAddress(request.getIpAddress())
+                .ipAddress(ipAddress)
+                .location(location)
                 .userAgent(request.getUserAgent())
                 .isTrusted(true)
                 .lastActiveAt(LocalDateTime.now().toString())
@@ -226,7 +233,7 @@ public class AuthCommandService {
         try {
             userDeviceRepository.findByCodeUserAndDeviceId(user.getCodeUser(), deviceId)
                     .ifPresentOrElse(dev -> {
-                        dev.updateActivity(request.getIpAddress(), request.getUserAgent(), LocalDateTime.now());
+                        dev.updateActivity(ipAddress, request.getUserAgent(), LocalDateTime.now());
                         userDeviceRepository.save(dev);
                     }, () -> {
                         com.keepguard.ms_auth.domain.entity.session.UserDevice newDevice = com.keepguard.ms_auth.domain.entity.session.UserDevice.builder()
@@ -235,7 +242,7 @@ public class AuthCommandService {
                                 .deviceId(deviceId)
                                 .deviceName(request.getDeviceName() != null ? request.getDeviceName() : "Navegador Web")
                                 .deviceType(request.getDeviceType() != null ? request.getDeviceType() : "DESKTOP")
-                                .ipAddress(request.getIpAddress())
+                                .ipAddress(ipAddress)
                                 .userAgent(request.getUserAgent())
                                 .isTrusted(true)
                                 .firstSeenAt(LocalDateTime.now())

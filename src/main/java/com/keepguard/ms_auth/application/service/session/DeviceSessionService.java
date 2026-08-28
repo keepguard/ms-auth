@@ -10,6 +10,7 @@ import com.keepguard.ms_auth.application.dto.session.SendDeviceChallengeCommandD
 import com.keepguard.ms_auth.application.dto.session.VerifyDeviceChallengeCommandDTO;
 import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
 import com.keepguard.ms_auth.application.port.out.cache.TokenCachePort;
+import com.keepguard.ms_auth.application.port.out.geo.GeoLocationPort;
 import com.keepguard.ms_auth.application.port.out.persistence.DeviceBlacklistRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserDeviceRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
@@ -23,6 +24,7 @@ import com.keepguard.ms_auth.domain.entity.session.UserDevice;
 import com.keepguard.ms_auth.domain.entity.session.UserSession;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import com.keepguard.ms_auth.infrastructure.config.security.JwtService;
+import com.keepguard.ms_auth.infrastructure.util.IpAddressUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +49,7 @@ public class DeviceSessionService {
     private final DeviceBlacklistRepositoryPort deviceBlacklistRepository;
     private final CompanyClient companyClient;
     private final JwtService jwtService;
+    private final GeoLocationPort geoLocationPort;
 
     @Value("${app.urls.frontend-base-url:http://localhost:3000}")
     private String defaultFrontendBaseUrl;
@@ -154,6 +157,9 @@ public class DeviceSessionService {
         tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getExpiration());
 
         // Registra a sessão do dispositivo no Redis
+        String ipAddress = IpAddressUtils.firstIp(challenge.getIpAddress());
+        String location = geoLocationPort.resolve(ipAddress);
+
         UserSession session = UserSession.builder()
                 .sessionId("sess_" + UUID.randomUUID())
                 .codeUser(challenge.getCodeUser())
@@ -162,7 +168,8 @@ public class DeviceSessionService {
                 .deviceId(challenge.getDeviceId())
                 .deviceName(challenge.getDeviceName())
                 .deviceType(challenge.getDeviceType())
-                .ipAddress(challenge.getIpAddress())
+                .ipAddress(ipAddress)
+                .location(location)
                 .userAgent(challenge.getUserAgent())
                 .isTrusted(Boolean.TRUE.equals(command.getTrustDevice()))
                 .lastActiveAt(LocalDateTime.now().toString())
@@ -179,7 +186,7 @@ public class DeviceSessionService {
             userDeviceRepository.findByCodeUserAndDeviceId(codeUserUuid, challenge.getDeviceId())
                     .ifPresentOrElse(dev -> {
                         dev.setIsTrusted(Boolean.TRUE.equals(command.getTrustDevice()));
-                        dev.updateActivity(challenge.getIpAddress(), challenge.getUserAgent(), LocalDateTime.now());
+                        dev.updateActivity(ipAddress, challenge.getUserAgent(), LocalDateTime.now());
                         userDeviceRepository.save(dev);
                     }, () -> {
                         UserDevice newDevice = UserDevice.builder()
@@ -188,7 +195,7 @@ public class DeviceSessionService {
                                 .deviceId(challenge.getDeviceId())
                                 .deviceName(challenge.getDeviceName())
                                 .deviceType(challenge.getDeviceType())
-                                .ipAddress(challenge.getIpAddress())
+                                .ipAddress(ipAddress)
                                 .userAgent(challenge.getUserAgent())
                                 .isTrusted(Boolean.TRUE.equals(command.getTrustDevice()))
                                 .firstSeenAt(LocalDateTime.now())
@@ -356,6 +363,10 @@ public class DeviceSessionService {
     }
 
     public List<DeviceSessionView> listUserSessions(String codeUser, String currentDeviceId) {
+        return listUserSessions(codeUser, currentDeviceId, null);
+    }
+
+    public List<DeviceSessionView> listUserSessions(String codeUser, String currentDeviceId, String requestIp) {
         List<UserSession> activeSessions = sessionCachePort.listUserSessions(codeUser);
         Map<String, UserSession> activeSessionMap = activeSessions.stream()
                 .filter(s -> s.getDeviceId() != null)
@@ -374,14 +385,19 @@ public class DeviceSessionService {
                     }
                     UserSession active = activeSessionMap.get(dev.getDeviceId());
                     boolean isCurrent = dev.getDeviceId() != null && dev.getDeviceId().equals(currentDeviceId);
-                    String location = active != null && active.getLocation() != null ? active.getLocation() : "Localização Desconhecida";
+                    String ipAddress = firstNonBlank(
+                            dev.getIpAddress(),
+                            active != null ? active.getIpAddress() : null,
+                            isCurrent ? requestIp : null
+                    );
+                    String location = resolveAndPersistLocation(active, ipAddress);
 
                     result.add(new DeviceSessionView(
                             active != null ? active.getSessionId() : "device_" + dev.getDeviceId(),
                             dev.getDeviceId(),
                             dev.getDeviceName(),
                             dev.getDeviceType(),
-                            dev.getIpAddress(),
+                            ipAddress,
                             location,
                             isCurrent,
                             dev.getIsTrusted(),
@@ -396,18 +412,51 @@ public class DeviceSessionService {
         }
 
         // Fallback para Redis se banco vazio ou indisponível
-        return activeSessions.stream().map(s -> new DeviceSessionView(
-                s.getSessionId(),
-                s.getDeviceId(),
-                s.getDeviceName(),
-                s.getDeviceType(),
-                s.getIpAddress(),
-                s.getLocation() != null ? s.getLocation() : "Localização Desconhecida",
-                s.getDeviceId() != null && s.getDeviceId().equals(currentDeviceId),
-                s.getIsTrusted(),
-                s.getLastActiveAt(),
-                s.getCreatedAt()
-        )).collect(Collectors.toList());
+        return activeSessions.stream().map(s -> {
+            boolean isCurrent = s.getDeviceId() != null && s.getDeviceId().equals(currentDeviceId);
+            String ipAddress = firstNonBlank(s.getIpAddress(), isCurrent ? requestIp : null);
+            return new DeviceSessionView(
+                    s.getSessionId(),
+                    s.getDeviceId(),
+                    s.getDeviceName(),
+                    s.getDeviceType(),
+                    ipAddress,
+                    resolveAndPersistLocation(s, ipAddress),
+                    isCurrent,
+                    s.getIsTrusted(),
+                    s.getLastActiveAt(),
+                    s.getCreatedAt()
+            );
+        }).collect(Collectors.toList());
+    }
+
+    private String resolveAndPersistLocation(UserSession session, String ipAddress) {
+        String existing = session != null ? session.getLocation() : null;
+        if (existing != null && !existing.isBlank() && !"Localização Desconhecida".equalsIgnoreCase(existing)) {
+            return existing;
+        }
+        String resolved = geoLocationPort.resolve(ipAddress);
+        if (session != null && resolved != null && !resolved.equals(existing)) {
+            session.setLocation(resolved);
+            if (ipAddress != null && (session.getIpAddress() == null || session.getIpAddress().isBlank())) {
+                session.setIpAddress(IpAddressUtils.firstIp(ipAddress));
+            }
+            sessionCachePort.saveUserSession(session, 2592000L);
+        }
+        return resolved;
+    }
+
+    private static String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            String ip = IpAddressUtils.firstIp(value);
+            if (ip != null && !ip.isBlank()) {
+                return ip;
+            }
+        }
+        return null;
     }
 
     public void revokeSession(String codeUser, String deviceId) {

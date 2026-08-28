@@ -14,6 +14,7 @@ import com.keepguard.ms_auth.application.port.out.persistence.UserDeviceReposito
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRoleRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.geo.GeoLocationPort;
 import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.domain.entity.session.DeviceChallengeSession;
@@ -73,6 +74,9 @@ class DeviceSessionServiceTest {
 
     @Mock
     private JwtService jwtService;
+
+    @Mock
+    private GeoLocationPort geoLocationPort;
 
     @InjectMocks
     private DeviceSessionService deviceSessionService;

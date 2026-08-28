@@ -66,11 +66,12 @@ public class DeviceSessionController {
     @MetricsEndpoint(endpoint = "users_list_sessions")
     public ResponseEntity<List<DeviceSessionView>> listSessions(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestHeader(value = "X-Device-Id", required = false) String currentDeviceId) {
+            @RequestHeader(value = "X-Device-Id", required = false) String currentDeviceId,
+            @RequestHeader(value = "X-Forwarded-For", required = false) String forwardedFor) {
 
         String codeUser = jwt.getSubject();
         String deviceId = currentDeviceId != null ? currentDeviceId : jwt.getClaimAsString("device_id");
-        List<DeviceSessionView> sessions = deviceSessionService.listUserSessions(codeUser, deviceId);
+        List<DeviceSessionView> sessions = deviceSessionService.listUserSessions(codeUser, deviceId, forwardedFor);
         return ResponseEntity.ok(sessions);
     }
 

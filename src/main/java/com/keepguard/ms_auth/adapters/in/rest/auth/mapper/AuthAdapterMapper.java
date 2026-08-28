@@ -22,6 +22,7 @@ import com.keepguard.ms_auth.domain.dto.auth.AuthLogoutCommandDTO;
 import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
 import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenView;
 import com.keepguard.ms_auth.application.dto.auth.AuthLogoutView;
+import com.keepguard.ms_auth.infrastructure.util.IpAddressUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +53,7 @@ public class AuthAdapterMapper {
                     .deviceId(deviceId)
                     .deviceName(deviceName)
                     .deviceType(deviceType)
-                    .ipAddress(ipAddress)
+                    .ipAddress(IpAddressUtils.firstIp(ipAddress))
                     .userAgent(userAgent)
                     .build();
         } catch (Exception e) {
@@ -135,7 +136,7 @@ public class AuthAdapterMapper {
                     .deviceId(deviceId)
                     .deviceName(deviceName)
                     .deviceType(deviceType)
-                    .ipAddress(ipAddress)
+                    .ipAddress(IpAddressUtils.firstIp(ipAddress))
                     .userAgent(userAgent)
                     .build();
         } catch (Exception e) {
@@ -168,7 +169,7 @@ public class AuthAdapterMapper {
                     .deviceId(deviceId)
                     .deviceName(deviceName)
                     .deviceType(deviceType)
-                    .ipAddress(ipAddress)
+                    .ipAddress(IpAddressUtils.firstIp(ipAddress))
                     .userAgent(userAgent)
                     .build();
         } catch (Exception e) {

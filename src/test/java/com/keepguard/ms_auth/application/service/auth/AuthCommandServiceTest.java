@@ -25,6 +25,7 @@ import com.keepguard.ms_auth.domain.dto.auth.AuthResetPasswordCommandDTO;
 import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
 import com.keepguard.ms_auth.adapters.out.feign.UserClient;
 import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
+import com.keepguard.ms_auth.application.port.out.geo.GeoLocationPort;
 import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
 import com.keepguard.ms_auth.infrastructure.config.security.LoginAttemptService;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,6 +95,9 @@ class AuthCommandServiceTest {
 
     @Mock
     private DeviceSessionService deviceSessionService;
+
+    @Mock
+    private GeoLocationPort geoLocationPort;
     
     @InjectMocks
     private AuthCommandService authCommandService;
