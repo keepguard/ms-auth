@@ -288,6 +288,46 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.LOCKED).body(problemDetail);
     }
 
+    @ExceptionHandler(com.keepguard.ms_auth.application.service.exception.ForbiddenException.class)
+    public ResponseEntity<ProblemDetail> handleForbiddenException(
+            com.keepguard.ms_auth.application.service.exception.ForbiddenException ex, WebRequest request) {
+        String path = request.getDescription(false).replace("uri=", "");
+        String correlationId = request.getHeader("X-Correlation-ID");
+
+        log.warn("Acesso negado: message={}, path={}, errorCode={}, correlationId={}",
+                ex.getMessage(), path, ex.getErrorCode(), correlationId);
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problemDetail.setType(URI.create("https://keepguard.com/problems/forbidden"));
+        problemDetail.setTitle("Acesso negado");
+        problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        problemDetail.setProperty("path", path);
+        problemDetail.setProperty("errorCode", ex.getErrorCode());
+        problemDetail.setProperty("correlationId", correlationId);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problemDetail);
+    }
+
+    @ExceptionHandler(com.keepguard.ms_auth.application.service.exception.RateLimitExceededException.class)
+    public ResponseEntity<ProblemDetail> handleRateLimitExceededException(
+            com.keepguard.ms_auth.application.service.exception.RateLimitExceededException ex, WebRequest request) {
+        String path = request.getDescription(false).replace("uri=", "");
+        String correlationId = request.getHeader("X-Correlation-ID");
+
+        log.warn("Rate limit excedido: message={}, path={}, correlationId={}",
+                ex.getMessage(), path, correlationId);
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+        problemDetail.setType(URI.create("https://keepguard.com/problems/rate-limit-exceeded"));
+        problemDetail.setTitle("Muitas solicitações");
+        problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        problemDetail.setProperty("path", path);
+        problemDetail.setProperty("errorCode", "TOO_MANY_REQUESTS");
+        problemDetail.setProperty("correlationId", correlationId);
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(problemDetail);
+    }
+
     @ExceptionHandler(com.keepguard.ms_auth.application.service.exception.ResetTokenCooldownException.class)
     public ResponseEntity<ProblemDetail> handleResetTokenCooldownException(
             com.keepguard.ms_auth.application.service.exception.ResetTokenCooldownException ex, WebRequest request) {

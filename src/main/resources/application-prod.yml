@@ -86,3 +86,15 @@ cache:
       role: "role_cache"
       token: "tokenlogin"
       reset-token: "resetpassword"
+
+resilience4j:
+  ratelimiter:
+    instances:
+      createManager:
+        limitForPeriod: 10
+        limitRefreshPeriod: 60s
+        timeoutDuration: 0s
+      accountLifecycle:
+        limitForPeriod: 20
+        limitRefreshPeriod: 60s
+        timeoutDuration: 0s

@@ -200,6 +200,14 @@ resilience4j:
         limitForPeriod: 100                            # 100 requisições
         limitRefreshPeriod: 1s                         # Por segundo
         timeoutDuration: 0s
+      createManager:
+        limitForPeriod: 20
+        limitRefreshPeriod: 60s
+        timeoutDuration: 0s
+      accountLifecycle:
+        limitForPeriod: 30
+        limitRefreshPeriod: 60s
+        timeoutDuration: 0s
 
   # Bulkhead - Isola recursos (threads/conexões)
   bulkhead:

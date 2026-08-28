@@ -19,6 +19,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -144,6 +145,31 @@ class UserControllerTest {
             assertNotNull(response.getBody());
             verify(userService, times(1)).createAdmin(command);
             verify(userService, never()).create(command);
+        }
+    }
+
+    @Test
+    @DisplayName("Deve criar manager com sucesso")
+    void shouldCreateManagerSuccessfully() {
+        UserCreateCommandDTO command = UserTestBuilder.builder()
+            .withTenantId(tenantId)
+            .buildCreateCommand();
+
+        try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
+            mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
+                .thenReturn(tenantId);
+
+            when(mapper.toCreateCommand(userCreateDTO, tenantId)).thenReturn(command);
+            when(userService.createManager(command)).thenReturn(userView);
+            when(mapper.toResponseDTO(userView)).thenReturn(userResponseDTO);
+
+            ResponseEntity<UserResponseDTO> response = userController.createManager(userCreateDTO, tenantIdStr);
+
+            assertEquals(HttpStatus.CREATED, response.getStatusCode());
+            assertNotNull(response.getBody());
+            verify(userService, times(1)).createManager(command);
+            verify(userService, never()).create(command);
+            verify(userService, never()).createAdmin(command);
         }
     }
     
@@ -437,6 +463,7 @@ class UserControllerTest {
     void shouldDeleteUserSuccessfully() {
         // Given
         String idUserExternal = "ext-123";
+        Jwt jwt = jwtFor(tenantId);
         UserStatusReasonRequestDTO statusReasonDTO = UserTestBuilder.builder()
             .buildStatusReasonRequestDTO();
         
@@ -450,15 +477,15 @@ class UserControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
                 .thenReturn(tenantId);
             
-            when(mapper.toDeleteCommand(idUserExternal, "Test reason", tenantId)).thenReturn(command);
+            when(mapper.toDeleteCommand(idUserExternal, "Test reason", tenantId, jwt.getSubject())).thenReturn(command);
             doNothing().when(userService).delete(command);
             
             // When
-            ResponseEntity<Void> response = userController.delete(idUserExternal, statusReasonDTO, tenantIdStr);
+            ResponseEntity<Void> response = userController.delete(jwt, idUserExternal, statusReasonDTO, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-            verify(mapper, times(1)).toDeleteCommand(idUserExternal, "Test reason", tenantId);
+            verify(mapper, times(1)).toDeleteCommand(idUserExternal, "Test reason", tenantId, jwt.getSubject());
             verify(userService, times(1)).delete(command);
         }
     }
@@ -468,6 +495,7 @@ class UserControllerTest {
     void shouldBlockUserSuccessfully() {
         // Given
         String idUserExternal = "ext-123";
+        Jwt jwt = jwtFor(tenantId);
         UserStatusReasonRequestDTO statusReasonDTO = UserTestBuilder.builder()
             .buildStatusReasonRequestDTO();
         
@@ -481,15 +509,15 @@ class UserControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
                 .thenReturn(tenantId);
             
-            when(mapper.toBlockCommand(idUserExternal, "Test reason", tenantId)).thenReturn(command);
+            when(mapper.toBlockCommand(idUserExternal, "Test reason", tenantId, jwt.getSubject())).thenReturn(command);
             doNothing().when(userService).block(command);
             
             // When
-            ResponseEntity<Void> response = userController.block(idUserExternal, statusReasonDTO, tenantIdStr);
+            ResponseEntity<Void> response = userController.block(jwt, idUserExternal, statusReasonDTO, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            verify(mapper, times(1)).toBlockCommand(idUserExternal, "Test reason", tenantId);
+            verify(mapper, times(1)).toBlockCommand(idUserExternal, "Test reason", tenantId, jwt.getSubject());
             verify(userService, times(1)).block(command);
         }
     }
@@ -499,6 +527,7 @@ class UserControllerTest {
     void shouldUnlockUserSuccessfully() {
         // Given
         String idUserExternal = "ext-123";
+        Jwt jwt = jwtFor(tenantId);
         UserStatusReasonRequestDTO statusReasonDTO = UserTestBuilder.builder()
             .buildStatusReasonRequestDTO();
         
@@ -512,15 +541,15 @@ class UserControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr))
                 .thenReturn(tenantId);
             
-            when(mapper.toUnlockCommand(idUserExternal, "Test reason", tenantId)).thenReturn(command);
+            when(mapper.toUnlockCommand(idUserExternal, "Test reason", tenantId, jwt.getSubject())).thenReturn(command);
             doNothing().when(userService).unlock(command);
             
             // When
-            ResponseEntity<Void> response = userController.unlock(idUserExternal, statusReasonDTO, tenantIdStr);
+            ResponseEntity<Void> response = userController.unlock(jwt, idUserExternal, statusReasonDTO, tenantIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            verify(mapper, times(1)).toUnlockCommand(idUserExternal, "Test reason", tenantId);
+            verify(mapper, times(1)).toUnlockCommand(idUserExternal, "Test reason", tenantId, jwt.getSubject());
             verify(userService, times(1)).unlock(command);
         }
     }
@@ -795,5 +824,13 @@ class UserControllerTest {
             verify(mapper, times(1)).toUpdateEmailCommand(idUserExternal, "newemail@example.com", tenantId);
             verify(userService, times(1)).updateUserEmail(command);
         }
+    }
+
+    private Jwt jwtFor(UUID tenantId) {
+        return Jwt.withTokenValue("token")
+            .header("alg", "none")
+            .subject(UUID.randomUUID().toString())
+            .claim("tenant_id", tenantId.toString())
+            .build();
     }
 }

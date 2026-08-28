@@ -95,3 +95,15 @@ logging:
   # Configuração do Logstash por ambiente - DESABILITADO
   #   host: localhost
   #   port: 5000
+
+resilience4j:
+  ratelimiter:
+    instances:
+      createManager:
+        limitForPeriod: 20
+        limitRefreshPeriod: 60s
+        timeoutDuration: 0s
+      accountLifecycle:
+        limitForPeriod: 30
+        limitRefreshPeriod: 60s
+        timeoutDuration: 0s

@@ -16,6 +16,8 @@ public interface AuthoritySpringRepository extends JpaRepository<AuthorityJpaEnt
 
     Optional<AuthorityJpaEntity> findByCompanyIdAndName(UUID companyId, String name);
 
+    Optional<AuthorityJpaEntity> findByCompanyIdIsNullAndName(String name);
+
     List<AuthorityJpaEntity> findByCompanyId(UUID companyId);
 
     Page<AuthorityJpaEntity> findByCompanyId(UUID companyId, Pageable pageable);

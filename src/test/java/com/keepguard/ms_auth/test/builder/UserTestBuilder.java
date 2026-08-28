@@ -366,6 +366,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
             .tenantId(tenantId)
+            .actorCodeUser(codeUser.toString())
             .build();
     }
     
@@ -374,6 +375,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
             .tenantId(tenantId)
+            .actorCodeUser(codeUser.toString())
             .build();
     }
     
@@ -382,6 +384,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
             .tenantId(tenantId)
+            .actorCodeUser(codeUser.toString())
             .build();
     }
     
@@ -390,6 +393,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
             .tenantId(tenantId)
+            .actorCodeUser(codeUser.toString())
             .build();
     }
     
@@ -398,6 +402,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
             .tenantId(tenantId)
+            .actorCodeUser(codeUser.toString())
             .build();
     }
     
@@ -406,6 +411,7 @@ public class UserTestBuilder {
             .idUserExternal(idUserExternal.toString())
             .reason("Test reason")
             .tenantId(tenantId)
+            .actorCodeUser(codeUser.toString())
             .build();
     }
     

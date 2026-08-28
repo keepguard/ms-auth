@@ -40,12 +40,13 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserDeleteCommandDTO toDeleteCommand(String idUserExternal, String reason, UUID tenantId) {
+    public UserDeleteCommandDTO toDeleteCommand(String idUserExternal, String reason, UUID tenantId, String actorCodeUser) {
         try {
             return UserDeleteCommandDTO.builder()
                     .idUserExternal(idUserExternal)
                     .reason(reason)
                     .tenantId(tenantId)
+                    .actorCodeUser(actorCodeUser)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserDeleteCommandDTO: {}", e.getMessage(), e);
@@ -62,12 +63,13 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserBlockCommandDTO toBlockCommand(String idUserExternal, String reason, UUID tenantId) {
+    public UserBlockCommandDTO toBlockCommand(String idUserExternal, String reason, UUID tenantId, String actorCodeUser) {
         try {
             return UserBlockCommandDTO.builder()
                     .idUserExternal(idUserExternal)
                     .reason(reason)
                     .tenantId(tenantId)
+                    .actorCodeUser(actorCodeUser)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserBlockCommandDTO: {}", e.getMessage(), e);
@@ -75,12 +77,13 @@ public class UserAdapterMapper {
         }
     }
 
-    public UserUnlockCommandDTO toUnlockCommand(String idUserExternal, String reason, UUID tenantId) {
+    public UserUnlockCommandDTO toUnlockCommand(String idUserExternal, String reason, UUID tenantId, String actorCodeUser) {
         try {
             return UserUnlockCommandDTO.builder()
                     .idUserExternal(idUserExternal)
                     .reason(reason)
                     .tenantId(tenantId)
+                    .actorCodeUser(actorCodeUser)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear dados para UserUnlockCommandDTO: {}", e.getMessage(), e);

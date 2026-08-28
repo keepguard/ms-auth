@@ -22,5 +22,7 @@ public class UserDeleteCommandDTO {
 
     @NotBlank(message = "O header X-Tenant-Id é obrigatório")
     private UUID tenantId;
+
+    private String actorCodeUser;
 }
 

@@ -2,6 +2,7 @@ package com.keepguard.ms_auth.application.service.user;
 
 import com.keepguard.ms_auth.application.port.out.cache.UserCachePort;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
+import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
 import com.keepguard.ms_auth.domain.dto.user.*;
 import com.keepguard.ms_auth.application.mapper.UserApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
@@ -51,6 +52,8 @@ class UserCommandServiceTest {
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private MetricsPort metricsPort;
     @Mock private UserCachePort userCachePort;
+    @Mock private AccountLifecyclePolicy accountLifecyclePolicy;
+    @Mock private DeviceSessionService deviceSessionService;
 
     @InjectMocks private UserCommandService userCommandService;
 
@@ -164,9 +167,11 @@ class UserCommandServiceTest {
     void shouldDeleteUserSuccessfully() {
         // Given
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndTenantId(user.getCodeUser(), tenantId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
+        doNothing().when(accountLifecyclePolicy).assertAllowed(any(), any(), any());
 
         // When
         var deleteCommand = userTestBuilder.buildDeleteCommand();
@@ -177,6 +182,7 @@ class UserCommandServiceTest {
         verify(userRepository).save(any(User.class));
         verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
         verify(userCachePort).removeUserFromCache(any(User.class));
+        verify(deviceSessionService).revokeAllSessions(user.getCodeUser().toString());
         verify(metricsPort).incrementCounter(eq("user_deleted_total"), any());
     }
 
@@ -201,9 +207,11 @@ class UserCommandServiceTest {
     void shouldBlockUserSuccessfully() {
         // Given
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndTenantId(user.getCodeUser(), tenantId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
+        doNothing().when(accountLifecyclePolicy).assertAllowed(any(), any(), any());
 
         // When
         var blockCommand = userTestBuilder.buildBlockCommand();
@@ -214,6 +222,7 @@ class UserCommandServiceTest {
         verify(userRepository).save(any(User.class));
         verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
         verify(userCachePort).removeUserFromCache(any(User.class));
+        verify(deviceSessionService).revokeAllSessions(user.getCodeUser().toString());
         verify(metricsPort).incrementCounter(eq("user_blocked_total"), any());
     }
 
@@ -222,9 +231,11 @@ class UserCommandServiceTest {
     void shouldUnlockUserSuccessfully() {
         // Given
         when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.of(user));
+        when(userRepository.findByCodeUserAndTenantId(user.getCodeUser(), tenantId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
         doNothing().when(userCachePort).removeUserFromCache(any(User.class));
+        doNothing().when(accountLifecyclePolicy).assertAllowed(any(), any(), any());
 
         // When
         var unlockCommand = userTestBuilder.buildUnlockCommand();
@@ -235,6 +246,7 @@ class UserCommandServiceTest {
         verify(userRepository).save(any(User.class));
         verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
         verify(userCachePort).removeUserFromCache(any(User.class));
+        verify(deviceSessionService, never()).revokeAllSessions(any());
         verify(metricsPort).incrementCounter(eq("user_unlocked_total"), any());
     }
 
@@ -613,6 +625,33 @@ class UserCommandServiceTest {
         verify(userRoleRepository, times(1)).save(any(UserRole.class));
         verify(companyRoleRepository, never()).findEnabledDefaultsByCompanyId(any());
         verify(roleRepository).findByCompanyIdAndName(user.getCompanyId(), SystemRoleNames.ROLE_ADMIN);
+    }
+
+    @Test
+    @DisplayName("Deve atribuir apenas ROLE_MANAGER ao criar manager")
+    void shouldAssignOnlyManagerRoleWhenCreateManager() {
+        Role managerRole = RoleTestBuilder.builder()
+            .withName(SystemRoleNames.ROLE_MANAGER)
+            .withCompanyId(user.getCompanyId())
+            .buildDomain();
+
+        when(userRepository.findByUsernameAndTenantId("testuser", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndTenantId("test@example.com", tenantId)).thenReturn(Optional.empty());
+        when(userRepository.findByIdUserExternalAndTenantId(idUserExternal, tenantId)).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(roleRepository.findByCompanyIdAndName(user.getCompanyId(), SystemRoleNames.ROLE_MANAGER)).thenReturn(Optional.of(managerRole));
+        when(companyRoleRepository.findByCompanyIdAndRoleId(user.getCompanyId(), managerRole.getId()))
+            .thenReturn(Optional.of(CompanyRole.create(user.getCompanyId(), managerRole.getId(), true, false)));
+        when(userRoleRepository.save(any(UserRole.class))).thenReturn(new UserRole());
+        when(userStatusHistoryRepository.save(any(UserStatusHistory.class))).thenReturn(new UserStatusHistory());
+        when(userApplicationMapper.toView(user)).thenReturn(UserTestBuilder.builder().withId(userId).buildView());
+
+        var result = userCommandService.createManager(userCreateCommand);
+
+        assertNotNull(result);
+        verify(userRoleRepository, times(1)).save(any(UserRole.class));
+        verify(companyRoleRepository, never()).findEnabledDefaultsByCompanyId(any());
+        verify(roleRepository).findByCompanyIdAndName(user.getCompanyId(), SystemRoleNames.ROLE_MANAGER);
     }
 
     @Test

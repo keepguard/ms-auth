@@ -26,6 +26,8 @@ public interface AuthorityRepositoryPort {
 
     Optional<Authority> findByCompanyIdAndName(UUID companyId, String name);
 
+    Optional<Authority> findByCompanyIdIsNullAndName(String name);
+
     List<Authority> findByCompanyId(UUID companyId);
 
     Page<Authority> findByCompanyId(UUID companyId, Pageable pageable);

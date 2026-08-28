@@ -2,9 +2,12 @@ package com.keepguard.ms_auth.application.service.role;
 
 import com.keepguard.ms_auth.application.dto.role.ProvisionCompanyRolesView;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
+import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.CompanyRoleRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
+import com.keepguard.ms_auth.domain.entity.authority.Authority;
+import com.keepguard.ms_auth.domain.entity.authority.SystemAuthorityNames;
 import com.keepguard.ms_auth.domain.entity.role.CompanyRole;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.domain.entity.role.SystemRoleNames;
@@ -33,6 +36,8 @@ class CompanyRoleProvisionServiceTest {
     private RoleRepositoryPort roleRepository;
     @Mock
     private CompanyRoleRepositoryPort companyRoleRepository;
+    @Mock
+    private AuthorityRepositoryPort authorityRepository;
     @Mock
     private MetricsPort metricsPort;
 
@@ -73,7 +78,23 @@ class CompanyRoleProvisionServiceTest {
                 .buildDomain();
             when(roleRepository.findByCompanyIdIsNullAndName(name)).thenReturn(Optional.of(template));
         }
+        for (String name : SystemAuthorityNames.TEMPLATES) {
+            Authority template = Authority.builder()
+                .id(UUID.randomUUID())
+                .name(name)
+                .description("template " + name)
+                .companyId(null)
+                .build();
+            when(authorityRepository.findByCompanyIdIsNullAndName(name)).thenReturn(Optional.of(template));
+        }
 
+        when(authorityRepository.save(any(Authority.class))).thenAnswer(invocation -> {
+            Authority saved = invocation.getArgument(0);
+            if (saved.getId() == null) {
+                saved.setId(UUID.randomUUID());
+            }
+            return saved;
+        });
         when(roleRepository.save(any(Role.class))).thenAnswer(invocation -> {
             Role saved = invocation.getArgument(0);
             saved.setId(UUID.randomUUID());
@@ -88,7 +109,20 @@ class CompanyRoleProvisionServiceTest {
         assertTrue(view.roleNames().containsAll(SystemRoleNames.PROVISIONED));
         ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
         verify(roleRepository, times(3)).save(roleCaptor.capture());
-        assertTrue(roleCaptor.getAllValues().stream().allMatch(role -> role.getAuthorities().isEmpty()));
+        Role adminClone = roleCaptor.getAllValues().stream()
+            .filter(role -> SystemRoleNames.ROLE_ADMIN.equals(role.getName()))
+            .findFirst().orElseThrow();
+        Role managerClone = roleCaptor.getAllValues().stream()
+            .filter(role -> SystemRoleNames.ROLE_MANAGER.equals(role.getName()))
+            .findFirst().orElseThrow();
+        Role userClone = roleCaptor.getAllValues().stream()
+            .filter(role -> SystemRoleNames.ROLE_USER.equals(role.getName()))
+            .findFirst().orElseThrow();
+        assertEquals(6, adminClone.getAuthorities().size());
+        assertEquals(3, managerClone.getAuthorities().size());
+        assertTrue(managerClone.getAuthorities().stream().allMatch(a -> a.getName().startsWith("user:")));
+        assertTrue(userClone.getAuthorities().isEmpty());
+        verify(authorityRepository, times(6)).save(any(Authority.class));
         ArgumentCaptor<CompanyRole> companyRoleCaptor = ArgumentCaptor.forClass(CompanyRole.class);
         verify(companyRoleRepository, times(3)).save(companyRoleCaptor.capture());
         assertTrue(companyRoleCaptor.getAllValues().stream().anyMatch(CompanyRole::isDefaultRole));
@@ -106,7 +140,7 @@ class CompanyRoleProvisionServiceTest {
     void shouldFailWhenTemplateMissing() {
         UUID companyId = UUID.randomUUID();
         when(companyRoleRepository.existsByCompanyId(companyId)).thenReturn(false);
-        when(roleRepository.findByCompanyIdIsNullAndName(any())).thenReturn(Optional.empty());
+        when(authorityRepository.findByCompanyIdIsNullAndName(any())).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.provision(companyId));
     }

@@ -3,8 +3,11 @@ package com.keepguard.ms_auth.application.service.user;
 import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.port.in.UserPort;
+import com.keepguard.ms_auth.application.service.exception.RateLimitExceededException;
 import com.keepguard.ms_auth.domain.dto.user.*;
 import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,8 +20,6 @@ public class UserUseCaseService implements UserPort {
     private final UserCommandService commandService;
     private final UserQueryService queryService;
 
-    // === OPERAÇÕES DE COMANDO ===
-
     @Override
     public UserView create(UserCreateCommandDTO command) {
         return commandService.create(command);
@@ -30,21 +31,28 @@ public class UserUseCaseService implements UserPort {
     }
 
     @Override
+    @RateLimiter(name = "createManager", fallbackMethod = "createManagerRateLimitExceeded")
+    public UserView createManager(UserCreateCommandDTO command) {
+        return commandService.createManager(command);
+    }
+
+    @Override
+    @RateLimiter(name = "accountLifecycle", fallbackMethod = "accountLifecycleRateLimitExceeded")
     public void delete(UserDeleteCommandDTO command) {
         commandService.delete(command);
     }
 
     @Override
+    @RateLimiter(name = "accountLifecycle", fallbackMethod = "accountLifecycleRateLimitExceeded")
     public void block(UserBlockCommandDTO command) {
         commandService.block(command);
     }
 
     @Override
+    @RateLimiter(name = "accountLifecycle", fallbackMethod = "accountLifecycleRateLimitExceeded")
     public void unlock(UserUnlockCommandDTO command) {
         commandService.unlock(command);
     }
-
-    // === OPERAÇÕES DE CONSULTA ===
 
     @Override
     public UserGetByUsernameView findByUsername(UserGetByUsernameQueryDTO query) {
@@ -76,9 +84,6 @@ public class UserUseCaseService implements UserPort {
         return queryService.searchUsers(query);
     }
 
-    // === OPERAÇÕES DE COMANDO ADICIONAIS ===
-    // Operações de gerenciamento de usuário implementadas seguindo padrão CQRS
-
     @Override
     public void validateEmailUser(UserValidateEmailCommandDTO command) {
         commandService.validateEmailUser(command);
@@ -102,5 +107,25 @@ public class UserUseCaseService implements UserPort {
     @Override
     public void hardDelete(UserHardDeleteCommandDTO command) {
         commandService.hardDelete(command);
+    }
+
+    private UserView createManagerRateLimitExceeded(UserCreateCommandDTO command, RequestNotPermitted ex) {
+        log.warn("RATE LIMIT EXCEDIDO | createManager | username={}", command != null ? command.getUsername() : null);
+        throw new RateLimitExceededException("Muitas tentativas de criar manager. Aguarde antes de tentar novamente.");
+    }
+
+    private void accountLifecycleRateLimitExceeded(UserDeleteCommandDTO command, RequestNotPermitted ex) {
+        log.warn("RATE LIMIT EXCEDIDO | delete | idUserExternal={}", command != null ? command.getIdUserExternal() : null);
+        throw new RateLimitExceededException("Muitas tentativas de alterar status da conta. Aguarde antes de tentar novamente.");
+    }
+
+    private void accountLifecycleRateLimitExceeded(UserBlockCommandDTO command, RequestNotPermitted ex) {
+        log.warn("RATE LIMIT EXCEDIDO | block | idUserExternal={}", command != null ? command.getIdUserExternal() : null);
+        throw new RateLimitExceededException("Muitas tentativas de alterar status da conta. Aguarde antes de tentar novamente.");
+    }
+
+    private void accountLifecycleRateLimitExceeded(UserUnlockCommandDTO command, RequestNotPermitted ex) {
+        log.warn("RATE LIMIT EXCEDIDO | unlock | idUserExternal={}", command != null ? command.getIdUserExternal() : null);
+        throw new RateLimitExceededException("Muitas tentativas de alterar status da conta. Aguarde antes de tentar novamente.");
     }
 }

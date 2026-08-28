@@ -18,6 +18,7 @@ import com.keepguard.ms_auth.adapters.in.rest.user.dto.request.*;
 import com.keepguard.ms_auth.adapters.in.rest.user.dto.response.*;
 import com.keepguard.ms_auth.adapters.in.rest.user.mapper.UserAdapterMapper;
 import com.keepguard.ms_auth.application.port.in.UserPort;
+import com.keepguard.ms_auth.application.service.exception.ForbiddenException;
 import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
 
@@ -31,8 +32,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -111,6 +115,40 @@ public class UserController {
         return ResponseEntity.status(201).body(response);
     }
 
+    @PostMapping("/create-manager")
+    @Operation(
+        summary = "Criar manager",
+        description = "Cria um usuário com apenas a ROLE_MANAGER habilitada da company."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Manager criado com sucesso",
+                    content = @Content(schema = @Schema(implementation = UserResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos ou usuário já existe"),
+        @ApiResponse(responseCode = "404", description = "ROLE_MANAGER não encontrada ou desabilitada para a company"),
+        @ApiResponse(responseCode = "429", description = "Rate limit excedido"),
+        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+    @MetricsEndpoint(
+        endpoint = "user_create_manager",
+        operation = "criar manager"
+    )
+    public ResponseEntity<UserResponseDTO> createManager(
+            @Parameter(description = "Dados do manager a ser criado", required = true)
+            @Valid @RequestBody UserCreateRequestDTO dto,
+            @Parameter(description = "UUID da aplicação", required = true)
+            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+
+        log.info("Criando manager: {}, tenantIdHeader={}", dto.getUsername(), tenantIdHeader);
+
+        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        var command = mapper.toCreateCommand(dto, tenantId);
+        var view = userService.createManager(command);
+        var response = mapper.toResponseDTO(view);
+
+        log.info("Manager created: {} with application: {}", response.getId(), tenantId);
+        return ResponseEntity.status(201).body(response);
+    }
+
     @DeleteMapping("/delete/{idUserExternal}")
     @Operation(
         summary = "Deletar usuário",
@@ -127,6 +165,7 @@ public class UserController {
         operation = "deletar usuário"
     )
     public ResponseEntity<Void> delete(
+            @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID externo do usuário a ser deletado", required = true)
             @PathVariable String idUserExternal,
             @Parameter(description = "Motivo da exclusão", required = true)
@@ -137,8 +176,9 @@ public class UserController {
         log.info("Deletando usuário: {} - Motivo: {}, tenantIdHeader={}", idUserExternal, dto.getReason(), tenantIdHeader);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        var actorCodeUser = requireActorCodeUser(jwt, tenantId);
         
-        var command = mapper.toDeleteCommand(idUserExternal, dto.getReason(), tenantId);
+        var command = mapper.toDeleteCommand(idUserExternal, dto.getReason(), tenantId, actorCodeUser);
         userService.delete(command);
         
         log.info("User deleted: {} with application: {}", idUserExternal, tenantId);
@@ -196,6 +236,7 @@ public class UserController {
         operation = "bloquear usuário"
     )
     public ResponseEntity<Void> block(
+            @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID externo do usuário a ser bloqueado", required = true)
             @PathVariable String idUserExternal,
             @Parameter(description = "Motivo do bloqueio", required = true)
@@ -206,8 +247,9 @@ public class UserController {
         log.info("Bloqueando usuário: {} - Motivo: {}, tenantIdHeader={}", idUserExternal, dto.getReason(), tenantIdHeader);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        var actorCodeUser = requireActorCodeUser(jwt, tenantId);
         
-        var command = mapper.toBlockCommand(idUserExternal, dto.getReason(), tenantId);
+        var command = mapper.toBlockCommand(idUserExternal, dto.getReason(), tenantId, actorCodeUser);
         userService.block(command);
         
         log.info("User blocked: {} with application: {}", idUserExternal, tenantId);
@@ -231,6 +273,7 @@ public class UserController {
         operation = "desbloquear usuário"
     )
     public ResponseEntity<Void> unlock(
+            @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID externo do usuário a ser desbloqueado", required = true)
             @PathVariable String idUserExternal,
             @Parameter(description = "Motivo do desbloqueio", required = true)
@@ -241,8 +284,9 @@ public class UserController {
         log.info("Desbloqueando usuário: {} - Motivo: {}, tenantIdHeader={}", idUserExternal, dto.getReason(), tenantIdHeader);
         
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        var actorCodeUser = requireActorCodeUser(jwt, tenantId);
         
-        var command = mapper.toUnlockCommand(idUserExternal, dto.getReason(), tenantId);
+        var command = mapper.toUnlockCommand(idUserExternal, dto.getReason(), tenantId, actorCodeUser);
         userService.unlock(command);
         
         log.info("User unlocked: {} with application: {}", idUserExternal, tenantId);
@@ -634,5 +678,20 @@ public class UserController {
         
         log.info("Users search completed. Found {} results with application: {}", response.getTotalElements(), tenantId);
         return ResponseEntity.ok(response);
+    }
+
+    private String requireActorCodeUser(Jwt jwt, UUID tenantId) {
+        if (jwt == null) {
+            throw new ForbiddenException("Token JWT não informado ou inválido.", "JWT_REQUIRED");
+        }
+        String subject = jwt.getSubject();
+        if (subject == null || subject.isBlank()) {
+            throw new ForbiddenException("Token JWT sem subject.", "JWT_INVALID");
+        }
+        String tokenTenant = jwt.getClaimAsString("tenant_id");
+        if (tokenTenant != null && !tokenTenant.equalsIgnoreCase(tenantId.toString())) {
+            throw new ForbiddenException("Tenant do token não corresponde ao header.", "TENANT_MISMATCH");
+        }
+        return subject;
     }
 }

@@ -106,12 +106,13 @@ class UserAdapterMapperTest {
         UUID tenantId = UUID.randomUUID();
         
         // When
-        var command = userAdapterMapper.toBlockCommand(idUserExternal, reason, tenantId);
+        var command = userAdapterMapper.toBlockCommand(idUserExternal, reason, tenantId, "actor-code");
         
         // Then
         assertNotNull(command);
         assertEquals("ext-123", command.getIdUserExternal());
         assertEquals("Violação de políticas", command.getReason());
+        assertEquals("actor-code", command.getActorCodeUser());
     }
     
     @Test

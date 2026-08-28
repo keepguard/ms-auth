@@ -4,7 +4,9 @@ import com.keepguard.lib_common.exception.InvalidEmailException;
 import com.keepguard.lib_common.exception.InvalidPasswordException;
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
 import com.keepguard.ms_auth.application.service.exception.EmailNotVerifiedException;
+import com.keepguard.ms_auth.application.service.exception.ForbiddenException;
 import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException;
+import com.keepguard.ms_auth.application.service.exception.RateLimitExceededException;
 import com.keepguard.ms_auth.application.service.exception.RequiredFieldException;
 import com.keepguard.ms_auth.application.service.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -338,5 +340,33 @@ class GlobalExceptionHandlerTest {
         // Then
         ProblemDetail problemDetail = response.getBody();
         assertEquals("/api/v1/users/123", problemDetail.getProperties().get("path"));
+    }
+
+    @Test
+    @DisplayName("Deve tratar ForbiddenException com 403")
+    void shouldHandleForbiddenException() {
+        when(webRequest.getHeader("X-Correlation-ID")).thenReturn("corr-1");
+        ForbiddenException ex = new ForbiddenException("Acesso negado", "TARGET_PROTECTED");
+
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleForbiddenException(ex, webRequest);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("TARGET_PROTECTED", response.getBody().getProperties().get("errorCode"));
+        assertEquals("Acesso negado", response.getBody().getTitle());
+    }
+
+    @Test
+    @DisplayName("Deve tratar RateLimitExceededException com 429")
+    void shouldHandleRateLimitExceededException() {
+        when(webRequest.getHeader("X-Correlation-ID")).thenReturn("corr-1");
+        RateLimitExceededException ex = new RateLimitExceededException("Muitas tentativas");
+
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleRateLimitExceededException(ex, webRequest);
+
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("TOO_MANY_REQUESTS", response.getBody().getProperties().get("errorCode"));
+        assertEquals("https://keepguard.com/problems/rate-limit-exceeded", response.getBody().getType().toString());
     }
 }

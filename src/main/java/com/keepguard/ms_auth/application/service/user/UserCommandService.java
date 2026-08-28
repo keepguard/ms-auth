@@ -11,7 +11,10 @@ import com.keepguard.ms_auth.application.port.out.persistence.CompanyRoleReposit
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
 import com.keepguard.ms_auth.application.service.exception.CompanyDefaultRolesNotConfiguredException;
 import com.keepguard.ms_auth.application.service.exception.ConflictException;
+import com.keepguard.ms_auth.application.service.exception.ForbiddenException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
+import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
+import com.keepguard.ms_auth.domain.enums.AccountLifecycleAction;
 import com.keepguard.ms_auth.domain.dto.user.*;
 import com.keepguard.ms_auth.application.dto.user.UserHardDeleteCommandDTO;
 import com.keepguard.ms_auth.domain.entity.user.User;
@@ -49,6 +52,8 @@ public class UserCommandService {
     private final PasswordEncoder passwordEncoder;
     private final MetricsPort metricsPort;
     private final UserCachePort userCachePort;
+    private final AccountLifecyclePolicy accountLifecyclePolicy;
+    private final DeviceSessionService deviceSessionService;
 
     @LogOperation(
         operation = "CREATE_USER",
@@ -81,6 +86,21 @@ public class UserCommandService {
     }
 
     @LogOperation(
+        operation = "CREATE_MANAGER",
+        description = "Criando manager: {command.username}",
+        audit = true,
+        auditAction = "CREATE",
+        auditEntityType = "USER"
+    )
+    @Transactional
+    public UserView createManager(UserCreateCommandDTO command) {
+        log.info("Creating manager with username: {}", command.getUsername());
+        User savedUser = persistNewUser(command);
+        assignCompanyRole(savedUser, SystemRoleNames.ROLE_MANAGER);
+        return finishCreate(savedUser);
+    }
+
+    @LogOperation(
         operation = "DELETE_USER",
         description = "Removendo usuário: {command.idUserExternal}",
         audit = true,
@@ -99,6 +119,9 @@ public class UserCommandService {
                 return new NotFoundException("Usuário não encontrado: " + command.getIdUserExternal());
             });
 
+        User actor = requireActor(command.getActorCodeUser(), command.getTenantId());
+        accountLifecyclePolicy.assertAllowed(actor, user, AccountLifecycleAction.DELETE);
+
         user.markAsDeleted();
         userRepository.save(user);
 
@@ -107,6 +130,7 @@ public class UserCommandService {
         );
 
         userCachePort.removeUserFromCache(user);
+        deviceSessionService.revokeAllSessions(user.getCodeUser().toString());
 
         metricsPort.incrementCounter("user_deleted_total",
             Map.of("status", "success"));
@@ -170,6 +194,9 @@ public class UserCommandService {
                 return new NotFoundException("Usuário não encontrado: " + command.getIdUserExternal());
             });
 
+        User actor = requireActor(command.getActorCodeUser(), command.getTenantId());
+        accountLifecyclePolicy.assertAllowed(actor, user, AccountLifecycleAction.BLOCK);
+
         user.block();
         userRepository.save(user);
 
@@ -178,6 +205,7 @@ public class UserCommandService {
         );
 
         userCachePort.removeUserFromCache(user);
+        deviceSessionService.revokeAllSessions(user.getCodeUser().toString());
 
         metricsPort.incrementCounter("user_blocked_total",
             Map.of("status", "success"));
@@ -203,6 +231,9 @@ public class UserCommandService {
                     Map.of("error_code", "USER_NOT_FOUND", "operation", "unlock"));
                 return new NotFoundException("Usuário não encontrado: " + command.getIdUserExternal());
             });
+
+        User actor = requireActor(command.getActorCodeUser(), command.getTenantId());
+        accountLifecyclePolicy.assertAllowed(actor, user, AccountLifecycleAction.UNBLOCK);
 
         user.unlock();
         userRepository.save(user);
@@ -358,6 +389,15 @@ public class UserCommandService {
             throw new ConflictException("Role desabilitada para a company: " + roleName, "ROLE_DISABLED");
         }
         return role;
+    }
+
+    private User requireActor(String actorCodeUser, UUID tenantId) {
+        if (actorCodeUser == null || actorCodeUser.isBlank()) {
+            throw new ForbiddenException("Token JWT não informado ou inválido.", "JWT_REQUIRED");
+        }
+        UUID actorCodeUserUuid = ValidationUtils.validateAndParseUUID(actorCodeUser);
+        return userRepository.findByCodeUserAndTenantId(actorCodeUserUuid, tenantId)
+            .orElseThrow(() -> new ForbiddenException("Ator não encontrado para o token informado.", "ACTOR_NOT_FOUND"));
     }
 
     private User persistNewUser(UserCreateCommandDTO command) {
