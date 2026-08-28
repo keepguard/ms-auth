@@ -21,7 +21,6 @@ public class AuthLoginCommandDTO {
     @NotBlank(message = "Password é obrigatório")
     private String password;
 
-    @NotNull(message = "O header X-Tenant-Id é obrigatório")
     private UUID tenantId;
 
     @NotNull(message = "companyId é obrigatório")

@@ -98,11 +98,16 @@ public class AuthCommandService {
 
         User user = userRepository.findByUsernameAndCompanyId(request.getUsername(), request.getCompanyId())
                 .orElseThrow(() -> {
-                    log.warn("Login failed - User not found: username={}, application={}", request.getUsername(), request.getTenantId());
+                    log.warn("Login failed - User not found: username={}, companyId={}", request.getUsername(), request.getCompanyId());
                     loginAttemptService.recordFailedAttempt(request.getUsername());
-                    return new InvalidCredentialsException("User not found", "USER_NOT_FOUND", 
-                        Map.of("username",  request.getUsername() != null ?  request.getUsername() : "null", "application", request.getTenantId().toString()));
+                    return new InvalidCredentialsException("User not found", "USER_NOT_FOUND",
+                        Map.of("username",  request.getUsername() != null ?  request.getUsername() : "null",
+                               "companyId", request.getCompanyId() != null ? request.getCompanyId().toString() : "null"));
                 });
+
+        if (user.getTenantId() != null) {
+            request.setTenantId(user.getTenantId());
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             log.warn("Login failed - Invalid password: username={}, userId={}, application={}", 
@@ -157,12 +162,12 @@ public class AuthCommandService {
             log.info("Dispositivo não confiável detectado | codeUser={} | deviceId={}. Iniciando desafio MFA.",
                     user.getCodeUser(), deviceId);
 
-            List<AvailableMfaChannelDTO> availableChannels = fetchAvailableChannels(request.getTenantId().toString(), user);
-            
+            List<AvailableMfaChannelDTO> availableChannels = fetchAvailableChannels(request.getCompanyId(), user);
+
             // Se houver canais de MFA ativos para a empresa, retorna o desafio
             if (!availableChannels.isEmpty()) {
                 String challengeSessionId = "chal_" + UUID.randomUUID();
-                String phone = getUserPhone(user.getCodeUser(), request.getTenantId().toString());
+                String phone = getUserPhone(user.getCodeUser(), request.getCompanyId());
                 
                 DeviceChallengeSession challenge = DeviceChallengeSession.builder()
                         .challengeSessionId(challengeSessionId)
@@ -265,11 +270,11 @@ public class AuthCommandService {
         return new AuthLoginView(token, 3600L, "AUTHENTICATED", null, true, null);
     }
 
-    private List<AvailableMfaChannelDTO> fetchAvailableChannels(String tenantId, User user) {
+    private List<AvailableMfaChannelDTO> fetchAvailableChannels(UUID companyId, User user) {
         List<AvailableMfaChannelDTO> channels = new ArrayList<>();
         try {
-            Map<String, Object> company = companyClient.getCompanyByTenantId(tenantId);
-            String userPhone = getUserPhone(user.getCodeUser(), tenantId);
+            Map<String, Object> company = companyClient.getCompanyById(companyId.toString());
+            String userPhone = getUserPhone(user.getCodeUser(), companyId);
             if (company != null && company.containsKey("mfaChannels")) {
                 List<Map<String, Object>> mfaList = (List<Map<String, Object>>) company.get("mfaChannels");
                 for (Map<String, Object> ch : mfaList) {
@@ -289,15 +294,15 @@ public class AuthCommandService {
                 }
             }
         } catch (Exception e) {
-            log.warn("Não foi possível carregar políticas de MFA da Company | tenantId={} | fallback padrão: EMAIL", tenantId);
+            log.warn("Não foi possível carregar políticas de MFA da Company | companyId={} | fallback padrão: EMAIL", companyId);
             channels.add(new AvailableMfaChannelDTO("EMAIL", maskEmail(user.getEmail()), "Receber código por E-mail"));
         }
         return channels;
     }
 
-    private String getUserPhone(UUID codeUser, String tenantId) {
+    private String getUserPhone(UUID codeUser, UUID companyId) {
         try {
-            Map<String, Object> userData = userClient.getUserByCode(codeUser, tenantId);
+            Map<String, Object> userData = userClient.getUserByCode(codeUser, companyId.toString());
             if (userData != null) {
                 if (userData.containsKey("phoneE164") && userData.get("phoneE164") != null) {
                     return (String) userData.get("phoneE164");

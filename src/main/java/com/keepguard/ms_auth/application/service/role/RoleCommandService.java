@@ -3,7 +3,6 @@ package com.keepguard.ms_auth.application.service.role;
 import com.keepguard.lib_common.logging.annotation.LogOperation;
 import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.application.mapper.RoleApplicationMapper;
-import com.keepguard.ms_auth.application.port.out.company.CompanyResolverPort;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.CompanyRoleRepositoryPort;
@@ -33,7 +32,6 @@ public class RoleCommandService {
     private final RoleRepositoryPort roleRepository;
     private final AuthorityRepositoryPort authorityRepository;
     private final CompanyRoleRepositoryPort companyRoleRepository;
-    private final CompanyResolverPort companyResolver;
     private final MetricsPort metricsPort;
     private final RoleApplicationMapper roleMapper;
 
@@ -47,7 +45,7 @@ public class RoleCommandService {
     @Transactional
     public RoleCreateView create(RoleCreateCommandDTO command) {
         log.info("Creating role: {}", command.getName());
-        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        UUID companyId = command.getTenantId();
 
         if (SystemRoleNames.isReserved(command.getName())) {
             metricsPort.incrementCounter("role_business_errors_total",
@@ -89,7 +87,7 @@ public class RoleCommandService {
     @Transactional
     public RoleUpdateView update(RoleUpdateCommandDTO command) {
         log.info("Updating role with ID: {}", command.getId());
-        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        UUID companyId = command.getTenantId();
         Role existingRole = requireMutableRoleOfCompany(command.getId(), companyId, "update");
 
         if (!existingRole.getName().equals(command.getName())) {
@@ -124,7 +122,7 @@ public class RoleCommandService {
     @Transactional
     public void delete(RoleDeleteCommandDTO command) {
         log.info("Deleting role with ID: {}", command.getId());
-        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        UUID companyId = command.getTenantId();
         Role role = requireMutableRoleOfCompany(command.getId(), companyId, "delete");
 
         companyRoleRepository.deleteByCompanyIdAndRoleId(companyId, role.getId());
@@ -143,7 +141,7 @@ public class RoleCommandService {
     @Transactional
     public RoleAddAuthorityView addAuthority(RoleAddAuthorityCommandDTO command) {
         log.info("Adding authority {} to role: {}", command.getAuthorityName(), command.getRoleId());
-        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        UUID companyId = command.getTenantId();
         Role role = requireRoleOfCompany(command.getRoleId(), companyId, "add_authority");
 
         Authority authority = authorityRepository.findByCompanyIdAndName(companyId, command.getAuthorityName())
@@ -182,7 +180,7 @@ public class RoleCommandService {
     @Transactional
     public RoleRemoveAuthorityView removeAuthority(RoleRemoveAuthorityCommandDTO command) {
         log.info("Removing authority {} from role: {}", command.getAuthorityName(), command.getRoleId());
-        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        UUID companyId = command.getTenantId();
         Role role = requireRoleOfCompany(command.getRoleId(), companyId, "remove_authority");
 
         Authority authority = authorityRepository.findByCompanyIdAndName(companyId, command.getAuthorityName())

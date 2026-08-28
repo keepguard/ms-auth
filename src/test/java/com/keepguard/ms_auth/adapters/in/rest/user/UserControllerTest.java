@@ -584,12 +584,12 @@ class UserControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(companyIdStr))
                 .thenReturn(companyId);
             
-            when(mapper.toGetByCodeQuery(codeUser, tenantId, companyId)).thenReturn(query);
+            when(mapper.toGetByCodeQuery(codeUser, null, companyId)).thenReturn(query);
             when(userService.findByCodeUser(query)).thenReturn(userGetByCodeView);
             when(mapper.toUserByCodeResponseDTO(userGetByCodeView)).thenReturn(userByCodeResponseDTO);
             
             // When
-            ResponseEntity<UserByCodeResponseDTO> response = userController.getByCodeUser(codeUser, tenantIdStr, companyIdStr);
+            ResponseEntity<UserByCodeResponseDTO> response = userController.getByCodeUser(codeUser, companyIdStr);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -600,7 +600,7 @@ class UserControllerTest {
             assertEquals("testuser", responseBody.getUsername());
             assertEquals("test@example.com", responseBody.getEmail());
             
-            verify(mapper, times(1)).toGetByCodeQuery(codeUser, tenantId, companyId);
+            verify(mapper, times(1)).toGetByCodeQuery(codeUser, null, companyId);
             verify(userService, times(1)).findByCodeUser(query);
             verify(mapper, times(1)).toUserByCodeResponseDTO(userGetByCodeView);
         }

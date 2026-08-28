@@ -51,7 +51,7 @@ public class AuthorityController {
     )
     public ResponseEntity<AuthorityCreateResponseDTO> create(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "Dados da authority a ser criada", required = true)
             @RequestBody @Valid AuthorityCreateRequestDTO dto) {
 
@@ -82,7 +82,7 @@ public class AuthorityController {
     )
     public ResponseEntity<AuthorityUpdateResponseDTO> update(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "ID da authority", required = true)
             @PathVariable UUID id,
             @Parameter(description = "Dados da authority a ser atualizada", required = true)
@@ -113,7 +113,7 @@ public class AuthorityController {
     )
     public ResponseEntity<Void> delete(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "ID da authority", required = true)
             @PathVariable UUID id) {
 
@@ -142,7 +142,7 @@ public class AuthorityController {
     )
     public ResponseEntity<AuthorityGetByIdResponseDTO> getById(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "ID da authority", required = true)
             @PathVariable UUID id) {
 
@@ -177,7 +177,7 @@ public class AuthorityController {
     )
     public ResponseEntity<AuthorityGetByNameResponseDTO> getByName(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "Nome da authority", required = true)
             @PathVariable String name) {
 
@@ -210,7 +210,7 @@ public class AuthorityController {
     )
     public ResponseEntity<List<AuthorityListResponseDTO>> listAll(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @RequestHeader("X-Company-Id") String tenantIdHeader) {
 
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         log.info("Listando todas as authorities, application={}", tenantId);
@@ -238,7 +238,7 @@ public class AuthorityController {
     )
     public ResponseEntity<PageResultView<AuthoritySearchResponseDTO>> search(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Valid @ModelAttribute AuthoritySearchRequestDTO searchRequest) {
 
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);

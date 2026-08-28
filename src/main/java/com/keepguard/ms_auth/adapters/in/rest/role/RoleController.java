@@ -53,7 +53,7 @@ public class RoleController {
     )
     public ResponseEntity<RoleCreateResponseDTO> create(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "Dados do role a ser criado", required = true)
             @RequestBody @Valid RoleCreateDTO dto) {
 
@@ -84,7 +84,7 @@ public class RoleController {
     )
     public ResponseEntity<RoleUpdateResponseDTO> update(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "ID do role", required = true)
             @PathVariable UUID id,
             @Parameter(description = "Dados do role a ser atualizado", required = true)
@@ -115,7 +115,7 @@ public class RoleController {
     )
     public ResponseEntity<Void> delete(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "ID do role", required = true)
             @PathVariable UUID id) {
 
@@ -144,7 +144,7 @@ public class RoleController {
     )
     public ResponseEntity<RoleGetByIdResponseDTO> getById(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "ID do role", required = true)
             @PathVariable UUID id) {
 
@@ -179,7 +179,7 @@ public class RoleController {
     )
     public ResponseEntity<RoleGetByNameResponseDTO> getByName(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "Nome do role", required = true)
             @PathVariable String name) {
 
@@ -212,7 +212,7 @@ public class RoleController {
     )
     public ResponseEntity<List<RoleListResponseDTO>> listAll(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader) {
+            @RequestHeader("X-Company-Id") String tenantIdHeader) {
 
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
         log.info("Listando todas as roles, application={}", tenantId);
@@ -240,7 +240,7 @@ public class RoleController {
     )
     public ResponseEntity<PageResultView<RoleSearchResponseDTO>> search(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             Pageable pageable) {
 
         var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
@@ -285,7 +285,7 @@ public class RoleController {
     )
     public ResponseEntity<RoleAddAuthorityResponseDTO> addAuthority(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "Dados para adicionar authority ao role", required = true)
             @RequestBody @Valid RoleAddAuthorityRequestDTO dto) {
 
@@ -320,7 +320,7 @@ public class RoleController {
     )
     public ResponseEntity<RoleRemoveAuthorityResponseDTO> removeAuthority(
             @Parameter(description = "Identificador da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
+            @RequestHeader("X-Company-Id") String tenantIdHeader,
             @Parameter(description = "Dados para remover authority do role", required = true)
             @RequestBody @Valid RoleRemoveAuthorityRequestDTO dto) {
 

@@ -6,7 +6,6 @@ import com.keepguard.ms_auth.adapters.in.rest.role.dto.RoleUpdateDTO;
 import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.application.mapper.RoleApplicationMapper;
-import com.keepguard.ms_auth.application.port.out.company.CompanyResolverPort;
 import com.keepguard.ms_auth.domain.dto.role.RoleCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.role.RoleUpdateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.role.RoleDeleteCommandDTO;
@@ -51,9 +50,6 @@ class RoleUseCaseServiceTest {
     
     @Mock
     private RoleApplicationMapper roleApplicationMapper;
-
-    @Mock
-    private CompanyResolverPort companyResolver;
     
     @InjectMocks
     private RoleUseCaseService roleUseCaseService;
@@ -88,8 +84,7 @@ class RoleUseCaseServiceTest {
     void setUp() {
         roleId = UUID.randomUUID();
         tenantId = UUID.randomUUID();
-        companyId = UUID.randomUUID();
-        lenient().when(companyResolver.resolveCompanyId(tenantId)).thenReturn(companyId);
+        companyId = tenantId;
         
         // Criar role de teste usando builder
         role = RoleTestBuilder.builder()

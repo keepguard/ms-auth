@@ -58,7 +58,7 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Login realizado com sucesso",
                     content = @Content(schema = @Schema(implementation = AuthLoginResponseDTO.class))),
         @ApiResponse(responseCode = "401", description = "Credenciais inválidas"),
-        @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos ou X-Tenant-Id inválido"),
+        @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos"),
         @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
     @MetricsEndpoint(
@@ -68,8 +68,6 @@ public class AuthController {
     public ResponseEntity<AuthLoginResponseDTO> login(
             @Parameter(description = "Credenciais do usuário", required = true)
             @RequestBody @Valid AuthLoginRequestDTO request,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
             @RequestHeader(value = "X-Client-ID", defaultValue = "keepguard-default-client") String clientId,
             @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
             @RequestHeader(value = "X-Device-Name", required = false) String deviceName,
@@ -77,13 +75,12 @@ public class AuthController {
             @RequestHeader(value = "User-Agent", required = false) String userAgent,
             HttpServletRequest httpRequest) {
 
-        log.info("Realizando login para usuário: {}, tenantIdHeader={}, clientId={}, deviceId={}", 
-            request.getUsername(), tenantIdHeader, clientId, deviceId);
-        
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        log.info("Realizando login para usuário: {}, clientId={}, deviceId={}",
+            request.getUsername(), clientId, deviceId);
+
         var ipAddress = ClientIpResolver.from(httpRequest);
-        
-        var command = mapper.toLoginCommand(request, tenantId, clientId, deviceId, deviceName, deviceType, ipAddress, userAgent);
+
+        var command = mapper.toLoginCommand(request, null, clientId, deviceId, deviceName, deviceType, ipAddress, userAgent);
         if (command != null) {
             command.setLocation(ClientLocation.from(httpRequest));
         }

@@ -1,7 +1,6 @@
 package com.keepguard.ms_auth.application.service.authority;
 
 import com.keepguard.ms_auth.application.mapper.AuthorityApplicationMapper;
-import com.keepguard.ms_auth.application.port.out.company.CompanyResolverPort;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
@@ -25,7 +24,6 @@ class AuthorityCommandServiceTest {
 
     private AuthorityCommandService commandService;
     private AuthorityRepositoryPort repository;
-    private CompanyResolverPort companyResolver;
     private MetricsPort metricsPort;
     private AuthorityApplicationMapper mapper;
     private UUID companyId;
@@ -33,12 +31,10 @@ class AuthorityCommandServiceTest {
     @BeforeEach
     void setUp() {
         repository = mock(AuthorityRepositoryPort.class);
-        companyResolver = mock(CompanyResolverPort.class);
         metricsPort = mock(MetricsPort.class);
         mapper = mock(AuthorityApplicationMapper.class);
-        commandService = new AuthorityCommandService(repository, companyResolver, metricsPort, mapper);
+        commandService = new AuthorityCommandService(repository, metricsPort, mapper);
         companyId = UUID.randomUUID();
-        lenient().when(companyResolver.resolveCompanyId(any())).thenReturn(companyId);
     }
 
     @Test
@@ -47,7 +43,7 @@ class AuthorityCommandServiceTest {
         var cmd = AuthorityCreateCommandDTO.builder()
                 .name("READ_USERS")
                 .description("desc")
-                .tenantId(UUID.randomUUID())
+                .tenantId(companyId)
                 .build();
         when(repository.findByCompanyIdAndName(companyId, "READ_USERS")).thenReturn(Optional.empty());
         var savedAuthority = Authority.builder()
@@ -76,7 +72,7 @@ class AuthorityCommandServiceTest {
         var cmd = AuthorityCreateCommandDTO.builder()
                 .name("READ_USERS")
                 .description("desc")
-                .tenantId(UUID.randomUUID())
+                .tenantId(companyId)
                 .build();
         var existing = Authority.builder().id(UUID.randomUUID()).name("READ_USERS").build();
         when(repository.findByCompanyIdAndName(companyId, "READ_USERS")).thenReturn(Optional.of(existing));
@@ -96,7 +92,7 @@ class AuthorityCommandServiceTest {
                 .id(id)
                 .name("WRITE_USERS")
                 .description("updated desc")
-                .tenantId(UUID.randomUUID())
+                .tenantId(companyId)
                 .build();
         var existing = Authority.builder()
                 .id(id)
@@ -128,7 +124,7 @@ class AuthorityCommandServiceTest {
         var cmd = AuthorityUpdateCommandDTO.builder()
                 .id(id)
                 .name("WRITE_USERS")
-                .tenantId(UUID.randomUUID())
+                .tenantId(companyId)
                 .build();
         when(repository.findById(id)).thenReturn(Optional.empty());
 
@@ -146,7 +142,7 @@ class AuthorityCommandServiceTest {
         var cmd = AuthorityUpdateCommandDTO.builder()
                 .id(id)
                 .name("WRITE_USERS")
-                .tenantId(UUID.randomUUID())
+                .tenantId(companyId)
                 .build();
         var existing = Authority.builder()
                 .id(id)
@@ -177,7 +173,7 @@ class AuthorityCommandServiceTest {
                 .id(id)
                 .name("READ_USERS")
                 .description("updated desc")
-                .tenantId(UUID.randomUUID())
+                .tenantId(companyId)
                 .build();
         var existing = Authority.builder()
                 .id(id)
@@ -206,7 +202,7 @@ class AuthorityCommandServiceTest {
         UUID id = UUID.randomUUID();
         var cmd = AuthorityDeleteCommandDTO.builder()
                 .id(id)
-                .tenantId(UUID.randomUUID())
+                .tenantId(companyId)
                 .build();
         var existing = Authority.builder()
                 .id(id)
@@ -228,7 +224,7 @@ class AuthorityCommandServiceTest {
         UUID id = UUID.randomUUID();
         var cmd = AuthorityDeleteCommandDTO.builder()
                 .id(id)
-                .tenantId(UUID.randomUUID())
+                .tenantId(companyId)
                 .build();
         when(repository.findById(id)).thenReturn(Optional.empty());
 
@@ -246,7 +242,7 @@ class AuthorityCommandServiceTest {
         var cmd = AuthorityUpdateCommandDTO.builder()
                 .id(id)
                 .name("WRITE_USERS")
-                .tenantId(UUID.randomUUID())
+                .tenantId(companyId)
                 .build();
         var existing = Authority.builder()
                 .id(id)

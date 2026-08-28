@@ -385,21 +385,18 @@ public class UserController {
     public ResponseEntity<UserByCodeResponseDTO> getByCodeUser(
             @Parameter(description = "Código único do usuário", required = true)
             @PathVariable String codeUser,
-            @Parameter(description = "UUID da aplicação", required = true)
-            @RequestHeader("X-Tenant-Id") String tenantIdHeader,
             @Parameter(description = "UUID da empresa", required = true)
             @RequestHeader("X-Company-Id") String companyIdHeader) {
 
-        log.info("Buscando usuário por código: {}, tenantIdHeader={}, companyIdHeader={}", codeUser, tenantIdHeader, companyIdHeader);
-        
-        var tenantId = ValidationUtils.validateTenantId(tenantIdHeader);
+        log.info("Buscando usuário por código: {}, companyIdHeader={}", codeUser, companyIdHeader);
+
         var companyId = ValidationUtils.validateTenantId(companyIdHeader);
-        
-        var query = mapper.toGetByCodeQuery(codeUser, tenantId, companyId);
+
+        var query = mapper.toGetByCodeQuery(codeUser, null, companyId);
         var view = userService.findByCodeUser(query);
         var response = mapper.toUserByCodeResponseDTO(view);
         
-        log.info("User retrieved by code: {} with application: {}", codeUser, tenantId);
+        log.info("User retrieved by code: {} with company: {}", codeUser, companyId);
         return ResponseEntity.ok(response);
     }
 

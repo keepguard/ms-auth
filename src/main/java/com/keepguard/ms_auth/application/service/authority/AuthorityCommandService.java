@@ -4,7 +4,6 @@ import com.keepguard.lib_common.logging.annotation.LogOperation;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
-import com.keepguard.ms_auth.application.port.out.company.CompanyResolverPort;
 import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.domain.entity.authority.Authority;
 import com.keepguard.ms_auth.domain.dto.authority.*;
@@ -26,7 +25,6 @@ import java.util.UUID;
 public class AuthorityCommandService {
 
     private final AuthorityRepositoryPort authorityRepository;
-    private final CompanyResolverPort companyResolver;
     private final MetricsPort metricsPort;
     private final AuthorityApplicationMapper authorityMapper;
 
@@ -40,7 +38,7 @@ public class AuthorityCommandService {
     @Transactional
     public AuthorityCreateView create(AuthorityCreateCommandDTO command) {
         log.info("Creating authority: {}", command.getName());
-        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        UUID companyId = command.getTenantId();
 
         if (authorityRepository.findByCompanyIdAndName(companyId, command.getName()).isPresent()) {
             metricsPort.incrementCounter("authority_business_errors_total",
@@ -73,7 +71,7 @@ public class AuthorityCommandService {
     @Transactional
     public AuthorityUpdateView update(AuthorityUpdateCommandDTO command) {
         log.info("Updating authority with ID: {}", command.getId());
-        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        UUID companyId = command.getTenantId();
         Authority existingAuthority = requireAuthorityOfCompany(command.getId(), companyId, "update");
 
         if (!existingAuthority.getName().equals(command.getName()) &&
@@ -104,7 +102,7 @@ public class AuthorityCommandService {
     @Transactional
     public void delete(AuthorityDeleteCommandDTO command) {
         log.info("Deleting authority with ID: {}", command.getId());
-        UUID companyId = companyResolver.resolveCompanyId(command.getTenantId());
+        UUID companyId = command.getTenantId();
         Authority authority = requireAuthorityOfCompany(command.getId(), companyId, "delete");
 
         authorityRepository.delete(authority);

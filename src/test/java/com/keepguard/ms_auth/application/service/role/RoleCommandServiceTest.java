@@ -1,6 +1,5 @@
 package com.keepguard.ms_auth.application.service.role;
 
-import com.keepguard.ms_auth.application.port.out.company.CompanyResolverPort;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.dto.role.RoleCreateView;
 import com.keepguard.ms_auth.application.dto.role.RoleUpdateView;
@@ -52,9 +51,6 @@ class RoleCommandServiceTest {
     private AuthorityRepositoryPort authorityRepository;
 
     @Mock
-    private CompanyResolverPort companyResolver;
-    
-    @Mock
     private MetricsPort metricsPort;
     
     @Mock
@@ -85,22 +81,21 @@ class RoleCommandServiceTest {
         createCommand = RoleTestBuilder.builder()
             .withName("ADMIN")
             .withDescription("Administrator role")
-            .withTenantId(UUID.randomUUID())
+            .withTenantId(companyId)
             .buildCreateCommand();
             
         updateCommand = RoleTestBuilder.builder()
             .withId(roleId)
             .withName("ADMIN_UPDATED")
             .withDescription("Updated administrator role")
-            .withTenantId(UUID.randomUUID())
+            .withTenantId(companyId)
             .buildUpdateCommand();
             
         deleteCommand = RoleTestBuilder.builder()
             .withId(roleId)
-            .withTenantId(UUID.randomUUID())
+            .withTenantId(companyId)
             .buildDeleteCommand();
 
-        lenient().when(companyResolver.resolveCompanyId(any())).thenReturn(companyId);
         lenient().when(companyRoleRepository.save(any(CompanyRole.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
     
@@ -276,6 +271,7 @@ class RoleCommandServiceTest {
             .withId(roleId)
             .withName("ADMIN") // Mesmo nome
             .withDescription("Updated description")
+            .withTenantId(companyId)
             .buildUpdateCommand();
             
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(existingRole));
@@ -299,6 +295,7 @@ class RoleCommandServiceTest {
         RoleCreateCommandDTO uppercaseCommand = RoleTestBuilder.builder()
             .withName("ADMIN")
             .withDescription("Administrator role")
+            .withTenantId(companyId)
             .buildCreateCommand();
             
         when(roleRepository.findByCompanyIdAndName(companyId, "ADMIN")).thenReturn(Optional.empty());
@@ -328,6 +325,7 @@ class RoleCommandServiceTest {
             .withId(roleId)
             .withName("ADMIN")
             .withDescription("Updated description")
+            .withTenantId(companyId)
             .buildUpdateCommand();
             
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(existingRole));

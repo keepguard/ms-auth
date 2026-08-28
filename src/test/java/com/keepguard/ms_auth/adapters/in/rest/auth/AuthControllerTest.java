@@ -93,7 +93,7 @@ class AuthControllerTest {
             .build());
         
         // When
-        ResponseEntity<AuthLoginResponseDTO> response = authController.login(authRequest, "550e8400-e29b-41d4-a716-446655440000", "Mozilla/5.0", null, null, null, null, httpRequest);
+        ResponseEntity<AuthLoginResponseDTO> response = authController.login(authRequest, "Mozilla/5.0", null, null, null, null, httpRequest);
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -171,7 +171,7 @@ class AuthControllerTest {
         
         // When & Then
         assertThrows(RuntimeException.class, () -> {
-            authController.login(authRequest, "550e8400-e29b-41d4-a716-446655440000", "Mozilla/5.0", null, null, null, null, httpRequest);
+            authController.login(authRequest, "Mozilla/5.0", null, null, null, null, httpRequest);
         });
         
         verify(authService, times(1)).login(any(AuthLoginCommandDTO.class));

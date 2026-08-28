@@ -15,4 +15,7 @@ public interface CompanyClient {
 
     @GetMapping("/api/v1/companies/x-tenant-id/{tenantId}")
     Map<String, Object> getCompanyByTenantId(@PathVariable("tenantId") String tenantId);
+
+    @GetMapping("/api/v1/companies/{id}")
+    Map<String, Object> getCompanyById(@PathVariable("id") String id);
 }
