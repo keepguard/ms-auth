@@ -441,14 +441,19 @@ public class DeviceSessionService {
         boolean replacingPrivateSession = publicIp
                 && session != null
                 && IpAddressUtils.isPrivate(session.getIpAddress());
-        if (!staleLocation && !replacingPrivateSession) {
+        boolean replacingIpv6WithIpv4 = publicIp
+                && IpAddressUtils.isIpv4(ip)
+                && session != null
+                && IpAddressUtils.isIpv6(session.getIpAddress());
+        if (!staleLocation && !replacingPrivateSession && !replacingIpv6WithIpv4) {
             return existing;
         }
         String resolved = geoLocationPort.resolve(ip);
-        if (session != null && resolved != null && !resolved.equals(existing)) {
+        if (session != null && resolved != null && (!resolved.equals(existing) || replacingIpv6WithIpv4)) {
             session.setLocation(resolved);
             if (ip != null && (session.getIpAddress() == null || session.getIpAddress().isBlank()
-                    || (publicIp && IpAddressUtils.isPrivate(session.getIpAddress())))) {
+                    || (publicIp && IpAddressUtils.isPrivate(session.getIpAddress()))
+                    || replacingIpv6WithIpv4)) {
                 session.setIpAddress(ip);
             }
             sessionCachePort.saveUserSession(session, 2592000L);
@@ -466,7 +471,8 @@ public class DeviceSessionService {
         }
         String current = device.getIpAddress();
         boolean shouldWrite = current == null || current.isBlank()
-                || (IpAddressUtils.isPrivate(current) && !IpAddressUtils.isPrivate(incoming));
+                || (IpAddressUtils.isPrivate(current) && !IpAddressUtils.isPrivate(incoming))
+                || (IpAddressUtils.isIpv6(current) && IpAddressUtils.isIpv4(incoming));
         if (!shouldWrite) {
             return;
         }
@@ -478,7 +484,8 @@ public class DeviceSessionService {
         String requestPublic = IpAddressUtils.firstPublic(requestIp);
         if (requestPublic != null) {
             String stored = firstNonBlank(deviceIp, sessionIp);
-            if (stored == null || IpAddressUtils.isPrivate(stored)) {
+            if (stored == null || IpAddressUtils.isPrivate(stored)
+                    || (IpAddressUtils.isIpv6(stored) && IpAddressUtils.isIpv4(requestPublic))) {
                 return requestPublic;
             }
         }

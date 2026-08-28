@@ -29,4 +29,9 @@ class IpAddressUtilsTest {
         assertEquals("189.45.12.8", IpAddressUtils.firstPublic("10.42.0.1, 189.45.12.8"));
         assertNull(IpAddressUtils.firstPublic("10.42.0.1, 192.168.0.8"));
     }
+
+    @Test
+    void firstPublicPrefersIpv4WhenBothFamiliesExist() {
+        assertEquals("189.45.12.8", IpAddressUtils.firstPublic("2804:1b3:a542::1, 189.45.12.8"));
+    }
 }

@@ -28,13 +28,32 @@ public final class IpAddressUtils {
         if (raw == null || raw.isBlank()) {
             return null;
         }
+        String firstIpv4 = null;
+        String firstAnyPublic = null;
         for (String part : raw.split(",")) {
             String ip = stripPort(part.trim());
-            if (ip != null && !isPrivate(ip)) {
-                return ip;
+            if (ip == null || isPrivate(ip)) {
+                continue;
+            }
+            if (firstAnyPublic == null) {
+                firstAnyPublic = ip;
+            }
+            if (isIpv4(ip)) {
+                firstIpv4 = ip;
+                break;
             }
         }
-        return null;
+        return firstIpv4 != null ? firstIpv4 : firstAnyPublic;
+    }
+
+    public static boolean isIpv4(String ip) {
+        String value = stripPort(ip);
+        return value != null && value.indexOf(':') < 0 && value.indexOf('.') >= 0;
+    }
+
+    public static boolean isIpv6(String ip) {
+        String value = stripPort(ip);
+        return value != null && value.indexOf(':') >= 0;
     }
 
     public static boolean isPrivate(String ip) {
