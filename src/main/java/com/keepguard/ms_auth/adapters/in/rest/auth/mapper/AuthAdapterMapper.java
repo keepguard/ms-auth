@@ -44,10 +44,11 @@ public class AuthAdapterMapper {
         }
 
         try {
+            UUID resolvedCompanyId = companyId != null ? companyId : dto.getCompanyId();
             return AuthLoginCommandDTO.builder()
                     .username(dto.getUsername() != null ? dto.getUsername().trim().toLowerCase() : null)
                     .password(dto.getPassword())
-                    .companyId(companyId)
+                    .companyId(resolvedCompanyId)
                     .clientId(clientId)
                     .deviceId(deviceId)
                     .deviceName(deviceName)

@@ -70,6 +70,7 @@ public class AuthController {
     public ResponseEntity<AuthLoginResponseDTO> login(
             @Parameter(description = "Credenciais do usuário", required = true)
             @RequestBody @Valid AuthLoginRequestDTO request,
+            @RequestHeader("X-Company-Id") UUID companyId,
             @RequestHeader(value = "X-Client-ID", defaultValue = "keepguard-default-client") String clientId,
             @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
             @RequestHeader(value = "X-Device-Name", required = false) String deviceName,
@@ -77,12 +78,12 @@ public class AuthController {
             @RequestHeader(value = "User-Agent", required = false) String userAgent,
             HttpServletRequest httpRequest) {
 
-        log.info("Realizando login para usuário: {}, clientId={}, deviceId={}",
-            request.getUsername(), clientId, deviceId);
+        log.info("Realizando login para usuário: {}, companyId={}, clientId={}, deviceId={}",
+            request.getUsername(), companyId, clientId, deviceId);
 
         var ipAddress = ClientIpResolver.from(httpRequest);
 
-        var command = mapper.toLoginCommand(request, null, clientId, deviceId, deviceName, deviceType, ipAddress, userAgent);
+        var command = mapper.toLoginCommand(request, companyId, clientId, deviceId, deviceName, deviceType, ipAddress, userAgent);
         if (command != null) {
             command.setLocation(ClientLocation.from(httpRequest));
         }
