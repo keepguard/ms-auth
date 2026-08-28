@@ -53,7 +53,7 @@ public class DeviceBlacklistRepositoryAdapter implements DeviceBlacklistReposito
     @Override
     @Transactional(readOnly = true)
     public List<DeviceBlacklistEntry> listByTenantIdAndCodeUser(UUID companyId, UUID codeUser) {
-        return springRepository.findByTenantIdAndCodeUser(companyId, codeUser).stream()
+        return springRepository.findByCompanyIdAndCodeUser(companyId, codeUser).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
