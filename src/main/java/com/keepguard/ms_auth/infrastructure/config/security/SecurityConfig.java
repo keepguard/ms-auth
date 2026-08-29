@@ -1,6 +1,8 @@
 package com.keepguard.ms_auth.infrastructure.config.security;
 
 import com.keepguard.ms_auth.infrastructure.filter.CorrelationIdFilter;
+import com.keepguard.ms_auth.infrastructure.filter.JwtAuditMdcFilter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,9 +22,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final CorrelationIdFilter correlationIdFilter;
+    private final JwtAuditMdcFilter jwtAuditMdcFilter;
 
-    public SecurityConfig(CorrelationIdFilter correlationIdFilter) {
+    public SecurityConfig(CorrelationIdFilter correlationIdFilter, JwtAuditMdcFilter jwtAuditMdcFilter) {
         this.correlationIdFilter = correlationIdFilter;
+        this.jwtAuditMdcFilter = jwtAuditMdcFilter;
     }
 
     @Bean
@@ -34,6 +38,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .addFilterBefore(correlationIdFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtAuditMdcFilter, BearerTokenAuthenticationFilter.class)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

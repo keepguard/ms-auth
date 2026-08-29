@@ -23,10 +23,12 @@ class SecurityConfigTest {
 
     @Mock
     private CorrelationIdFilter correlationIdFilter;
+    @Mock
+    private com.keepguard.ms_auth.infrastructure.filter.JwtAuditMdcFilter jwtAuditMdcFilter;
 
     @BeforeEach
     void setUp() {
-        securityConfig = new SecurityConfig(correlationIdFilter);
+        securityConfig = new SecurityConfig(correlationIdFilter, jwtAuditMdcFilter);
     }
 
     @Test
