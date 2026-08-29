@@ -42,6 +42,7 @@ import com.keepguard.ms_auth.infrastructure.util.ClientLocation;
 import com.keepguard.ms_auth.infrastructure.util.IpAddressUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -104,6 +105,8 @@ public class AuthCommandService {
                         Map.of("username",  request.getUsername() != null ?  request.getUsername() : "null",
                                "companyId", request.getCompanyId() != null ? request.getCompanyId().toString() : "null"));
                 });
+
+        MDC.put("codeUser", user.getCodeUser().toString());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             log.warn("Login failed - Invalid password: username={}, userId={}, application={}", 
@@ -343,6 +346,8 @@ public class AuthCommandService {
                     return new InvalidCredentialsException("User not found", "USER_NOT_FOUND", 
                         Map.of("username", request.getUsername() != null ? request.getUsername() : "null", "application", request.getCompanyId().toString()));
                 });
+
+        MDC.put("codeUser", user.getCodeUser().toString());
 
         // Compara hash com hash diretamente (sem usar passwordEncoder.matches)
         if (!request.getPasswordHash().equals(user.getPasswordHash())) {
