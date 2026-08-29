@@ -3,6 +3,7 @@ package com.keepguard.ms_auth.infrastructure.config.security;
 import com.keepguard.ms_auth.infrastructure.filter.CorrelationIdFilter;
 import com.keepguard.ms_auth.infrastructure.filter.JwtAuditMdcFilter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -27,6 +28,13 @@ public class SecurityConfig {
     public SecurityConfig(CorrelationIdFilter correlationIdFilter, JwtAuditMdcFilter jwtAuditMdcFilter) {
         this.correlationIdFilter = correlationIdFilter;
         this.jwtAuditMdcFilter = jwtAuditMdcFilter;
+    }
+
+    @Bean
+    public FilterRegistrationBean<JwtAuditMdcFilter> jwtAuditMdcFilterRegistration(JwtAuditMdcFilter filter) {
+        FilterRegistrationBean<JwtAuditMdcFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean

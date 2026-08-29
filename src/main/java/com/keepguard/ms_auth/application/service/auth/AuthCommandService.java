@@ -87,6 +87,16 @@ public class AuthCommandService {
     @Transactional
     public AuthLoginView login(AuthLoginCommandDTO request) {
         log.info("Processing login for username: {}", request.getUsername());
+        if (request.getUsername() != null) {
+            MDC.put("username", request.getUsername());
+        }
+        if (request.getCompanyId() != null) {
+            MDC.put("companyId", request.getCompanyId().toString());
+            MDC.put("tenantId", request.getCompanyId().toString());
+        }
+        if (request.getDeviceId() != null && !request.getDeviceId().isBlank()) {
+            MDC.put("deviceId", request.getDeviceId());
+        }
 
         // 1. Verificar se a conta está bloqueada por excesso de tentativas
         if (loginAttemptService.isAccountLocked(request.getUsername())) {
@@ -107,6 +117,9 @@ public class AuthCommandService {
                 });
 
         MDC.put("codeUser", user.getCodeUser().toString());
+        if (request.getDeviceId() == null || request.getDeviceId().isBlank()) {
+            MDC.put("deviceId", "dev_default_" + user.getCodeUser().toString().substring(0, 8));
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             log.warn("Login failed - Invalid password: username={}, userId={}, application={}", 

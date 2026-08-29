@@ -24,6 +24,7 @@ import com.keepguard.ms_auth.domain.entity.session.DeviceChallengeSession;
 import com.keepguard.ms_auth.domain.entity.session.UserDevice;
 import com.keepguard.ms_auth.domain.entity.session.UserSession;
 import com.keepguard.ms_auth.domain.entity.user.User;
+import com.keepguard.ms_auth.infrastructure.audit.AuditMdc;
 import com.keepguard.ms_auth.infrastructure.config.security.JwtService;
 import com.keepguard.ms_auth.infrastructure.util.ClientLocation;
 import com.keepguard.ms_auth.infrastructure.util.IpAddressUtils;
@@ -67,6 +68,7 @@ public class DeviceSessionService {
         DeviceChallengeSession challenge = sessionCachePort.getDeviceChallenge(command.getChallengeSessionId())
                 .orElseThrow(() -> new NotFoundException("Sessão de desafio expirada ou inválida", "CHALLENGE_NOT_FOUND",
                         Map.of("challengeSessionId", command.getChallengeSessionId())));
+        AuditMdc.bind(challenge.getCodeUser(), challenge.getCompanyId(), challenge.getDeviceId());
 
         String channel = command.getChannel().toUpperCase();
         String code = CodeGeneratorUtils.generateSixDigitCode();
@@ -131,6 +133,7 @@ public class DeviceSessionService {
         DeviceChallengeSession challenge = sessionCachePort.getDeviceChallenge(command.getChallengeSessionId())
                 .orElseThrow(() -> new NotFoundException("Sessão de desafio expirada ou inválida", "CHALLENGE_NOT_FOUND",
                         Map.of("challengeSessionId", command.getChallengeSessionId())));
+        AuditMdc.bind(challenge.getCodeUser(), challenge.getCompanyId(), challenge.getDeviceId());
 
         if (challenge.getActiveCode() == null || !challenge.getActiveCode().equals(command.getCode().trim())) {
             challenge.setAttempts(challenge.getAttempts() + 1);
@@ -686,6 +689,7 @@ public class DeviceSessionService {
 
     @LogOperation(operation = "ADD_DEVICE_BLACKLIST", description = "Inclusão de dispositivo na blacklist", auditAction = "ADD_DEVICE_BLACKLIST", auditEntityType = "DEVICE")
     public void addDeviceToBlacklist(String codeUser, String deviceId, String deviceName, String reason) {
+        AuditMdc.bind(codeUser, null, deviceId);
         // Encerra sessão do dispositivo se houver
         sessionCachePort.removeUserSession(codeUser, deviceId);
         try {
@@ -759,6 +763,7 @@ public class DeviceSessionService {
 
     @LogOperation(operation = "REMOVE_DEVICE_BLACKLIST", description = "Remoção de dispositivo da blacklist", auditAction = "REMOVE_DEVICE_BLACKLIST", auditEntityType = "DEVICE")
     public void removeDeviceFromBlacklist(String codeUser, String deviceId) {
+        AuditMdc.bind(codeUser, null, deviceId);
         sessionCachePort.removeFromBlacklist(codeUser, deviceId);
         try {
             deviceBlacklistRepository.deleteByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId);
@@ -776,6 +781,7 @@ public class DeviceSessionService {
 
     @LogOperation(operation = "ADMIN_ADD_DEVICE_BLACKLIST", description = "Blacklist administrativa de dispositivo", auditAction = "ADMIN_ADD_DEVICE_BLACKLIST", auditEntityType = "DEVICE")
     public void adminAddDeviceToBlacklist(UUID companyId, String codeUser, String deviceId, String deviceName, String reason, String blockedBy, LocalDateTime expiresAt) {
+        AuditMdc.bind(codeUser, companyId != null ? companyId.toString() : null, deviceId);
         sessionCachePort.removeUserSession(codeUser, deviceId);
         try {
             userDeviceRepository.findByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId)
@@ -826,6 +832,7 @@ public class DeviceSessionService {
 
     @LogOperation(operation = "ADMIN_REMOVE_DEVICE_BLACKLIST", description = "Remoção administrativa da blacklist", auditAction = "ADMIN_REMOVE_DEVICE_BLACKLIST", auditEntityType = "DEVICE")
     public void adminRemoveDeviceFromBlacklist(UUID companyId, String codeUser, String deviceId) {
+        AuditMdc.bind(codeUser, companyId != null ? companyId.toString() : null, deviceId);
         sessionCachePort.removeFromBlacklist(codeUser, deviceId);
         try {
             deviceBlacklistRepository.deleteByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId);
