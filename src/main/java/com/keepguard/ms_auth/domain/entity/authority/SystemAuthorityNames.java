@@ -12,12 +12,14 @@ public final class SystemAuthorityNames {
     public static final String MANAGER_BLOCK = "manager:block";
     public static final String MANAGER_UNBLOCK = "manager:unblock";
     public static final String MANAGER_DELETE = "manager:delete";
+    public static final String AUDIT_READ = "audit:read";
 
     public static final List<String> USER_ACTIONS = List.of(USER_BLOCK, USER_UNBLOCK, USER_DELETE);
     public static final List<String> MANAGER_ACTIONS = List.of(MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE);
     public static final List<String> TEMPLATES = List.of(
             USER_BLOCK, USER_UNBLOCK, USER_DELETE,
-            MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE
+            MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE,
+            AUDIT_READ
     );
 
     private SystemAuthorityNames() {
@@ -27,7 +29,8 @@ public final class SystemAuthorityNames {
         if (SystemRoleNames.ROLE_ADMIN.equals(roleName)) {
             return List.of(
                     USER_BLOCK, USER_UNBLOCK, USER_DELETE,
-                    MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE
+                    MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE,
+                    AUDIT_READ
             );
         }
         if (SystemRoleNames.ROLE_MANAGER.equals(roleName)) {

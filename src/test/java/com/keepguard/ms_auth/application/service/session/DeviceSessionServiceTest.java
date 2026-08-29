@@ -21,10 +21,12 @@ import com.keepguard.ms_auth.domain.entity.session.DeviceChallengeSession;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import com.keepguard.ms_auth.domain.enums.UserStatus;
 import com.keepguard.ms_auth.infrastructure.config.security.JwtService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.MDC;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -102,6 +104,11 @@ class DeviceSessionServiceTest {
                 .attempts(0)
                 .maxAttempts(5)
                 .build();
+    }
+
+    @AfterEach
+    void tearDown() {
+        MDC.clear();
     }
 
     @Test
@@ -230,6 +237,7 @@ class DeviceSessionServiceTest {
         com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken qrt = com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken.builder()
                 .token(token)
                 .codeUser(codeUser)
+                .companyId(companyId)
                 .deviceId("device_abc")
                 .deviceName("Chrome Web")
                 .build();
@@ -241,6 +249,10 @@ class DeviceSessionServiceTest {
         assertNotNull(response);
         assertEquals("device_abc", response.get("deviceId"));
         assertEquals(true, response.get("blacklisted"));
+        assertEquals(codeUser, MDC.get("codeUser"));
+        assertEquals(companyId, MDC.get("tenantId"));
+        assertEquals(companyId, MDC.get("companyId"));
+        assertEquals("device_abc", MDC.get("deviceId"));
 
         verify(sessionCachePort, times(1)).removeUserSession(codeUser, "device_abc");
         verify(sessionCachePort, times(1)).addToBlacklist(any(), eq(0L));

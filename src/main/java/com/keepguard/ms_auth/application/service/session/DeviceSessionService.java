@@ -623,6 +623,8 @@ public class DeviceSessionService {
 
         String codeUser = quickRevokeToken.getCodeUser();
         String deviceId = quickRevokeToken.getDeviceId();
+        UUID tenantIdUuid = resolveCompanyId(quickRevokeToken, codeUser);
+        AuditMdc.bind(codeUser, tenantIdUuid != null ? tenantIdUuid.toString() : null, deviceId);
 
         // 1. Revogar a sessão do dispositivo associado (Redis + DB)
         sessionCachePort.removeUserSession(codeUser, deviceId);
@@ -639,20 +641,6 @@ public class DeviceSessionService {
 
         // 2. Adicionar à blacklist se solicitado (Redis + DB)
         if (addToBlacklist) {
-            UUID tenantIdUuid = null;
-            if (quickRevokeToken.getCompanyId() != null && !quickRevokeToken.getCompanyId().isBlank()) {
-                try {
-                    tenantIdUuid = UUID.fromString(quickRevokeToken.getCompanyId());
-                } catch (Exception ignored) {}
-            }
-            if (tenantIdUuid == null) {
-                try {
-                    tenantIdUuid = userRepository.findByCodeUser(UUID.fromString(codeUser))
-                            .map(User::getTenantId)
-                            .orElse(null);
-                } catch (Exception ignored) {}
-            }
-
             com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry entry = com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry.builder()
                     .companyId(tenantIdUuid)
                     .codeUser(codeUser)
@@ -871,6 +859,22 @@ public class DeviceSessionService {
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
+    }
+
+    private UUID resolveCompanyId(com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken token, String codeUser) {
+        if (token.getCompanyId() != null && !token.getCompanyId().isBlank()) {
+            try {
+                return UUID.fromString(token.getCompanyId());
+            } catch (Exception ignored) {
+            }
+        }
+        try {
+            return userRepository.findByCodeUser(UUID.fromString(codeUser))
+                    .map(User::getTenantId)
+                    .orElse(null);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
 }

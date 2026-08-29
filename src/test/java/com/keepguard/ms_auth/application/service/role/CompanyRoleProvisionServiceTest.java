@@ -118,11 +118,12 @@ class CompanyRoleProvisionServiceTest {
         Role userClone = roleCaptor.getAllValues().stream()
             .filter(role -> SystemRoleNames.ROLE_USER.equals(role.getName()))
             .findFirst().orElseThrow();
-        assertEquals(6, adminClone.getAuthorities().size());
+        assertEquals(7, adminClone.getAuthorities().size());
+        assertTrue(adminClone.getAuthorities().stream().anyMatch(a -> SystemAuthorityNames.AUDIT_READ.equals(a.getName())));
         assertEquals(3, managerClone.getAuthorities().size());
         assertTrue(managerClone.getAuthorities().stream().allMatch(a -> a.getName().startsWith("user:")));
         assertTrue(userClone.getAuthorities().isEmpty());
-        verify(authorityRepository, times(6)).save(any(Authority.class));
+        verify(authorityRepository, times(7)).save(any(Authority.class));
         ArgumentCaptor<CompanyRole> companyRoleCaptor = ArgumentCaptor.forClass(CompanyRole.class);
         verify(companyRoleRepository, times(3)).save(companyRoleCaptor.capture());
         assertTrue(companyRoleCaptor.getAllValues().stream().anyMatch(CompanyRole::isDefaultRole));
