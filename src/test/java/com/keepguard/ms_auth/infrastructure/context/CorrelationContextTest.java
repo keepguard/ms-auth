@@ -36,8 +36,7 @@ class CorrelationContextTest {
         
         // Then
         assertNotNull(correlationId);
-        assertTrue(correlationId.startsWith("ms-auth-"));
-        assertTrue(correlationId.length() > "ms-auth-".length());
+        assertEquals(36, correlationId.length());
         assertEquals(correlationId, MDC.get(CorrelationContext.CORRELATION_ID_MDC_KEY));
     }
     
@@ -45,7 +44,7 @@ class CorrelationContextTest {
     @DisplayName("Deve retornar correlation ID existente")
     void shouldReturnExistingCorrelationId() {
         // Given
-        String existingCorrelationId = "ms-auth-existing-id";
+        String existingCorrelationId = "existing-id";
         MDC.put(CorrelationContext.CORRELATION_ID_MDC_KEY, existingCorrelationId);
         
         // When
@@ -60,7 +59,7 @@ class CorrelationContextTest {
     @DisplayName("Deve definir correlation ID válido")
     void shouldSetValidCorrelationId() {
         // Given
-        String newCorrelationId = "ms-auth-new-id";
+        String newCorrelationId = "new-id";
         
         // When
         correlationContext.setCorrelationId(newCorrelationId);
@@ -74,7 +73,7 @@ class CorrelationContextTest {
     @DisplayName("Deve gerar novo correlation ID quando definido como nulo")
     void shouldGenerateNewCorrelationIdWhenSetToNull() {
         // Given
-        String originalId = "ms-auth-original-id";
+        String originalId = "original-id";
         MDC.put(CorrelationContext.CORRELATION_ID_MDC_KEY, originalId);
         
         // When
@@ -83,7 +82,7 @@ class CorrelationContextTest {
         // Then
         String newId = MDC.get(CorrelationContext.CORRELATION_ID_MDC_KEY);
         assertNotNull(newId);
-        assertTrue(newId.startsWith("ms-auth-"));
+        assertEquals(36, newId.length());
         assertNotEquals(originalId, newId);
     }
     
@@ -91,7 +90,7 @@ class CorrelationContextTest {
     @DisplayName("Deve gerar novo correlation ID quando definido como string vazia")
     void shouldGenerateNewCorrelationIdWhenSetToEmptyString() {
         // Given
-        String originalId = "ms-auth-original-id";
+        String originalId = "original-id";
         MDC.put(CorrelationContext.CORRELATION_ID_MDC_KEY, originalId);
         
         // When
@@ -100,7 +99,7 @@ class CorrelationContextTest {
         // Then
         String newId = MDC.get(CorrelationContext.CORRELATION_ID_MDC_KEY);
         assertNotNull(newId);
-        assertTrue(newId.startsWith("ms-auth-"));
+        assertEquals(36, newId.length());
         assertNotEquals(originalId, newId);
     }
     
@@ -108,7 +107,7 @@ class CorrelationContextTest {
     @DisplayName("Deve gerar novo correlation ID quando definido como string com espaços")
     void shouldGenerateNewCorrelationIdWhenSetToWhitespaceString() {
         // Given
-        String originalId = "ms-auth-original-id";
+        String originalId = "original-id";
         MDC.put(CorrelationContext.CORRELATION_ID_MDC_KEY, originalId);
         
         // When
@@ -117,7 +116,7 @@ class CorrelationContextTest {
         // Then
         String newId = MDC.get(CorrelationContext.CORRELATION_ID_MDC_KEY);
         assertNotNull(newId);
-        assertTrue(newId.startsWith("ms-auth-"));
+        assertEquals(36, newId.length());
         assertNotEquals(originalId, newId);
     }
     
@@ -125,7 +124,7 @@ class CorrelationContextTest {
     @DisplayName("Deve limpar correlation ID")
     void shouldClearCorrelationId() {
         // Given
-        String correlationId = "ms-auth-test-id";
+        String correlationId = "test-id";
         MDC.put(CorrelationContext.CORRELATION_ID_MDC_KEY, correlationId);
         assertEquals(correlationId, MDC.get(CorrelationContext.CORRELATION_ID_MDC_KEY));
         
@@ -152,9 +151,9 @@ class CorrelationContextTest {
         assertNotEquals(id1, id3);
         
         // Todos devem começar com o prefixo correto
-        assertTrue(id1.startsWith("ms-auth-"));
-        assertTrue(id2.startsWith("ms-auth-"));
-        assertTrue(id3.startsWith("ms-auth-"));
+        assertEquals(36, id1.length());
+        assertEquals(36, id2.length());
+        assertEquals(36, id3.length());
     }
     
     @Test
@@ -198,7 +197,7 @@ class CorrelationContextTest {
     @DisplayName("Deve gerar correlation ID após limpeza")
     void shouldGenerateCorrelationIdAfterClear() {
         // Given
-        String originalId = "ms-auth-original-id";
+        String originalId = "original-id";
         MDC.put(CorrelationContext.CORRELATION_ID_MDC_KEY, originalId);
         correlationContext.clearCorrelationId();
         assertNull(MDC.get(CorrelationContext.CORRELATION_ID_MDC_KEY));
@@ -208,7 +207,7 @@ class CorrelationContextTest {
         
         // Then
         assertNotNull(newId);
-        assertTrue(newId.startsWith("ms-auth-"));
+        assertEquals(36, newId.length());
         assertNotEquals(originalId, newId);
         assertEquals(newId, MDC.get(CorrelationContext.CORRELATION_ID_MDC_KEY));
     }

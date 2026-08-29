@@ -9,6 +9,7 @@ import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsExc
 import com.keepguard.ms_auth.application.service.exception.RateLimitExceededException;
 import com.keepguard.ms_auth.application.service.exception.RequiredFieldException;
 import com.keepguard.ms_auth.application.service.exception.ResourceNotFoundException;
+import com.keepguard.ms_auth.infrastructure.context.CorrelationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,12 +39,16 @@ class GlobalExceptionHandlerTest {
     private GlobalExceptionHandler globalExceptionHandler;
 
     @Mock
+    private CorrelationContext correlationContext;
+
+    @Mock
     private WebRequest webRequest;
 
     @BeforeEach
     void setUp() {
-        globalExceptionHandler = new GlobalExceptionHandler();
+        globalExceptionHandler = new GlobalExceptionHandler(correlationContext);
         when(webRequest.getDescription(false)).thenReturn("uri=/api/v1/test");
+        lenient().when(correlationContext.getCorrelationId()).thenReturn("corr-1");
     }
 
     @Test

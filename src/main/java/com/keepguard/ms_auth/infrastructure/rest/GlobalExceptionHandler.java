@@ -14,6 +14,7 @@ import com.keepguard.ms_auth.application.service.exception.CommandOperationExcep
 import com.keepguard.ms_auth.application.service.exception.DeviceBlacklistedException;
 import com.keepguard.ms_auth.application.service.exception.ConflictException;
 import com.keepguard.ms_auth.application.service.exception.CompanyDefaultRolesNotConfiguredException;
+import com.keepguard.ms_auth.infrastructure.context.CorrelationContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,16 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
+    private final CorrelationContext correlationContext;
+
+    private String resolveCorrelationId(WebRequest request) {
+        String fromContext = correlationContext != null ? correlationContext.getCorrelationId() : null;
+        if (fromContext != null && !fromContext.isBlank()) {
+            return fromContext;
+        }
+        return request.getHeader("X-Correlation-ID");
+    }
+
     @ExceptionHandler(EmailNotVerifiedException.class)
     public ResponseEntity<ProblemDetail> handleEmailNotVerified(EmailNotVerifiedException ex, WebRequest request) {
         log.error("Email não verificado: {}", ex.getMessage());
@@ -42,6 +53,7 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         problemDetail.setProperty("path", request.getDescription(false).replace("uri=", ""));
         problemDetail.setProperty("errorCode", "EMAIL_NOT_VERIFIED");
+        problemDetail.setProperty("correlationId", resolveCorrelationId(request));
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problemDetail);
     }
@@ -50,7 +62,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleDeviceBlacklisted(DeviceBlacklistedException ex, WebRequest request) {
         String path = request.getDescription(false).replace("uri=", "");
         String clientId = request.getHeader("X-Client-ID");
-        String correlationId = request.getHeader("X-Correlation-ID");
+        String correlationId = resolveCorrelationId(request);
 
         log.warn("Dispositivo bloqueado na blacklist: message={}, path={}, correlationId={}, clientId={}",
                 ex.getMessage(), path, correlationId, clientId);
@@ -71,7 +83,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleInvalidCredentials(InvalidCredentialsException ex, WebRequest request) {
         String path = request.getDescription(false).replace("uri=", "");
         String clientId = request.getHeader("X-Client-ID");
-        String correlationId = request.getHeader("X-Correlation-ID");
+        String correlationId = resolveCorrelationId(request);
         
         log.error("Credenciais inválidas: message={}, path={}, correlationId={}, clientId={}", 
             ex.getMessage(), path, correlationId, clientId);
@@ -271,7 +283,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleAccountLockedException(AccountLockedException ex, WebRequest request) {
         String path = request.getDescription(false).replace("uri=", "");
         String clientId = request.getHeader("X-Client-ID");
-        String correlationId = request.getHeader("X-Correlation-ID");
+        String correlationId = resolveCorrelationId(request);
         
         log.error("Conta bloqueada: message={}, path={}, correlationId={}, clientId={}", 
             ex.getMessage(), path, correlationId, clientId);
@@ -292,7 +304,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleForbiddenException(
             com.keepguard.ms_auth.application.service.exception.ForbiddenException ex, WebRequest request) {
         String path = request.getDescription(false).replace("uri=", "");
-        String correlationId = request.getHeader("X-Correlation-ID");
+        String correlationId = resolveCorrelationId(request);
 
         log.warn("Acesso negado: message={}, path={}, errorCode={}, correlationId={}",
                 ex.getMessage(), path, ex.getErrorCode(), correlationId);
@@ -312,7 +324,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleRateLimitExceededException(
             com.keepguard.ms_auth.application.service.exception.RateLimitExceededException ex, WebRequest request) {
         String path = request.getDescription(false).replace("uri=", "");
-        String correlationId = request.getHeader("X-Correlation-ID");
+        String correlationId = resolveCorrelationId(request);
 
         log.warn("Rate limit excedido: message={}, path={}, correlationId={}",
                 ex.getMessage(), path, correlationId);
@@ -333,7 +345,7 @@ public class GlobalExceptionHandler {
             com.keepguard.ms_auth.application.service.exception.ResetTokenCooldownException ex, WebRequest request) {
         String path = request.getDescription(false).replace("uri=", "");
         String clientId = request.getHeader("X-Client-ID");
-        String correlationId = request.getHeader("X-Correlation-ID");
+        String correlationId = resolveCorrelationId(request);
         
         log.warn("Cooldown de reset de token ativo: message={}, path={}, correlationId={}, clientId={}", 
             ex.getMessage(), path, correlationId, clientId);
@@ -376,6 +388,7 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         problemDetail.setProperty("path", request.getDescription(false).replace("uri=", ""));
         problemDetail.setProperty("errorCode", "INTERNAL_SERVER_ERROR");
+        problemDetail.setProperty("correlationId", resolveCorrelationId(request));
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problemDetail);
     }
