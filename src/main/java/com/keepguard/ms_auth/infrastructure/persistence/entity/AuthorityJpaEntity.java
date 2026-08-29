@@ -8,7 +8,7 @@ import java.util.UUID;
 @Entity
 @Table(
     name = "authorities",
-    uniqueConstraints = @UniqueConstraint(name = "uk_authorities_company_id_name", columnNames = {"company_id", "name"})
+    uniqueConstraints = @UniqueConstraint(name = "uk_authorities_name", columnNames = {"name"})
 )
 @Data
 @NoArgsConstructor
@@ -20,9 +20,6 @@ public class AuthorityJpaEntity {
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @Column(name = "company_id", columnDefinition = "uuid")
-    private UUID companyId;
 
     @Column(nullable = false, length = 50)
     private String name;
@@ -51,4 +48,3 @@ public class AuthorityJpaEntity {
         this.updatedAt = LocalDateTime.now();
     }
 }
-

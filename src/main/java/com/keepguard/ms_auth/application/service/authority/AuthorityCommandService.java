@@ -38,9 +38,8 @@ public class AuthorityCommandService {
     @Transactional
     public AuthorityCreateView create(AuthorityCreateCommandDTO command) {
         log.info("Creating authority: {}", command.getName());
-        UUID companyId = command.getCompanyId();
 
-        if (authorityRepository.findByCompanyIdAndName(companyId, command.getName()).isPresent()) {
+        if (authorityRepository.findByName(command.getName()).isPresent()) {
             metricsPort.incrementCounter("authority_business_errors_total",
                 Map.of("error_type", "authority_name_already_exists", "operation", "create"));
             throw new AlreadyExistsException("Authority name already exists: " + command.getName());
@@ -49,7 +48,6 @@ public class AuthorityCommandService {
         Authority authority = Authority.builder()
                 .name(command.getName())
                 .description(command.getDescription())
-                .companyId(companyId)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -71,11 +69,10 @@ public class AuthorityCommandService {
     @Transactional
     public AuthorityUpdateView update(AuthorityUpdateCommandDTO command) {
         log.info("Updating authority with ID: {}", command.getId());
-        UUID companyId = command.getCompanyId();
-        Authority existingAuthority = requireAuthorityOfCompany(command.getId(), companyId, "update");
+        Authority existingAuthority = requireAuthority(command.getId(), "update");
 
         if (!existingAuthority.getName().equals(command.getName()) &&
-            authorityRepository.findByCompanyIdAndName(companyId, command.getName()).isPresent()) {
+            authorityRepository.findByName(command.getName()).isPresent()) {
             metricsPort.incrementCounter("authority_business_errors_total",
                 Map.of("error_type", "authority_name_already_exists", "operation", "update"));
             throw new AlreadyExistsException("Authority name already exists: " + command.getName());
@@ -102,26 +99,19 @@ public class AuthorityCommandService {
     @Transactional
     public void delete(AuthorityDeleteCommandDTO command) {
         log.info("Deleting authority with ID: {}", command.getId());
-        UUID companyId = command.getCompanyId();
-        Authority authority = requireAuthorityOfCompany(command.getId(), companyId, "delete");
+        Authority authority = requireAuthority(command.getId(), "delete");
 
         authorityRepository.delete(authority);
         metricsPort.incrementCounter("authority_deleted_total",
             Map.of("authority_id", command.getId().toString(), "authority_name", authority.getName()));
     }
 
-    private Authority requireAuthorityOfCompany(UUID authorityId, UUID companyId, String operation) {
-        Authority authority = authorityRepository.findById(authorityId)
+    private Authority requireAuthority(UUID authorityId, String operation) {
+        return authorityRepository.findById(authorityId)
                 .orElseThrow(() -> {
                     metricsPort.incrementCounter("authority_business_errors_total",
                         Map.of("error_type", "authority_not_found", "operation", operation));
                     return new NotFoundException("Authority not found with ID: " + authorityId);
                 });
-        if (!authority.belongsToCompany(companyId)) {
-            metricsPort.incrementCounter("authority_business_errors_total",
-                Map.of("error_type", "authority_not_found", "operation", operation));
-            throw new NotFoundException("Authority not found with ID: " + authorityId);
-        }
-        return authority;
     }
 }

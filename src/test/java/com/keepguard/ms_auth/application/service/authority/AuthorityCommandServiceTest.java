@@ -26,7 +26,6 @@ class AuthorityCommandServiceTest {
     private AuthorityRepositoryPort repository;
     private MetricsPort metricsPort;
     private AuthorityApplicationMapper mapper;
-    private UUID companyId;
 
     @BeforeEach
     void setUp() {
@@ -34,7 +33,6 @@ class AuthorityCommandServiceTest {
         metricsPort = mock(MetricsPort.class);
         mapper = mock(AuthorityApplicationMapper.class);
         commandService = new AuthorityCommandService(repository, metricsPort, mapper);
-        companyId = UUID.randomUUID();
     }
 
     @Test
@@ -43,9 +41,8 @@ class AuthorityCommandServiceTest {
         var cmd = AuthorityCreateCommandDTO.builder()
                 .name("READ_USERS")
                 .description("desc")
-                .companyId(companyId)
                 .build();
-        when(repository.findByCompanyIdAndName(companyId, "READ_USERS")).thenReturn(Optional.empty());
+        when(repository.findByName("READ_USERS")).thenReturn(Optional.empty());
         var savedAuthority = Authority.builder()
                 .id(UUID.randomUUID())
                 .name("READ_USERS")
@@ -61,7 +58,7 @@ class AuthorityCommandServiceTest {
 
         assertNotNull(result);
         assertEquals("READ_USERS", result.name());
-        verify(repository).findByCompanyIdAndName(companyId, "READ_USERS");
+        verify(repository).findByName("READ_USERS");
         verify(repository).save(any(Authority.class));
         verify(metricsPort).incrementCounter(eq("authority_created_total"), anyMap());
     }
@@ -72,14 +69,13 @@ class AuthorityCommandServiceTest {
         var cmd = AuthorityCreateCommandDTO.builder()
                 .name("READ_USERS")
                 .description("desc")
-                .companyId(companyId)
                 .build();
         var existing = Authority.builder().id(UUID.randomUUID()).name("READ_USERS").build();
-        when(repository.findByCompanyIdAndName(companyId, "READ_USERS")).thenReturn(Optional.of(existing));
+        when(repository.findByName("READ_USERS")).thenReturn(Optional.of(existing));
 
         assertThrows(AlreadyExistsException.class, () -> commandService.create(cmd));
 
-        verify(repository).findByCompanyIdAndName(companyId, "READ_USERS");
+        verify(repository).findByName("READ_USERS");
         verify(repository, never()).save(any());
         verify(metricsPort).incrementCounter(eq("authority_business_errors_total"), anyMap());
     }
@@ -92,18 +88,16 @@ class AuthorityCommandServiceTest {
                 .id(id)
                 .name("WRITE_USERS")
                 .description("updated desc")
-                .companyId(companyId)
                 .build();
         var existing = Authority.builder()
                 .id(id)
-                .companyId(companyId)
                 .name("READ_USERS")
                 .description("old desc")
                 .createdAt(LocalDateTime.now().minusDays(1))
                 .updatedAt(LocalDateTime.now().minusDays(1))
                 .build();
         when(repository.findById(id)).thenReturn(Optional.of(existing));
-        when(repository.findByCompanyIdAndName(companyId, "WRITE_USERS")).thenReturn(Optional.empty());
+        when(repository.findByName("WRITE_USERS")).thenReturn(Optional.empty());
         when(repository.save(any(Authority.class))).thenAnswer(inv -> inv.getArgument(0));
         var view = new AuthorityUpdateView(id, "WRITE_USERS", "updated desc", existing.getCreatedAt(), LocalDateTime.now());
         when(mapper.toUpdateView(any())).thenReturn(view);
@@ -124,7 +118,6 @@ class AuthorityCommandServiceTest {
         var cmd = AuthorityUpdateCommandDTO.builder()
                 .id(id)
                 .name("WRITE_USERS")
-                .companyId(companyId)
                 .build();
         when(repository.findById(id)).thenReturn(Optional.empty());
 
@@ -142,25 +135,22 @@ class AuthorityCommandServiceTest {
         var cmd = AuthorityUpdateCommandDTO.builder()
                 .id(id)
                 .name("WRITE_USERS")
-                .companyId(companyId)
                 .build();
         var existing = Authority.builder()
                 .id(id)
-                .companyId(companyId)
                 .name("READ_USERS")
                 .build();
         var conflicting = Authority.builder()
                 .id(UUID.randomUUID())
-                .companyId(companyId)
                 .name("WRITE_USERS")
                 .build();
         when(repository.findById(id)).thenReturn(Optional.of(existing));
-        when(repository.findByCompanyIdAndName(companyId, "WRITE_USERS")).thenReturn(Optional.of(conflicting));
+        when(repository.findByName("WRITE_USERS")).thenReturn(Optional.of(conflicting));
 
         assertThrows(AlreadyExistsException.class, () -> commandService.update(cmd));
 
         verify(repository).findById(id);
-        verify(repository).findByCompanyIdAndName(companyId, "WRITE_USERS");
+        verify(repository).findByName("WRITE_USERS");
         verify(repository, never()).save(any());
         verify(metricsPort).incrementCounter(eq("authority_business_errors_total"), anyMap());
     }
@@ -173,11 +163,9 @@ class AuthorityCommandServiceTest {
                 .id(id)
                 .name("READ_USERS")
                 .description("updated desc")
-                .companyId(companyId)
                 .build();
         var existing = Authority.builder()
                 .id(id)
-                .companyId(companyId)
                 .name("READ_USERS")
                 .description("old desc")
                 .createdAt(LocalDateTime.now().minusDays(1))
@@ -192,7 +180,7 @@ class AuthorityCommandServiceTest {
 
         assertNotNull(result);
         verify(repository).findById(id);
-        verify(repository, never()).findByCompanyIdAndName(any(), anyString());
+        verify(repository, never()).findByName(anyString());
         verify(repository).save(any(Authority.class));
     }
 
@@ -202,11 +190,9 @@ class AuthorityCommandServiceTest {
         UUID id = UUID.randomUUID();
         var cmd = AuthorityDeleteCommandDTO.builder()
                 .id(id)
-                .companyId(companyId)
                 .build();
         var existing = Authority.builder()
                 .id(id)
-                .companyId(companyId)
                 .name("READ_USERS")
                 .build();
         when(repository.findById(id)).thenReturn(Optional.of(existing));
@@ -224,7 +210,6 @@ class AuthorityCommandServiceTest {
         UUID id = UUID.randomUUID();
         var cmd = AuthorityDeleteCommandDTO.builder()
                 .id(id)
-                .companyId(companyId)
                 .build();
         when(repository.findById(id)).thenReturn(Optional.empty());
 
@@ -234,28 +219,4 @@ class AuthorityCommandServiceTest {
         verify(repository, never()).delete(any());
         verify(metricsPort).incrementCounter(eq("authority_business_errors_total"), anyMap());
     }
-
-    @Test
-    @DisplayName("update lança NotFoundException quando authority é de outra company")
-    void update_shouldThrowNotFoundExceptionWhenOtherCompany() {
-        UUID id = UUID.randomUUID();
-        var cmd = AuthorityUpdateCommandDTO.builder()
-                .id(id)
-                .name("WRITE_USERS")
-                .companyId(companyId)
-                .build();
-        var existing = Authority.builder()
-                .id(id)
-                .companyId(UUID.randomUUID())
-                .name("READ_USERS")
-                .build();
-        when(repository.findById(id)).thenReturn(Optional.of(existing));
-
-        assertThrows(NotFoundException.class, () -> commandService.update(cmd));
-
-        verify(repository).findById(id);
-        verify(repository, never()).save(any());
-        verify(metricsPort).incrementCounter(eq("authority_business_errors_total"), anyMap());
-    }
 }
-

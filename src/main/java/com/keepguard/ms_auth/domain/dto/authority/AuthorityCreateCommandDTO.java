@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -21,7 +19,5 @@ public class AuthorityCreateCommandDTO {
 
     @Size(max = 255, message = "Descrição deve ter no máximo 255 caracteres")
     private String description;
-
-    private UUID companyId;
 }
 

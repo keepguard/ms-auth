@@ -16,7 +16,5 @@ public class AuthorityDeleteCommandDTO {
 
     @NotNull(message = "ID é obrigatório")
     private UUID id;
-
-    private UUID companyId;
 }
 

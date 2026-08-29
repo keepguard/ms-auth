@@ -16,7 +16,7 @@ public class AuthorityAdapterMapper {
 
     // ========== COMMAND DTO CONVERSIONS ==========
 
-    public AuthorityCreateCommandDTO toCreateCommand(AuthorityCreateRequestDTO dto, UUID companyId) {
+    public AuthorityCreateCommandDTO toCreateCommand(AuthorityCreateRequestDTO dto) {
         if (dto == null) {
             return null;
         }
@@ -24,7 +24,6 @@ public class AuthorityAdapterMapper {
             return AuthorityCreateCommandDTO.builder()
                     .name(dto.getName())
                     .description(dto.getDescription())
-                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthorityCreateRequestDTO para AuthorityCreateCommandDTO: {}", e.getMessage(), e);
@@ -32,7 +31,7 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthorityUpdateCommandDTO toUpdateCommand(UUID id, AuthorityUpdateRequestDTO dto, UUID companyId) {
+    public AuthorityUpdateCommandDTO toUpdateCommand(UUID id, AuthorityUpdateRequestDTO dto) {
         if (dto == null) {
             return null;
         }
@@ -41,7 +40,6 @@ public class AuthorityAdapterMapper {
                     .id(id)
                     .name(dto.getName())
                     .description(dto.getDescription())
-                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao mapear AuthorityUpdateRequestDTO para AuthorityUpdateCommandDTO: {}", e.getMessage(), e);
@@ -49,11 +47,10 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthorityDeleteCommandDTO toDeleteCommand(UUID id, UUID companyId) {
+    public AuthorityDeleteCommandDTO toDeleteCommand(UUID id) {
         try {
             return AuthorityDeleteCommandDTO.builder()
                     .id(id)
-                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar AuthorityDeleteCommandDTO: {}", e.getMessage(), e);
@@ -61,11 +58,10 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthorityGetByIdQueryDTO toGetByIdQuery(UUID id, UUID companyId) {
+    public AuthorityGetByIdQueryDTO toGetByIdQuery(UUID id) {
         try {
             return AuthorityGetByIdQueryDTO.builder()
                     .id(id)
-                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar AuthorityGetByIdQueryDTO: {}", e.getMessage(), e);
@@ -73,11 +69,10 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthorityGetByNameQueryDTO toGetByNameQuery(String name, UUID companyId) {
+    public AuthorityGetByNameQueryDTO toGetByNameQuery(String name) {
         try {
             return AuthorityGetByNameQueryDTO.builder()
                     .name(name)
-                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar AuthorityGetByNameQueryDTO: {}", e.getMessage(), e);
@@ -85,10 +80,9 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthorityGetAllQueryDTO toGetAllQuery(UUID companyId) {
+    public AuthorityGetAllQueryDTO toGetAllQuery() {
         try {
             return AuthorityGetAllQueryDTO.builder()
-                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar AuthorityGetAllQueryDTO: {}", e.getMessage(), e);
@@ -96,7 +90,7 @@ public class AuthorityAdapterMapper {
         }
     }
 
-    public AuthoritySearchQueryDTO toSearchQuery(AuthoritySearchRequestDTO searchRequest, UUID companyId) {
+    public AuthoritySearchQueryDTO toSearchQuery(AuthoritySearchRequestDTO searchRequest) {
         try {
             Sort.Direction direction = "ASC".equalsIgnoreCase(searchRequest.getSortDirection())
                     ? Sort.Direction.ASC
@@ -114,7 +108,6 @@ public class AuthorityAdapterMapper {
                     .name(searchRequest.getName())
                     .description(searchRequest.getDescription())
                     .pageable(pageable)
-                    .companyId(companyId)
                     .build();
         } catch (Exception e) {
             log.error("Erro ao criar AuthoritySearchQueryDTO: {}", e.getMessage(), e);

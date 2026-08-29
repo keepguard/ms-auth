@@ -59,7 +59,6 @@ public class RoleJpaMapper {
         }
         return Authority.builder()
                 .id(jpaEntity.getId())
-                .companyId(jpaEntity.getCompanyId())
                 .name(jpaEntity.getName())
                 .description(jpaEntity.getDescription())
                 .createdAt(jpaEntity.getCreatedAt())

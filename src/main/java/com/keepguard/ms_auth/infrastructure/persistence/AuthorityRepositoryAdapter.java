@@ -70,30 +70,4 @@ public class AuthorityRepositoryAdapter implements AuthorityRepositoryPort {
         return springRepository.findByName(name)
                 .map(mapper::toDomain);
     }
-
-    @Override
-    public Optional<Authority> findByCompanyIdAndName(UUID companyId, String name) {
-        return springRepository.findByCompanyIdAndName(companyId, name)
-                .map(mapper::toDomain);
-    }
-
-    @Override
-    public Optional<Authority> findByCompanyIdIsNullAndName(String name) {
-        return springRepository.findByCompanyIdIsNullAndName(name)
-                .map(mapper::toDomain);
-    }
-
-    @Override
-    public List<Authority> findByCompanyId(UUID companyId) {
-        return springRepository.findByCompanyId(companyId).stream()
-                .map(mapper::toDomain)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public Page<Authority> findByCompanyId(UUID companyId, Pageable pageable) {
-        return springRepository.findByCompanyId(companyId, pageable)
-                .map(mapper::toDomain);
-    }
 }
-

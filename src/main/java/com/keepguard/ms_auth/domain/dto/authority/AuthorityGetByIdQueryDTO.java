@@ -16,7 +16,5 @@ public class AuthorityGetByIdQueryDTO {
 
     @NotNull(message = "ID é obrigatório")
     private UUID id;
-
-    private UUID companyId;
 }
 

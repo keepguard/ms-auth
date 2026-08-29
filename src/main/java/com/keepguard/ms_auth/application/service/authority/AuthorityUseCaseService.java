@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -41,28 +40,24 @@ public class AuthorityUseCaseService implements AuthorityPort {
     @Override
     public Optional<AuthorityGetByIdView> findById(AuthorityGetByIdQueryDTO command) {
         log.debug("Finding authority by ID: {}", command.getId());
-        UUID companyId = command.getCompanyId();
-        return authorityQueryService.findByIdForCompany(command.getId(), companyId);
+        return authorityQueryService.findById(command.getId());
     }
 
     @Override
     public Optional<AuthorityGetByNameView> findByName(AuthorityGetByNameQueryDTO command) {
         log.debug("Finding authority by name: {}", command.getName());
-        UUID companyId = command.getCompanyId();
-        return authorityQueryService.findByCompanyIdAndName(companyId, command.getName());
+        return authorityQueryService.findByName(command.getName());
     }
 
     @Override
     public List<AuthorityListView> findAll(AuthorityGetAllQueryDTO command) {
         log.debug("Finding all authorities");
-        UUID companyId = command.getCompanyId();
-        return authorityQueryService.findByCompanyId(companyId);
+        return authorityQueryService.findAll();
     }
 
     @Override
     public PageResultView<AuthoritySearchView> findAll(AuthoritySearchQueryDTO command) {
         log.debug("Finding all authorities with pagination");
-        UUID companyId = command.getCompanyId();
-        return authorityQueryService.findByCompanyId(companyId, command.getPageable());
+        return authorityQueryService.findAll(command.getPageable());
     }
 }

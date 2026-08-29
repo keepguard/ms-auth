@@ -144,7 +144,7 @@ public class RoleCommandService {
         UUID companyId = command.getCompanyId();
         Role role = requireRoleOfCompany(command.getRoleId(), companyId, "add_authority");
 
-        Authority authority = authorityRepository.findByCompanyIdAndName(companyId, command.getAuthorityName())
+        Authority authority = authorityRepository.findByName(command.getAuthorityName())
                 .orElseThrow(() -> {
                     metricsPort.incrementCounter("role_business_errors_total",
                         Map.of("error_type", "authority_not_found", "operation", "add_authority"));
@@ -183,7 +183,7 @@ public class RoleCommandService {
         UUID companyId = command.getCompanyId();
         Role role = requireRoleOfCompany(command.getRoleId(), companyId, "remove_authority");
 
-        Authority authority = authorityRepository.findByCompanyIdAndName(companyId, command.getAuthorityName())
+        Authority authority = authorityRepository.findByName(command.getAuthorityName())
                 .orElseThrow(() -> {
                     metricsPort.incrementCounter("role_business_errors_total",
                         Map.of("error_type", "authority_not_found", "operation", "remove_authority"));

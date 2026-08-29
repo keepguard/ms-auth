@@ -25,7 +25,5 @@ public class AuthorityUpdateCommandDTO {
 
     @Size(max = 255, message = "Descrição deve ter no máximo 255 caracteres")
     private String description;
-
-    private UUID companyId;
 }
 

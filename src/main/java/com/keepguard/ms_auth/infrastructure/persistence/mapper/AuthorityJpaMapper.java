@@ -14,7 +14,6 @@ public class AuthorityJpaMapper {
 
         return AuthorityJpaEntity.builder()
                 .id(domain.getId())
-                .companyId(domain.getCompanyId())
                 .name(domain.getName())
                 .description(domain.getDescription())
                 .createdAt(domain.getCreatedAt())
@@ -29,7 +28,6 @@ public class AuthorityJpaMapper {
 
         return Authority.builder()
                 .id(jpaEntity.getId())
-                .companyId(jpaEntity.getCompanyId())
                 .name(jpaEntity.getName())
                 .description(jpaEntity.getDescription())
                 .createdAt(jpaEntity.getCreatedAt())
@@ -37,4 +35,3 @@ public class AuthorityJpaMapper {
                 .build();
     }
 }
-

@@ -193,7 +193,7 @@ class AccountLifecyclePolicyTest {
                 Set<Authority> authorities = new HashSet<>();
                 for (String authorityName : authorityNames) {
                     if (roleNames.size() == 1 || SystemRoleNames.ROLE_MANAGER.equals(name) || SystemRoleNames.ROLE_ADMIN.equals(name)) {
-                        authorities.add(Authority.builder().id(UUID.randomUUID()).name(authorityName).companyId(companyId).build());
+                        authorities.add(Authority.builder().id(UUID.randomUUID()).name(authorityName).build());
                     }
                 }
                 if (SystemRoleNames.ROLE_USER.equals(name) && roleNames.size() > 1) {

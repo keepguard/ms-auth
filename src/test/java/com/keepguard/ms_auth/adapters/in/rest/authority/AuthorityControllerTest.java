@@ -9,7 +9,6 @@ import com.keepguard.ms_auth.domain.dto.authority.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -45,7 +44,7 @@ class AuthorityControllerTest {
 
         var createCmd = mock(AuthorityCreateCommandDTO.class);
         var view = mock(AuthorityCreateView.class);
-        when(mapper.toCreateCommand(any(), any())).thenReturn(createCmd);
+        when(mapper.toCreateCommand(any())).thenReturn(createCmd);
         when(authorityPort.create(createCmd)).thenReturn(view);
         when(mapper.toCreateResponseDTO(view)).thenReturn(
             AuthorityCreateResponseDTO.builder()
@@ -58,13 +57,12 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(post("/api/v1/authorities")
-                .header("X-Company-Id", UUID.randomUUID().toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"READ_USERS\"}"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.name").value("READ_USERS"));
 
-        verify(mapper).toCreateCommand(any(), any());
+        verify(mapper).toCreateCommand(any());
         verify(authorityPort).create(createCmd);
     }
 
@@ -74,7 +72,7 @@ class AuthorityControllerTest {
         UUID id = UUID.randomUUID();
         var updateCmd = mock(AuthorityUpdateCommandDTO.class);
         var view = mock(AuthorityUpdateView.class);
-        when(mapper.toUpdateCommand(eq(id), any(), any())).thenReturn(updateCmd);
+        when(mapper.toUpdateCommand(eq(id), any())).thenReturn(updateCmd);
         when(authorityPort.update(updateCmd)).thenReturn(view);
         when(mapper.toUpdateResponseDTO(view)).thenReturn(
             AuthorityUpdateResponseDTO.builder()
@@ -87,7 +85,6 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(put("/api/v1/authorities/" + id)
-                .header("X-Company-Id", UUID.randomUUID().toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"WRITE_USERS\"}"))
             .andExpect(status().isOk())
@@ -99,10 +96,9 @@ class AuthorityControllerTest {
     void delete_shouldReturnNoContent() throws Exception {
         UUID id = UUID.randomUUID();
         var cmd = mock(AuthorityDeleteCommandDTO.class);
-        when(mapper.toDeleteCommand(eq(id), any())).thenReturn(cmd);
+        when(mapper.toDeleteCommand(eq(id))).thenReturn(cmd);
 
-        mockMvc.perform(delete("/api/v1/authorities/" + id)
-                .header("X-Company-Id", UUID.randomUUID().toString()))
+        mockMvc.perform(delete("/api/v1/authorities/" + id))
             .andExpect(status().isNoContent());
 
         verify(authorityPort).delete(cmd);
@@ -114,7 +110,7 @@ class AuthorityControllerTest {
         UUID id = UUID.randomUUID();
         var query = mock(AuthorityGetByIdQueryDTO.class);
         var view = mock(AuthorityGetByIdView.class);
-        when(mapper.toGetByIdQuery(eq(id), any())).thenReturn(query);
+        when(mapper.toGetByIdQuery(eq(id))).thenReturn(query);
         when(authorityPort.findById(query)).thenReturn(Optional.of(view));
         when(mapper.toGetByIdResponseDTO(view)).thenReturn(
             AuthorityGetByIdResponseDTO.builder()
@@ -127,7 +123,7 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(get("/api/v1/authorities/" + id)
-                .header("X-Company-Id", UUID.randomUUID().toString()))
+)
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(id.toString()));
     }
@@ -137,11 +133,11 @@ class AuthorityControllerTest {
     void getById_shouldReturnNotFoundWhenMissing() throws Exception {
         UUID id = UUID.randomUUID();
         var query = mock(AuthorityGetByIdQueryDTO.class);
-        when(mapper.toGetByIdQuery(eq(id), any())).thenReturn(query);
+        when(mapper.toGetByIdQuery(eq(id))).thenReturn(query);
         when(authorityPort.findById(query)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/v1/authorities/" + id)
-                .header("X-Company-Id", UUID.randomUUID().toString()))
+)
             .andExpect(status().isNotFound());
     }
 
@@ -151,7 +147,7 @@ class AuthorityControllerTest {
         String name = "READ_USERS";
         var query = mock(AuthorityGetByNameQueryDTO.class);
         var view = mock(AuthorityGetByNameView.class);
-        when(mapper.toGetByNameQuery(eq(name), any())).thenReturn(query);
+        when(mapper.toGetByNameQuery(eq(name))).thenReturn(query);
         when(authorityPort.findByName(query)).thenReturn(Optional.of(view));
         when(mapper.toGetByNameResponseDTO(view)).thenReturn(
             AuthorityGetByNameResponseDTO.builder()
@@ -164,7 +160,7 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(get("/api/v1/authorities/name/" + name)
-                .header("X-Company-Id", UUID.randomUUID().toString()))
+)
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.name").value(name));
     }
@@ -173,7 +169,7 @@ class AuthorityControllerTest {
     @DisplayName("GET /authorities retorna lista")
     void listAll_shouldReturnList() throws Exception {
         var query = mock(AuthorityGetAllQueryDTO.class);
-        when(mapper.toGetAllQuery(any())).thenReturn(query);
+        when(mapper.toGetAllQuery()).thenReturn(query);
         when(authorityPort.findAll(query)).thenReturn(List.of(mock(AuthorityListView.class)));
         when(mapper.toListResponseDTO(any())).thenReturn(
             AuthorityListResponseDTO.builder()
@@ -186,7 +182,7 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(get("/api/v1/authorities")
-                .header("X-Company-Id", UUID.randomUUID().toString()))
+)
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].name").value("READ_USERS"));
     }
@@ -195,7 +191,7 @@ class AuthorityControllerTest {
     @DisplayName("GET /authorities/search retorna página")
     void search_shouldReturnPage() throws Exception {
         var query = mock(AuthoritySearchQueryDTO.class);
-        when(mapper.toSearchQuery(any(), any())).thenReturn(query);
+        when(mapper.toSearchQuery(any())).thenReturn(query);
         var view = new PageResultView<AuthoritySearchView>(List.of(mock(AuthoritySearchView.class)), 0, 10, 1, 1, true, true, false, false);
         when(authorityPort.findAll(query)).thenReturn(view);
         when(mapper.toSearchResponseDTO(any())).thenReturn(
@@ -209,7 +205,6 @@ class AuthorityControllerTest {
         );
 
         mockMvc.perform(get("/api/v1/authorities/search")
-                .header("X-Company-Id", UUID.randomUUID().toString())
                 .param("page", "0")
                 .param("size", "10"))
             .andExpect(status().isOk())

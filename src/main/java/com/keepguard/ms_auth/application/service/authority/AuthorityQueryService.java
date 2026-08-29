@@ -28,19 +28,8 @@ public class AuthorityQueryService {
                 .map(authorityMapper::toGetByIdView);
     }
 
-    public Optional<AuthorityGetByIdView> findByIdForCompany(UUID id, UUID companyId) {
-        return authorityRepository.findById(id)
-                .filter(authority -> authority.belongsToCompany(companyId))
-                .map(authorityMapper::toGetByIdView);
-    }
-
     public Optional<AuthorityGetByNameView> findByName(String name) {
         return authorityRepository.findByName(name)
-                .map(authorityMapper::toGetByNameView);
-    }
-
-    public Optional<AuthorityGetByNameView> findByCompanyIdAndName(UUID companyId, String name) {
-        return authorityRepository.findByCompanyIdAndName(companyId, name)
                 .map(authorityMapper::toGetByNameView);
     }
 
@@ -50,18 +39,8 @@ public class AuthorityQueryService {
                 .toList();
     }
 
-    public List<AuthorityListView> findByCompanyId(UUID companyId) {
-        return authorityRepository.findByCompanyId(companyId).stream()
-                .map(authorityMapper::toListView)
-                .toList();
-    }
-
     public PageResultView<AuthoritySearchView> findAll(Pageable pageable) {
         return toPageResult(authorityRepository.findAll(pageable));
-    }
-
-    public PageResultView<AuthoritySearchView> findByCompanyId(UUID companyId, Pageable pageable) {
-        return toPageResult(authorityRepository.findByCompanyId(companyId, pageable));
     }
 
     private PageResultView<AuthoritySearchView> toPageResult(Page<Authority> page) {

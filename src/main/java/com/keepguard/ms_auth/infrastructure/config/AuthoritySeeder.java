@@ -19,20 +19,19 @@ public class AuthoritySeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        log.info("Iniciando verificação de templates de Authorities no banco de dados...");
+        log.info("Iniciando verificação de Authorities globais no banco de dados...");
 
         for (String name : SystemAuthorityNames.TEMPLATES) {
-            authorityRepository.findByCompanyIdIsNullAndName(name).ifPresentOrElse(
-                    authority -> log.debug("Template de authority {} já existe no banco de dados.", name),
+            authorityRepository.findByName(name).ifPresentOrElse(
+                    authority -> log.debug("Authority {} já existe no banco de dados.", name),
                     () -> {
-                        log.info("Template de authority {} não encontrado. Criando...", name);
+                        log.info("Authority {} não encontrada. Criando...", name);
                         AuthorityJpaEntity created = AuthorityJpaEntity.builder()
                                 .name(name)
-                                .description("Authority padrão KeepGuard: " + name)
-                                .companyId(null)
+                                .description(SystemAuthorityNames.descriptionFor(name))
                                 .build();
                         authorityRepository.save(created);
-                        log.info("Template de authority {} criado com sucesso.", name);
+                        log.info("Authority {} criada com sucesso.", name);
                     }
             );
         }

@@ -83,18 +83,9 @@ class CompanyRoleProvisionServiceTest {
                 .id(UUID.randomUUID())
                 .name(name)
                 .description("template " + name)
-                .companyId(null)
                 .build();
-            when(authorityRepository.findByCompanyIdIsNullAndName(name)).thenReturn(Optional.of(template));
+            when(authorityRepository.findByName(name)).thenReturn(Optional.of(template));
         }
-
-        when(authorityRepository.save(any(Authority.class))).thenAnswer(invocation -> {
-            Authority saved = invocation.getArgument(0);
-            if (saved.getId() == null) {
-                saved.setId(UUID.randomUUID());
-            }
-            return saved;
-        });
         when(roleRepository.save(any(Role.class))).thenAnswer(invocation -> {
             Role saved = invocation.getArgument(0);
             saved.setId(UUID.randomUUID());
@@ -123,7 +114,7 @@ class CompanyRoleProvisionServiceTest {
         assertEquals(3, managerClone.getAuthorities().size());
         assertTrue(managerClone.getAuthorities().stream().allMatch(a -> a.getName().startsWith("user:")));
         assertTrue(userClone.getAuthorities().isEmpty());
-        verify(authorityRepository, times(7)).save(any(Authority.class));
+        verify(authorityRepository, never()).save(any(Authority.class));
         ArgumentCaptor<CompanyRole> companyRoleCaptor = ArgumentCaptor.forClass(CompanyRole.class);
         verify(companyRoleRepository, times(3)).save(companyRoleCaptor.capture());
         assertTrue(companyRoleCaptor.getAllValues().stream().anyMatch(CompanyRole::isDefaultRole));
@@ -141,7 +132,7 @@ class CompanyRoleProvisionServiceTest {
     void shouldFailWhenTemplateMissing() {
         UUID companyId = UUID.randomUUID();
         when(companyRoleRepository.existsByCompanyId(companyId)).thenReturn(false);
-        when(authorityRepository.findByCompanyIdIsNullAndName(any())).thenReturn(Optional.empty());
+        when(roleRepository.findByCompanyIdIsNullAndName(any())).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.provision(companyId));
     }

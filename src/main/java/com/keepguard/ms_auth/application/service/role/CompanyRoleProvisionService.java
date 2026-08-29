@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +59,6 @@ public class CompanyRoleProvisionService implements CompanyRoleProvisionPort {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        Map<String, Authority> clonedAuthorities = cloneAuthorities(companyId, now);
         List<String> createdNames = new ArrayList<>();
 
         for (String roleName : SystemRoleNames.PROVISIONED) {
@@ -69,11 +67,9 @@ public class CompanyRoleProvisionService implements CompanyRoleProvisionPort {
 
             Set<Authority> authorities = new HashSet<>();
             for (String authorityName : SystemAuthorityNames.defaultAuthoritiesForRole(roleName)) {
-                Authority cloned = clonedAuthorities.get(authorityName);
-                if (cloned == null) {
-                    throw new NotFoundException("Authority provisionada não encontrada: " + authorityName);
-                }
-                authorities.add(cloned);
+                Authority global = authorityRepository.findByName(authorityName)
+                        .orElseThrow(() -> new NotFoundException("Authority global não encontrada: " + authorityName));
+                authorities.add(global);
             }
 
             Role clone = Role.builder()
@@ -101,22 +97,5 @@ public class CompanyRoleProvisionService implements CompanyRoleProvisionPort {
                 Map.of("company_id", companyId.toString()));
         log.info("Roles provisionadas para company {}: {}", companyId, createdNames);
         return new ProvisionCompanyRolesView(companyId, false, createdNames);
-    }
-
-    private Map<String, Authority> cloneAuthorities(UUID companyId, LocalDateTime now) {
-        Map<String, Authority> cloned = new HashMap<>();
-        for (String name : SystemAuthorityNames.TEMPLATES) {
-            Authority template = authorityRepository.findByCompanyIdIsNullAndName(name)
-                    .orElseThrow(() -> new NotFoundException("Template de authority não encontrado: " + name));
-            Authority saved = authorityRepository.save(Authority.builder()
-                    .name(template.getName())
-                    .description(template.getDescription())
-                    .companyId(companyId)
-                    .createdAt(now)
-                    .updatedAt(now)
-                    .build());
-            cloned.put(name, saved);
-        }
-        return cloned;
     }
 }

@@ -22,14 +22,12 @@ class AuthorityUseCaseServiceTest {
     private AuthorityUseCaseService useCaseService;
     private AuthorityCommandService commandService;
     private AuthorityQueryService queryService;
-    private UUID companyId;
 
     @BeforeEach
     void setUp() {
         commandService = mock(AuthorityCommandService.class);
         queryService = mock(AuthorityQueryService.class);
         useCaseService = new AuthorityUseCaseService(commandService, queryService);
-        companyId = UUID.randomUUID();
     }
 
     @Test
@@ -38,7 +36,6 @@ class AuthorityUseCaseServiceTest {
         var cmd = AuthorityCreateCommandDTO.builder()
                 .name("READ_USERS")
                 .description("desc")
-                .companyId(companyId)
                 .build();
         var view = new AuthorityCreateView(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         when(commandService.create(cmd)).thenReturn(view);
@@ -58,7 +55,6 @@ class AuthorityUseCaseServiceTest {
                 .id(id)
                 .name("WRITE_USERS")
                 .description("desc")
-                .companyId(companyId)
                 .build();
         var view = new AuthorityUpdateView(id, "WRITE_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         when(commandService.update(cmd)).thenReturn(view);
@@ -76,7 +72,6 @@ class AuthorityUseCaseServiceTest {
         UUID id = UUID.randomUUID();
         var cmd = AuthorityDeleteCommandDTO.builder()
                 .id(id)
-                .companyId(companyId)
                 .build();
 
         useCaseService.delete(cmd);
@@ -90,16 +85,15 @@ class AuthorityUseCaseServiceTest {
         UUID id = UUID.randomUUID();
         var query = AuthorityGetByIdQueryDTO.builder()
                 .id(id)
-                .companyId(companyId)
                 .build();
         var view = new AuthorityGetByIdView(id, "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
-        when(queryService.findByIdForCompany(id, companyId)).thenReturn(Optional.of(view));
+        when(queryService.findById(id)).thenReturn(Optional.of(view));
 
         var result = useCaseService.findById(query);
 
         assertTrue(result.isPresent());
         assertEquals("READ_USERS", result.get().name());
-        verify(queryService).findByIdForCompany(id, companyId);
+        verify(queryService).findById(id);
     }
 
     @Test
@@ -108,32 +102,30 @@ class AuthorityUseCaseServiceTest {
         String name = "READ_USERS";
         var query = AuthorityGetByNameQueryDTO.builder()
                 .name(name)
-                .companyId(companyId)
                 .build();
         var view = new AuthorityGetByNameView(UUID.randomUUID(), name, "desc", LocalDateTime.now(), LocalDateTime.now());
-        when(queryService.findByCompanyIdAndName(companyId, name)).thenReturn(Optional.of(view));
+        when(queryService.findByName(name)).thenReturn(Optional.of(view));
 
         var result = useCaseService.findByName(query);
 
         assertTrue(result.isPresent());
         assertEquals(name, result.get().name());
-        verify(queryService).findByCompanyIdAndName(companyId, name);
+        verify(queryService).findByName(name);
     }
 
     @Test
     @DisplayName("findAll (sem paginação) delega para queryService")
     void findAll_shouldDelegateToQueryService() {
         var query = AuthorityGetAllQueryDTO.builder()
-                .companyId(companyId)
                 .build();
         var view = new AuthorityListView(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
-        when(queryService.findByCompanyId(companyId)).thenReturn(List.of(view));
+        when(queryService.findAll()).thenReturn(List.of(view));
 
         var result = useCaseService.findAll(query);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(queryService).findByCompanyId(companyId);
+        verify(queryService).findAll();
     }
 
     @Test
@@ -142,17 +134,15 @@ class AuthorityUseCaseServiceTest {
         var pageable = PageRequest.of(0, 10);
         var query = AuthoritySearchQueryDTO.builder()
                 .pageable(pageable)
-                .companyId(companyId)
                 .build();
         var view = new AuthoritySearchView(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         var page = new PageResultView<>(List.of(view), 0, 10, 1, 1, true, true, false, false);
-        when(queryService.findByCompanyId(companyId, pageable)).thenReturn(page);
+        when(queryService.findAll(pageable)).thenReturn(page);
 
         var result = useCaseService.findAll(query);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        verify(queryService).findByCompanyId(companyId, pageable);
+        verify(queryService).findAll(pageable);
     }
 }
-

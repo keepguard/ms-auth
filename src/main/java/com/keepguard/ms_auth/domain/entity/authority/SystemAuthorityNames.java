@@ -25,6 +25,31 @@ public final class SystemAuthorityNames {
     private SystemAuthorityNames() {
     }
 
+    public static String descriptionFor(String name) {
+        if (USER_BLOCK.equals(name)) {
+            return "Permite bloquear a conta de um usuário";
+        }
+        if (USER_UNBLOCK.equals(name)) {
+            return "Permite desbloquear a conta de um usuário";
+        }
+        if (USER_DELETE.equals(name)) {
+            return "Permite excluir a conta de um usuário";
+        }
+        if (MANAGER_BLOCK.equals(name)) {
+            return "Permite bloquear a conta de um gerente";
+        }
+        if (MANAGER_UNBLOCK.equals(name)) {
+            return "Permite desbloquear a conta de um gerente";
+        }
+        if (MANAGER_DELETE.equals(name)) {
+            return "Permite excluir a conta de um gerente";
+        }
+        if (AUDIT_READ.equals(name)) {
+            return "Permite consultar eventos de auditoria";
+        }
+        return "Permissão do catálogo KeepGuard: " + name;
+    }
+
     public static List<String> defaultAuthoritiesForRole(String roleName) {
         if (SystemRoleNames.ROLE_ADMIN.equals(roleName)) {
             return List.of(
