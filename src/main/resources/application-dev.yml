@@ -87,7 +87,10 @@ springdoc:
   api-docs:
     enabled: true
 
-# Configuração específica para ambiente de desenvolvimento
+keepguard:
+  audit:
+    exchange: srv-audit-exchange-dev
+
 logging:
   level:
     root: INFO

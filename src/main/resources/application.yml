@@ -49,6 +49,11 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:${RABBITMQ_DEFAULT_USER:guest}}
+    password: ${RABBITMQ_PASSWORD:${RABBITMQ_DEFAULT_PASS:guest}}
 
 # Configurações de Cache
 cache:
@@ -258,6 +263,13 @@ app:
   geo:
     lookup-url: ${GEO_LOOKUP_URL:https://get.geojs.io/v1/ip/geo/%s.json}
     fallback-url: ${GEO_FALLBACK_URL:https://ipwho.is/%s?fields=success,city,region,country,country_code}
+
+keepguard:
+  audit:
+    enabled: true
+    exchange: srv-audit-exchange-local
+    routing-key: audit.event
+    source-service: ms-auth
 
 ---
 spring:

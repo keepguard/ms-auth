@@ -98,3 +98,7 @@ resilience4j:
         limitForPeriod: 20
         limitRefreshPeriod: 60s
         timeoutDuration: 0s
+
+keepguard:
+  audit:
+    exchange: srv-audit-exchange-prod

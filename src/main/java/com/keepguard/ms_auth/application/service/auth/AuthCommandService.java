@@ -489,7 +489,7 @@ public class AuthCommandService {
     @LogOperation(
         operation = "VALIDATE_TOKEN",
         description = "Validando token JWT",
-        audit = true,
+        audit = false,
         auditAction = "VALIDATE_TOKEN",
         auditEntityType = "USER"
     )

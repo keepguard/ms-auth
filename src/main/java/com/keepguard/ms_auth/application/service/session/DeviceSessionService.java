@@ -1,5 +1,6 @@
 package com.keepguard.ms_auth.application.service.session;
 
+import com.keepguard.lib_common.logging.annotation.LogOperation;
 import com.keepguard.lib_common.utils.CodeGeneratorUtils;
 import com.keepguard.ms_auth.adapters.out.feign.CommunicationClient;
 import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
@@ -58,6 +59,7 @@ public class DeviceSessionService {
     @Value("${app.urls.api-base-url:http://localhost:8381}")
     private String defaultApiBaseUrl;
 
+    @LogOperation(operation = "SEND_DEVICE_CHALLENGE", description = "Desafio de dispositivo", auditAction = "SEND_DEVICE_CHALLENGE", auditEntityType = "DEVICE")
     public Map<String, Object> sendChallenge(SendDeviceChallengeCommandDTO command) {
         log.info("Disparando código de desafio para dispositivo | challengeSessionId={} | channel={}",
                 command.getChallengeSessionId(), command.getChannel());
@@ -122,6 +124,7 @@ public class DeviceSessionService {
         );
     }
 
+    @LogOperation(operation = "VERIFY_DEVICE_CHALLENGE", description = "Verificação de desafio de dispositivo", auditAction = "VERIFY_DEVICE_CHALLENGE", auditEntityType = "DEVICE")
     public AuthLoginView verifyChallenge(VerifyDeviceChallengeCommandDTO command) {
         log.info("Validando código de desafio para dispositivo | challengeSessionId={}", command.getChallengeSessionId());
 
@@ -529,6 +532,7 @@ public class DeviceSessionService {
         return null;
     }
 
+    @LogOperation(operation = "REVOKE_SESSION", description = "Revogação de sessão", auditAction = "REVOKE_SESSION", auditEntityType = "SESSION")
     public void revokeSession(String codeUser, String deviceId) {
         // Remove token JWT correspondente do Redis se existir
         sessionCachePort.getUserSession(codeUser, deviceId).ifPresent(s -> {
@@ -551,6 +555,7 @@ public class DeviceSessionService {
         log.info("Sessão revogada remotamente | codeUser={} | deviceId={}", codeUser, deviceId);
     }
 
+    @LogOperation(operation = "REVOKE_ALL_OTHER_SESSIONS", description = "Revogação das demais sessões", auditAction = "REVOKE_ALL_OTHER_SESSIONS", auditEntityType = "SESSION")
     public void revokeAllOtherSessions(String codeUser, String currentDeviceId) {
         // Localiza e remove os tokens de todas as outras sessões do Redis
         List<UserSession> activeSessions = sessionCachePort.listUserSessions(codeUser);
@@ -579,6 +584,7 @@ public class DeviceSessionService {
         log.info("Todas as outras sessões foram revogadas | codeUser={} | currentDeviceId={}", codeUser, currentDeviceId);
     }
 
+    @LogOperation(operation = "REVOKE_ALL_SESSIONS", description = "Revogação de todas as sessões", auditAction = "REVOKE_ALL_SESSIONS", auditEntityType = "SESSION")
     public void revokeAllSessions(String codeUser) {
         // Localiza e remove os tokens de todas as sessões do Redis
         List<UserSession> activeSessions = sessionCachePort.listUserSessions(codeUser);
@@ -606,6 +612,7 @@ public class DeviceSessionService {
         log.info("Todas as sessões e tokens foram revogados completamente | codeUser={}", codeUser);
     }
 
+    @LogOperation(operation = "QUICK_REVOKE", description = "Revogação rápida de dispositivo", auditAction = "QUICK_REVOKE", auditEntityType = "DEVICE")
     public Map<String, Object> quickRevoke(String token, boolean addToBlacklist) {
         log.info("Processando revogação rápida via link de e-mail | token={}", token);
         com.keepguard.ms_auth.domain.entity.session.QuickRevokeToken quickRevokeToken = sessionCachePort.getQuickRevokeToken(token)
@@ -677,6 +684,7 @@ public class DeviceSessionService {
         );
     }
 
+    @LogOperation(operation = "ADD_DEVICE_BLACKLIST", description = "Inclusão de dispositivo na blacklist", auditAction = "ADD_DEVICE_BLACKLIST", auditEntityType = "DEVICE")
     public void addDeviceToBlacklist(String codeUser, String deviceId, String deviceName, String reason) {
         // Encerra sessão do dispositivo se houver
         sessionCachePort.removeUserSession(codeUser, deviceId);
@@ -749,6 +757,7 @@ public class DeviceSessionService {
         return sessionCachePort.listBlacklistedDevices(codeUser);
     }
 
+    @LogOperation(operation = "REMOVE_DEVICE_BLACKLIST", description = "Remoção de dispositivo da blacklist", auditAction = "REMOVE_DEVICE_BLACKLIST", auditEntityType = "DEVICE")
     public void removeDeviceFromBlacklist(String codeUser, String deviceId) {
         sessionCachePort.removeFromBlacklist(codeUser, deviceId);
         try {
@@ -765,6 +774,7 @@ public class DeviceSessionService {
         return deviceBlacklistRepository.search(companyId, codeUser, deviceId, deviceName, ipAddress, from, to, pageable);
     }
 
+    @LogOperation(operation = "ADMIN_ADD_DEVICE_BLACKLIST", description = "Blacklist administrativa de dispositivo", auditAction = "ADMIN_ADD_DEVICE_BLACKLIST", auditEntityType = "DEVICE")
     public void adminAddDeviceToBlacklist(UUID companyId, String codeUser, String deviceId, String deviceName, String reason, String blockedBy, LocalDateTime expiresAt) {
         sessionCachePort.removeUserSession(codeUser, deviceId);
         try {
@@ -814,6 +824,7 @@ public class DeviceSessionService {
                 companyId, codeUser, deviceId, blockedBy);
     }
 
+    @LogOperation(operation = "ADMIN_REMOVE_DEVICE_BLACKLIST", description = "Remoção administrativa da blacklist", auditAction = "ADMIN_REMOVE_DEVICE_BLACKLIST", auditEntityType = "DEVICE")
     public void adminRemoveDeviceFromBlacklist(UUID companyId, String codeUser, String deviceId) {
         sessionCachePort.removeFromBlacklist(codeUser, deviceId);
         try {

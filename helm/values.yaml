@@ -22,6 +22,8 @@ env:
   communicationServiceUrl: "http://ms-communication:8082"
   redisHost: "redis"
   redisPort: 6379
+  rabbitmqHost: "rabbitmq-service"
+  rabbitmqPort: "5672"
   postgresDb: "keepguard_api_db"
   postgresUser: "keepguard_api_user"
 
