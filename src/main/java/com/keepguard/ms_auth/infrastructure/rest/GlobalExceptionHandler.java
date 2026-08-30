@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -232,6 +233,18 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("fieldErrors", ex.getBindingResult().getFieldErrors().size());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ProblemDetail> handleAccessDenied(AccessDeniedException ex, WebRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problemDetail.setType(URI.create("https://keepguard.com/problems/access-denied"));
+        problemDetail.setTitle("Acesso negado");
+        problemDetail.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        problemDetail.setProperty("path", request.getDescription(false).replace("uri=", ""));
+        problemDetail.setProperty("errorCode", "ACCESS_DENIED");
+        problemDetail.setProperty("correlationId", resolveCorrelationId(request));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problemDetail);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

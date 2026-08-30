@@ -54,7 +54,26 @@ public class JwtService {
                 .compact();
     }
 
-
+    public String generateServiceToken(UUID clientUuid, String clientId, UUID companyId,
+                                       List<String> authorities, long ttlMillis) {
+        String finalClientId = sanitizeClientId(clientId);
+        List<String> tokenAuthorities = authorities == null ? List.of() : List.copyOf(authorities);
+        return Jwts.builder()
+                .issuer("ms-auth")
+                .audience().add(finalClientId).and()
+                .id(UUID.randomUUID().toString())
+                .subject(clientUuid.toString())
+                .claim("roles", List.of())
+                .claim("authorities", tokenAuthorities)
+                .claim("client_id", finalClientId)
+                .claim("company_id", companyId.toString())
+                .claim("token_type", "service")
+                .claim("login_method", "client_credentials")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + ttlMillis))
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
 
     public boolean validateToken(String token) {
         try {

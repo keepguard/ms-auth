@@ -53,6 +53,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/oauth/token").permitAll()
+                        .requestMatchers("/api/v1/auth/oauth/clients/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/block/**", "/api/v1/users/unlock/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/users/delete/**").authenticated()
                         .requestMatchers("/api/v1/**").permitAll()

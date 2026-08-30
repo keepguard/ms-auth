@@ -78,6 +78,10 @@ security:
   jwt:
     secret: ${JWT_SECRET:Q2FjaG9ycm8gU2VndXJhbmNhIFByb2pldG8gS2VlcEd1YXJkIQ==}
     expiration: 3600000
+    service-token:
+      min-ttl-seconds: 900
+      default-ttl-seconds: 28800
+      max-ttl-seconds: 86400
   rate-limiting:
     max-attempts: 5  # Máximo de tentativas de login
     lockout-duration-minutes: 15  # Duração do bloqueio em minutos
@@ -201,6 +205,10 @@ resilience4j:
       loginAttempt:                                    # Rate Limiter para login
         limitForPeriod: 5                              # 5 tentativas
         limitRefreshPeriod: 60s                        # Por minuto
+        timeoutDuration: 0s
+      oauthTokenAttempt:
+        limitForPeriod: 10
+        limitRefreshPeriod: 60s
         timeoutDuration: 0s
       apiCall:                                         # Rate Limiter para API
         limitForPeriod: 100                            # 100 requisições

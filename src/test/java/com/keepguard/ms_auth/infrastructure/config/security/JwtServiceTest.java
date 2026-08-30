@@ -246,6 +246,36 @@ class JwtServiceTest {
         assertNotNull(claims.getIssuedAt());
         assertNotNull(claims.getExpiration());
     }
+
+    @Test
+    @DisplayName("Deve gerar token de serviço com company_id e TTL do client")
+    void shouldGenerateServiceTokenWithCompanyIdAndTtl() {
+        UUID clientUuid = UUID.randomUUID();
+        UUID companyId = UUID.fromString("f7fc7350-b9fc-4e54-9c58-ac9385b23ae4");
+        long ttlMillis = 28800_000L;
+        long before = System.currentTimeMillis();
+
+        String token = jwtService.generateServiceToken(
+                clientUuid, "investbot-collector", companyId, List.of("knowledge:write"), ttlMillis);
+
+        Claims claims = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        assertEquals("ms-auth", claims.getIssuer());
+        assertEquals(clientUuid.toString(), claims.getSubject());
+        assertEquals("service", claims.get("token_type", String.class));
+        assertEquals("client_credentials", claims.get("login_method", String.class));
+        assertEquals(companyId.toString(), claims.get("company_id", String.class));
+        assertEquals("investbot-collector", claims.get("client_id", String.class));
+        assertEquals(List.of(), claims.get("roles", List.class));
+        assertEquals(List.of("knowledge:write"), claims.get("authorities", List.class));
+        long expDelta = claims.getExpiration().getTime() - before;
+        assertTrue(expDelta >= ttlMillis - 2000);
+        assertTrue(expDelta <= ttlMillis + 2000);
+    }
  
     @Test
     @DisplayName("Deve detectar cliente Postman")

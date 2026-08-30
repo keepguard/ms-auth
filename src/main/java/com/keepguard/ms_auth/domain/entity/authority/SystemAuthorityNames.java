@@ -13,13 +13,15 @@ public final class SystemAuthorityNames {
     public static final String MANAGER_UNBLOCK = "manager:unblock";
     public static final String MANAGER_DELETE = "manager:delete";
     public static final String AUDIT_READ = "audit:read";
+    public static final String KNOWLEDGE_WRITE = "knowledge:write";
 
     public static final List<String> USER_ACTIONS = List.of(USER_BLOCK, USER_UNBLOCK, USER_DELETE);
     public static final List<String> MANAGER_ACTIONS = List.of(MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE);
     public static final List<String> TEMPLATES = List.of(
             USER_BLOCK, USER_UNBLOCK, USER_DELETE,
             MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE,
-            AUDIT_READ
+            AUDIT_READ,
+            KNOWLEDGE_WRITE
     );
 
     private SystemAuthorityNames() {
@@ -46,6 +48,9 @@ public final class SystemAuthorityNames {
         }
         if (AUDIT_READ.equals(name)) {
             return "Permite consultar eventos de auditoria";
+        }
+        if (KNOWLEDGE_WRITE.equals(name)) {
+            return "Permite gravar documentos na base de conhecimento da empresa";
         }
         return "Permissão do catálogo KeepGuard: " + name;
     }
