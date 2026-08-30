@@ -487,6 +487,7 @@ class AuthCommandServiceTest {
         
         when(jwtService.validateToken(token)).thenReturn(true);
         when(jwtService.extractUserId(token)).thenReturn(codeUser);
+        when(jwtService.extractDeviceId(token)).thenReturn("device_123");
         when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
         
         // When
@@ -495,8 +496,10 @@ class AuthCommandServiceTest {
         // Then
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
+        verify(jwtService, times(1)).extractDeviceId(token);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
-        verify(tokenCachePort, times(1)).removeAllTokens(codeUser.toString());
+        verify(tokenCachePort, times(1)).removeToken(codeUser.toString(), token);
+        verify(sessionCachePort, times(1)).removeUserSession(codeUser.toString(), "device_123");
         verify(metricsPort, times(1)).incrementCounter(anyString(), any());
     }
     
@@ -519,7 +522,7 @@ class AuthCommandServiceTest {
         assertEquals("Token inválido", exception.getMessage());
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, never()).extractUserId(anyString());
-        verify(tokenCachePort, never()).removeAllTokens(anyString());
+        verify(tokenCachePort, never()).removeToken(anyString(), anyString());
         verify(metricsPort, never()).incrementCounter(anyString(), any());
     }
     
@@ -545,7 +548,7 @@ class AuthCommandServiceTest {
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
-        verify(tokenCachePort, never()).removeAllTokens(anyString());
+        verify(tokenCachePort, never()).removeToken(anyString(), anyString());
         verify(metricsPort, never()).incrementCounter(anyString(), any());
     }
     

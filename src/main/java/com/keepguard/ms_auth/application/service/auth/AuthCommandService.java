@@ -498,7 +498,12 @@ public class AuthCommandService {
                 Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
         }
 
-        tokenCachePort.removeAllTokens(codeUser.toString());
+        tokenCachePort.removeToken(codeUser.toString(), request.getToken());
+
+        String deviceId = jwtService.extractDeviceId(request.getToken());
+        if (deviceId != null && !deviceId.isBlank()) {
+            sessionCachePort.removeUserSession(codeUser.toString(), deviceId);
+        }
 
         metricsPort.incrementCounter("auth_logouts_total",
             Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
