@@ -84,7 +84,7 @@ class CompanyRoleProvisionServiceTest {
                 .name(name)
                 .description("template " + name)
                 .build();
-            when(authorityRepository.findByName(name)).thenReturn(Optional.of(template));
+            lenient().when(authorityRepository.findByName(name)).thenReturn(Optional.of(template));
         }
         when(roleRepository.save(any(Role.class))).thenAnswer(invocation -> {
             Role saved = invocation.getArgument(0);

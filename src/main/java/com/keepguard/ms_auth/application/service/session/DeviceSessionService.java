@@ -626,7 +626,12 @@ public class DeviceSessionService {
         UUID tenantIdUuid = resolveCompanyId(quickRevokeToken, codeUser);
         AuditMdc.bind(codeUser, tenantIdUuid != null ? tenantIdUuid.toString() : null, deviceId);
 
-        // 1. Revogar a sessão do dispositivo associado (Redis + DB)
+        // 1. Revogar a sessão do dispositivo associado e remover o token do Redis
+        sessionCachePort.getUserSession(codeUser, deviceId).ifPresent(s -> {
+            if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
+                tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+            }
+        });
         sessionCachePort.removeUserSession(codeUser, deviceId);
         try {
             userDeviceRepository.findByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId)
@@ -678,7 +683,12 @@ public class DeviceSessionService {
     @LogOperation(operation = "ADD_DEVICE_BLACKLIST", description = "Inclusão de dispositivo na blacklist", auditAction = "ADD_DEVICE_BLACKLIST", auditEntityType = "DEVICE")
     public void addDeviceToBlacklist(String codeUser, String deviceId, String deviceName, String reason) {
         AuditMdc.bind(codeUser, null, deviceId);
-        // Encerra sessão do dispositivo se houver
+        // Encerra sessão do dispositivo se houver e remove o token do Redis
+        sessionCachePort.getUserSession(codeUser, deviceId).ifPresent(s -> {
+            if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
+                tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+            }
+        });
         sessionCachePort.removeUserSession(codeUser, deviceId);
         try {
             userDeviceRepository.findByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId)
@@ -770,6 +780,12 @@ public class DeviceSessionService {
     @LogOperation(operation = "ADMIN_ADD_DEVICE_BLACKLIST", description = "Blacklist administrativa de dispositivo", auditAction = "ADMIN_ADD_DEVICE_BLACKLIST", auditEntityType = "DEVICE")
     public void adminAddDeviceToBlacklist(UUID companyId, String codeUser, String deviceId, String deviceName, String reason, String blockedBy, LocalDateTime expiresAt) {
         AuditMdc.bind(codeUser, companyId != null ? companyId.toString() : null, deviceId);
+        // Encerra sessão do dispositivo se houver e remove o token do Redis
+        sessionCachePort.getUserSession(codeUser, deviceId).ifPresent(s -> {
+            if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
+                tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+            }
+        });
         sessionCachePort.removeUserSession(codeUser, deviceId);
         try {
             userDeviceRepository.findByCodeUserAndDeviceId(UUID.fromString(codeUser), deviceId)

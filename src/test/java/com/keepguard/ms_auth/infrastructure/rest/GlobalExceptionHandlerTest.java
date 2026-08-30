@@ -350,7 +350,6 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Deve tratar ForbiddenException com 403")
     void shouldHandleForbiddenException() {
-        when(webRequest.getHeader("X-Correlation-ID")).thenReturn("corr-1");
         ForbiddenException ex = new ForbiddenException("Acesso negado", "TARGET_PROTECTED");
 
         ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleForbiddenException(ex, webRequest);
@@ -364,7 +363,6 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Deve tratar RateLimitExceededException com 429")
     void shouldHandleRateLimitExceededException() {
-        when(webRequest.getHeader("X-Correlation-ID")).thenReturn("corr-1");
         RateLimitExceededException ex = new RateLimitExceededException("Muitas tentativas");
 
         ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleRateLimitExceededException(ex, webRequest);
