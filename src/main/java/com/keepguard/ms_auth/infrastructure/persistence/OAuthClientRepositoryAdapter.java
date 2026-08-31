@@ -54,7 +54,11 @@ public class OAuthClientRepositoryAdapter implements OAuthClientRepositoryPort {
 
     @Override
     public Page<OAuthClient> search(UUID companyId, String clientId, OAuthClientStatus status, Pageable pageable) {
-        return springRepository.search(companyId, clientId, status, pageable).map(mapper::toDomain);
+        String clientIdFilter = clientId == null ? "" : clientId;
+        boolean statusEnabled = status != null;
+        OAuthClientStatus statusValue = statusEnabled ? status : OAuthClientStatus.ACTIVE;
+        return springRepository.search(companyId, clientIdFilter, statusEnabled, statusValue, pageable)
+                .map(mapper::toDomain);
     }
 
     @Override

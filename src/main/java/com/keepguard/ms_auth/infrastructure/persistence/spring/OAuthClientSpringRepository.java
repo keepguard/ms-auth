@@ -25,12 +25,13 @@ public interface OAuthClientSpringRepository extends JpaRepository<OAuthClientJp
     @Query("""
             SELECT c FROM OAuthClientJpaEntity c
             WHERE c.companyId = :companyId
-              AND (:clientId IS NULL OR LOWER(c.clientId) LIKE LOWER(CONCAT('%', :clientId, '%')))
-              AND (:status IS NULL OR c.status = :status)
+              AND (:clientId = '' OR LOWER(c.clientId) LIKE LOWER(CONCAT('%', :clientId, '%')))
+              AND (:statusEnabled = false OR c.status = :status)
             """)
     Page<OAuthClientJpaEntity> search(
             @Param("companyId") UUID companyId,
             @Param("clientId") String clientId,
+            @Param("statusEnabled") boolean statusEnabled,
             @Param("status") OAuthClientStatus status,
             Pageable pageable);
 }
