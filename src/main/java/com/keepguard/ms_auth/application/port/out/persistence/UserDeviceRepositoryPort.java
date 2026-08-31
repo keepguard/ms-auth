@@ -16,5 +16,8 @@ public interface UserDeviceRepositoryPort {
 
     List<UserDevice> listByCodeUserAndTenantId(UUID codeUser, UUID companyId);
 
+    org.springframework.data.domain.Page<UserDevice> searchByCompany(
+            UUID companyId, UUID codeUser, String deviceId, org.springframework.data.domain.Pageable pageable);
+
     void deleteByCodeUserAndDeviceId(UUID codeUser, String deviceId);
 }

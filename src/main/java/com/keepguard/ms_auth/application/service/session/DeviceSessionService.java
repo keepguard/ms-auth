@@ -17,6 +17,7 @@ import com.keepguard.ms_auth.application.port.out.persistence.UserDeviceReposito
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRoleRepositoryPort;
+import com.keepguard.ms_auth.application.dto.session.TenantDeviceBlacklistView;
 import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.domain.entity.role.Role;
@@ -53,6 +54,7 @@ public class DeviceSessionService {
     private final CompanyClient companyClient;
     private final JwtService jwtService;
     private final GeoLocationPort geoLocationPort;
+    private final SessionAccessPolicy sessionAccessPolicy;
 
     @Value("${app.urls.frontend-base-url:http://localhost:3000}")
     private String defaultFrontendBaseUrl;
@@ -719,7 +721,7 @@ public class DeviceSessionService {
         if (tenantIdUuid == null) {
             try {
                 tenantIdUuid = userRepository.findByCodeUser(UUID.fromString(codeUser))
-                        .map(User::getTenantId)
+                        .map(User::getCompanyId)
                         .orElse(null);
             } catch (Exception ignored) {}
         }
@@ -846,6 +848,159 @@ public class DeviceSessionService {
         log.info("Dispositivo removido da blacklist por Admin | companyId={} | codeUser={} | deviceId={}", companyId, codeUser, deviceId);
     }
 
+    public List<DeviceSessionView> listSessionsForUser(
+            UUID companyId, String actorCodeUser, String targetCodeUser,
+            String currentDeviceId, String requestIp, String requestLocation) {
+        User actor = requireActor(companyId, actorCodeUser);
+        User target = requireTarget(companyId, targetCodeUser);
+        sessionAccessPolicy.assertCanRead(actor, target);
+        boolean writable = sessionAccessPolicy.canWrite(actor, target);
+        String targetId = target.getCodeUser().toString();
+        return listUserSessions(targetId, currentDeviceId, requestIp, requestLocation).stream()
+                .map(view -> withTenantFields(view, targetId, writable))
+                .toList();
+    }
+
+    public void revokeSessionForUser(UUID companyId, String actorCodeUser, String targetCodeUser, String deviceId) {
+        User actor = requireActor(companyId, actorCodeUser);
+        User target = requireTarget(companyId, targetCodeUser);
+        sessionAccessPolicy.assertCanWrite(actor, target);
+        revokeSession(target.getCodeUser().toString(), deviceId);
+    }
+
+    public List<TenantDeviceBlacklistView> listBlacklistForUser(UUID companyId, String actorCodeUser, String targetCodeUser) {
+        User actor = requireActor(companyId, actorCodeUser);
+        User target = requireTarget(companyId, targetCodeUser);
+        sessionAccessPolicy.assertCanRead(actor, target);
+        boolean writable = sessionAccessPolicy.canWrite(actor, target);
+        return listBlacklist(target.getCodeUser().toString()).stream()
+                .map(entry -> TenantDeviceBlacklistView.from(entry, writable))
+                .toList();
+    }
+
+    public void addDeviceToBlacklistForUser(
+            UUID companyId, String actorCodeUser, String targetCodeUser,
+            String deviceId, String deviceName, String reason, String blockedBy, LocalDateTime expiresAt) {
+        User actor = requireActor(companyId, actorCodeUser);
+        User target = requireTarget(companyId, targetCodeUser);
+        sessionAccessPolicy.assertCanWrite(actor, target);
+        adminAddDeviceToBlacklist(companyId, target.getCodeUser().toString(), deviceId, deviceName, reason, blockedBy, expiresAt);
+    }
+
+    public void removeDeviceFromBlacklistForUser(UUID companyId, String actorCodeUser, String targetCodeUser, String deviceId) {
+        User actor = requireActor(companyId, actorCodeUser);
+        User target = requireTarget(companyId, targetCodeUser);
+        sessionAccessPolicy.assertCanWrite(actor, target);
+        adminRemoveDeviceFromBlacklist(companyId, target.getCodeUser().toString(), deviceId);
+    }
+
+    public org.springframework.data.domain.Page<TenantDeviceBlacklistView> searchTenantBlacklist(
+            UUID companyId, String actorCodeUser, UUID filterCodeUser, String deviceId, String deviceName,
+            String ipAddress, LocalDateTime from, LocalDateTime to, org.springframework.data.domain.Pageable pageable) {
+        User actor = requireActor(companyId, actorCodeUser);
+        sessionAccessPolicy.assertCanListTenant(actor);
+        if (filterCodeUser != null) {
+            User target = requireTarget(companyId, filterCodeUser.toString());
+            sessionAccessPolicy.assertCanRead(actor, target);
+        }
+        Map<String, User> targetCache = new HashMap<>();
+        return deviceBlacklistRepository.search(companyId, filterCodeUser, deviceId, deviceName, ipAddress, from, to, pageable)
+                .map(entry -> TenantDeviceBlacklistView.from(entry, writableFor(actor, entry.getCodeUser(), companyId, targetCache)));
+    }
+
+    public org.springframework.data.domain.Page<DeviceSessionView> searchTenantSessions(
+            UUID companyId, String actorCodeUser, UUID filterCodeUser, String deviceId,
+            org.springframework.data.domain.Pageable pageable) {
+        User actor = requireActor(companyId, actorCodeUser);
+        sessionAccessPolicy.assertCanListTenant(actor);
+        if (filterCodeUser != null) {
+            User target = requireTarget(companyId, filterCodeUser.toString());
+            sessionAccessPolicy.assertCanRead(actor, target);
+        }
+        Map<String, User> targetCache = new HashMap<>();
+        return userDeviceRepository.searchByCompany(companyId, filterCodeUser, deviceId, pageable)
+                .map(device -> toTenantSessionView(actor, device, companyId, targetCache));
+    }
+
+    private DeviceSessionView toTenantSessionView(User actor, UserDevice device, UUID companyId, Map<String, User> targetCache) {
+        String codeUser = device.getCodeUser() != null ? device.getCodeUser().toString() : null;
+        boolean writable = writableFor(actor, codeUser, companyId, targetCache);
+        UserSession active = null;
+        if (codeUser != null) {
+            active = sessionCachePort.listUserSessions(codeUser).stream()
+                    .filter(session -> Objects.equals(session.getDeviceId(), device.getDeviceId()))
+                    .findFirst()
+                    .orElse(null);
+        }
+        String ipAddress = resolveSessionIp(device.getIpAddress(), active != null ? active.getIpAddress() : null, null);
+        String location = resolveAndPersistLocation(active, ipAddress, null);
+        return new DeviceSessionView(
+                active != null ? active.getSessionId() : "device_" + device.getDeviceId(),
+                device.getDeviceId(),
+                device.getDeviceName(),
+                device.getDeviceType(),
+                ipAddress,
+                location,
+                false,
+                device.getIsTrusted(),
+                device.getLastActiveAt() != null ? device.getLastActiveAt().toString() : null,
+                device.getFirstSeenAt() != null ? device.getFirstSeenAt().toString() : null,
+                codeUser,
+                writable
+        );
+    }
+
+    private boolean writableFor(User actor, String targetCodeUser, UUID companyId, Map<String, User> targetCache) {
+        if (targetCodeUser == null || targetCodeUser.isBlank()) {
+            return false;
+        }
+        User target = targetCache.computeIfAbsent(targetCodeUser, id -> {
+            try {
+                return userRepository.findByCodeUserAndCompanyId(UUID.fromString(id), companyId).orElse(null);
+            } catch (Exception ignored) {
+                return null;
+            }
+        });
+        return target != null && sessionAccessPolicy.canWrite(actor, target);
+    }
+
+    private DeviceSessionView withTenantFields(DeviceSessionView view, String codeUser, boolean writable) {
+        return new DeviceSessionView(
+                view.sessionId(),
+                view.deviceId(),
+                view.deviceName(),
+                view.deviceType(),
+                view.ipAddress(),
+                view.location(),
+                view.isCurrent(),
+                view.isTrusted(),
+                view.lastActiveAt(),
+                view.createdAt(),
+                codeUser,
+                writable
+        );
+    }
+
+    private User requireActor(UUID companyId, String actorCodeUser) {
+        return requireUserInCompany(companyId, actorCodeUser, "Usuário autenticado não encontrado neste tenant.", "ACTOR_NOT_FOUND");
+    }
+
+    private User requireTarget(UUID companyId, String targetCodeUser) {
+        return requireUserInCompany(companyId, targetCodeUser, "Usuário alvo não encontrado neste tenant.", "USER_NOT_FOUND");
+    }
+
+    private User requireUserInCompany(UUID companyId, String codeUser, String message, String errorCode) {
+        if (companyId == null || codeUser == null || codeUser.isBlank()) {
+            throw new NotFoundException(message, errorCode);
+        }
+        try {
+            return userRepository.findByCodeUserAndCompanyId(UUID.fromString(codeUser), companyId)
+                    .orElseThrow(() -> new NotFoundException(message, errorCode, Map.of("codeUser", codeUser)));
+        } catch (IllegalArgumentException e) {
+            throw new NotFoundException("Identificador de usuário inválido.", errorCode);
+        }
+    }
+
     private List<String> getUserRoles(UUID userId) {
         List<UUID> roleIds = userRoleRepository.findByUserId(userId)
                 .stream()
@@ -886,7 +1041,7 @@ public class DeviceSessionService {
         }
         try {
             return userRepository.findByCodeUser(UUID.fromString(codeUser))
-                    .map(User::getTenantId)
+                    .map(User::getCompanyId)
                     .orElse(null);
         } catch (Exception ignored) {
             return null;

@@ -80,6 +80,9 @@ class DeviceSessionServiceTest {
     @Mock
     private GeoLocationPort geoLocationPort;
 
+    @Mock
+    private SessionAccessPolicy sessionAccessPolicy;
+
     @InjectMocks
     private DeviceSessionService deviceSessionService;
 
@@ -378,6 +381,63 @@ class DeviceSessionServiceTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> vars = (Map<String, Object>) payloadCaptor.getValue().get("variables");
         assertEquals("", vars.get("revokeUrl"));
+    }
+
+    @Test
+    @DisplayName("listSessionsForUser aplica policy e marca writable")
+    void shouldListSessionsForUserWithWritableFlag() {
+        UUID companyUuid = UUID.fromString(companyId);
+        User actor = User.builder().id(UUID.randomUUID()).codeUser(UUID.randomUUID()).companyId(companyUuid).build();
+        User target = User.builder().id(UUID.randomUUID()).codeUser(UUID.fromString(codeUser)).companyId(companyUuid).build();
+        when(userRepository.findByCodeUserAndCompanyId(actor.getCodeUser(), companyUuid)).thenReturn(Optional.of(actor));
+        when(userRepository.findByCodeUserAndCompanyId(target.getCodeUser(), companyUuid)).thenReturn(Optional.of(target));
+        when(sessionAccessPolicy.canWrite(actor, target)).thenReturn(true);
+        when(sessionCachePort.listUserSessions(codeUser)).thenReturn(Collections.emptyList());
+        when(userDeviceRepository.listByCodeUser(target.getCodeUser())).thenReturn(Collections.emptyList());
+
+        var result = deviceSessionService.listSessionsForUser(
+                companyUuid, actor.getCodeUser().toString(), codeUser, null, null, null);
+
+        assertNotNull(result);
+        verify(sessionAccessPolicy).assertCanRead(actor, target);
+        verify(sessionAccessPolicy).canWrite(actor, target);
+    }
+
+    @Test
+    @DisplayName("revokeSessionForUser exige escrita e revoga a sessão do alvo")
+    void shouldRevokeSessionForUserAfterWriteCheck() {
+        UUID companyUuid = UUID.fromString(companyId);
+        User actor = User.builder().id(UUID.randomUUID()).codeUser(UUID.randomUUID()).companyId(companyUuid).build();
+        User target = User.builder().id(UUID.randomUUID()).codeUser(UUID.fromString(codeUser)).companyId(companyUuid).build();
+        when(userRepository.findByCodeUserAndCompanyId(actor.getCodeUser(), companyUuid)).thenReturn(Optional.of(actor));
+        when(userRepository.findByCodeUserAndCompanyId(target.getCodeUser(), companyUuid)).thenReturn(Optional.of(target));
+        when(sessionCachePort.getUserSession(codeUser, "device_xyz")).thenReturn(Optional.empty());
+
+        deviceSessionService.revokeSessionForUser(companyUuid, actor.getCodeUser().toString(), codeUser, "device_xyz");
+
+        verify(sessionAccessPolicy).assertCanWrite(actor, target);
+        verify(sessionCachePort).removeUserSession(codeUser, "device_xyz");
+    }
+
+    @Test
+    @DisplayName("addDeviceToBlacklist persiste companyId do usuário, não tenantId")
+    void shouldPersistCompanyIdOnSelfBlacklist() {
+        UUID companyUuid = UUID.fromString(companyId);
+        UUID otherTenant = UUID.randomUUID();
+        User user = User.builder()
+                .id(UUID.randomUUID())
+                .codeUser(UUID.fromString(codeUser))
+                .companyId(companyUuid)
+                .tenantId(otherTenant)
+                .build();
+        when(userRepository.findByCodeUser(UUID.fromString(codeUser))).thenReturn(Optional.of(user));
+
+        deviceSessionService.addDeviceToBlacklist(codeUser, "device_xyz", "iPhone", "Perdido");
+
+        ArgumentCaptor<com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry> captor =
+                ArgumentCaptor.forClass(com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry.class);
+        verify(sessionCachePort).addToBlacklist(captor.capture(), eq(0L));
+        assertEquals(companyUuid, captor.getValue().getCompanyId());
     }
 }
 

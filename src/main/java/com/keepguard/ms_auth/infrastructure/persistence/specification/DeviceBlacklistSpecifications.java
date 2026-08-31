@@ -11,7 +11,7 @@ public final class DeviceBlacklistSpecifications {
     private DeviceBlacklistSpecifications() {}
 
     public static Specification<DeviceBlacklistJpaEntity> withTenantId(UUID companyId) {
-        return (root, query, cb) -> companyId == null ? cb.conjunction() : cb.equal(root.get("companyId"), companyId);
+        return (root, query, cb) -> companyId == null ? cb.disjunction() : cb.equal(root.get("companyId"), companyId);
     }
 
     public static Specification<DeviceBlacklistJpaEntity> withCodeUser(UUID codeUser) {

@@ -59,6 +59,21 @@ public class UserDeviceRepositoryAdapter implements UserDeviceRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<UserDevice> searchByCompany(
+            UUID companyId, UUID codeUser, String deviceId, org.springframework.data.domain.Pageable pageable) {
+        if (companyId == null) {
+            throw new IllegalArgumentException("companyId é obrigatório na busca de sessões do tenant.");
+        }
+        org.springframework.data.jpa.domain.Specification<UserDeviceJpaEntity> spec = org.springframework.data.jpa.domain.Specification
+                .where(com.keepguard.ms_auth.infrastructure.persistence.specification.UserDeviceSpecifications.withCompanyId(companyId))
+                .and(com.keepguard.ms_auth.infrastructure.persistence.specification.UserDeviceSpecifications.withCodeUser(codeUser))
+                .and(com.keepguard.ms_auth.infrastructure.persistence.specification.UserDeviceSpecifications.withDeviceId(deviceId))
+                .and(com.keepguard.ms_auth.infrastructure.persistence.specification.UserDeviceSpecifications.notRevoked());
+        return springRepository.findAll(spec, pageable).map(mapper::toDomain);
+    }
+
+    @Override
     @Transactional
     public void deleteByCodeUserAndDeviceId(UUID codeUser, String deviceId) {
         springRepository.deleteByCodeUserAndDeviceId(codeUser, deviceId);

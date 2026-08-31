@@ -76,6 +76,10 @@ public class DeviceBlacklistRepositoryAdapter implements DeviceBlacklistReposito
             UUID companyId, UUID codeUser, String deviceId, String deviceName, String ipAddress,
             java.time.LocalDateTime from, java.time.LocalDateTime to, org.springframework.data.domain.Pageable pageable) {
         
+        if (companyId == null) {
+            throw new IllegalArgumentException("companyId é obrigatório na busca da blacklist do tenant.");
+        }
+
         org.springframework.data.jpa.domain.Specification<DeviceBlacklistJpaEntity> spec = org.springframework.data.jpa.domain.Specification
                 .where(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withTenantId(companyId))
                 .and(com.keepguard.ms_auth.infrastructure.persistence.specification.DeviceBlacklistSpecifications.withCodeUser(codeUser))
