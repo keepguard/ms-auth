@@ -4,6 +4,7 @@ import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
 import com.keepguard.ms_auth.application.mapper.OAuthClientApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.persistence.OAuthClientRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientSearchQueryDTO;
 import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
 import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
@@ -39,7 +40,8 @@ class OAuthClientQueryServiceTest {
     @BeforeEach
     void setUp() {
         repository = mock(OAuthClientRepositoryPort.class);
-        queryService = new OAuthClientQueryService(repository, new OAuthClientApplicationMapper());
+        queryService = new OAuthClientQueryService(repository, mock(RoleRepositoryPort.class),
+                new OAuthClientApplicationMapper(), new OAuthClientRoleResolver(mock(RoleRepositoryPort.class)));
     }
 
     @Test

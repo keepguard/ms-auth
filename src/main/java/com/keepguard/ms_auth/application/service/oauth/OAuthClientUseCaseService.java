@@ -3,6 +3,7 @@ package com.keepguard.ms_auth.application.service.oauth;
 import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
 import com.keepguard.ms_auth.application.port.in.OAuthClientPort;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
@@ -44,6 +45,11 @@ public class OAuthClientUseCaseService implements OAuthClientPort {
     @Override
     public PageResultView<OAuthClientView> search(OAuthClientSearchQueryDTO query) {
         return queryService.search(query);
+    }
+
+    @Override
+    public List<OAuthServiceRoleView> listServiceRoles() {
+        return queryService.listServiceRoles();
     }
 
     @Override

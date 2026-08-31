@@ -5,13 +5,17 @@ import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
 import com.keepguard.ms_auth.application.mapper.OAuthClientApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.port.out.persistence.OAuthClientRepositoryPort;
+import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
 import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
+import com.keepguard.ms_auth.domain.entity.authority.Authority;
 import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
+import com.keepguard.ms_auth.domain.entity.role.Role;
+import com.keepguard.ms_auth.domain.entity.role.SystemServiceRoleNames;
 import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
 import com.keepguard.ms_auth.infrastructure.config.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +27,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,6 +54,7 @@ class OAuthClientCommandServiceTest {
     private MetricsPort metricsPort;
 
     private final UUID companyId = UUID.fromString("f7fc7350-b9fc-4e54-9c58-ac9385b23ae4");
+    private UUID serviceRoleId;
 
     @BeforeEach
     void setUp() {
@@ -56,8 +62,23 @@ class OAuthClientCommandServiceTest {
         passwordEncoder = mock(PasswordEncoder.class);
         jwtService = mock(JwtService.class);
         metricsPort = mock(MetricsPort.class);
+        RoleRepositoryPort roleRepository = mock(RoleRepositoryPort.class);
+        OAuthClientRoleResolver roleResolver = new OAuthClientRoleResolver(roleRepository);
         commandService = new OAuthClientCommandService(
-                repository, passwordEncoder, jwtService, new OAuthClientApplicationMapper(), metricsPort);
+                repository, passwordEncoder, jwtService, new OAuthClientApplicationMapper(), roleResolver, metricsPort);
+        UUID serviceRoleId = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        Role serviceRole = Role.builder()
+                .id(serviceRoleId)
+                .name(SystemServiceRoleNames.ROLE_SERVICE_COLLECTOR)
+                .companyId(null)
+                .isSystem(true)
+                .authorities(Set.of(
+                        Authority.builder().id(UUID.randomUUID()).name("knowledge:read").build(),
+                        Authority.builder().id(UUID.randomUUID()).name("knowledge:write").build()
+                ))
+                .build();
+        when(roleRepository.findById(serviceRoleId)).thenReturn(Optional.of(serviceRole));
+        this.serviceRoleId = serviceRoleId;
         ReflectionTestUtils.setField(commandService, "minTtlSeconds", 900);
         ReflectionTestUtils.setField(commandService, "defaultTtlSeconds", 28800);
         ReflectionTestUtils.setField(commandService, "maxTtlSeconds", 86400);
@@ -77,7 +98,7 @@ class OAuthClientCommandServiceTest {
         OAuthClientCreateView view = commandService.create(OAuthClientCreateCommandDTO.builder()
                 .companyId(companyId)
                 .clientId("investbot-collector")
-                .authorities(List.of("knowledge:write"))
+                .roleId(serviceRoleId)
                 .build());
 
         assertNotNull(view.clientSecret());
@@ -136,7 +157,8 @@ class OAuthClientCommandServiceTest {
         when(repository.findByCompanyIdAndClientId(companyId, "investbot-collector")).thenReturn(Optional.of(client));
         when(passwordEncoder.matches("plain-secret", "hashed-secret")).thenReturn(true);
         when(jwtService.generateServiceToken(eq(clientUuid), eq("investbot-collector"), eq(companyId),
-                eq(List.of("knowledge:write")), eq(28800_000L), eq(null), eq(null))).thenReturn("jwt-token");
+                eq(List.of("knowledge:read", "knowledge:write")), eq(28800_000L), eq(null), eq(null),
+                eq(List.of(SystemServiceRoleNames.ROLE_SERVICE_COLLECTOR)))).thenReturn("jwt-token");
 
         OAuthTokenView view = commandService.issueToken(OAuthTokenCommandDTO.builder()
                 .companyId(companyId)
@@ -160,7 +182,8 @@ class OAuthClientCommandServiceTest {
         when(repository.findByCompanyIdAndClientId(companyId, "investbot-collector")).thenReturn(Optional.of(client));
         when(passwordEncoder.matches("plain-secret", "hashed-secret")).thenReturn(true);
         when(jwtService.generateServiceToken(eq(clientUuid), eq("investbot-collector"), eq(companyId),
-                eq(List.of("knowledge:write")), eq(28800_000L), eq(agentId.toString()), eq(agentCode.toString())))
+                eq(List.of("knowledge:read", "knowledge:write")), eq(28800_000L), eq(agentId.toString()), eq(agentCode.toString()),
+                eq(List.of(SystemServiceRoleNames.ROLE_SERVICE_COLLECTOR))))
                 .thenReturn("jwt-with-agent");
 
         OAuthTokenView view = commandService.issueToken(OAuthTokenCommandDTO.builder()
@@ -216,13 +239,43 @@ class OAuthClientCommandServiceTest {
                 .build()));
     }
 
+    @Test
+    @DisplayName("create rejeita role de empresa")
+    void create_shouldRejectCompanyRole() {
+        UUID companyRoleId = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        Role companyRole = Role.builder()
+                .id(companyRoleId)
+                .name("ROLE_ADMIN")
+                .companyId(companyId)
+                .isSystem(true)
+                .build();
+        RoleRepositoryPort roleRepository = mock(RoleRepositoryPort.class);
+        when(roleRepository.findById(companyRoleId)).thenReturn(Optional.of(companyRole));
+        OAuthClientCommandService service = new OAuthClientCommandService(
+                repository, passwordEncoder, jwtService, new OAuthClientApplicationMapper(),
+                new OAuthClientRoleResolver(roleRepository), metricsPort);
+        ReflectionTestUtils.setField(service, "minTtlSeconds", 900);
+        ReflectionTestUtils.setField(service, "defaultTtlSeconds", 28800);
+        ReflectionTestUtils.setField(service, "maxTtlSeconds", 86400);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> service.create(
+                OAuthClientCreateCommandDTO.builder()
+                        .companyId(companyId)
+                        .clientId("bad-role")
+                        .roleId(companyRoleId)
+                        .build()));
+        assertTrue(ex.getMessage().contains("service role"));
+        verify(repository, never()).save(any());
+    }
+
     private OAuthClient activeClient(UUID id) {
         return OAuthClient.builder()
                 .id(id)
                 .companyId(companyId)
                 .clientId("investbot-collector")
                 .secretHash("hashed-secret")
-                .authorities(List.of("knowledge:write"))
+                .serviceRoleId(serviceRoleId)
+                .authorities(List.of())
                 .status(OAuthClientStatus.ACTIVE)
                 .tokenTtlSeconds(28800)
                 .createdAt(LocalDateTime.now())

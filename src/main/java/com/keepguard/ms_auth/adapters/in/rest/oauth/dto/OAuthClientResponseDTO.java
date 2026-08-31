@@ -20,6 +20,8 @@ public class OAuthClientResponseDTO {
     private UUID id;
     private UUID companyId;
     private String clientId;
+    private UUID serviceRoleId;
+    private String serviceRoleName;
     private List<String> authorities;
     private OAuthClientStatus status;
     private int tokenTtlSeconds;

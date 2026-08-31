@@ -11,6 +11,8 @@ public record OAuthClientCreateView(
         UUID companyId,
         String clientId,
         String clientSecret,
+        UUID serviceRoleId,
+        String serviceRoleName,
         List<String> authorities,
         OAuthClientStatus status,
         int tokenTtlSeconds,

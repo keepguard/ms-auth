@@ -20,6 +20,8 @@ public class OAuthClient {
     private UUID companyId;
     private String clientId;
     private String secretHash;
+    private UUID serviceRoleId;
+    private String serviceRoleName;
     @Builder.Default
     private List<String> authorities = new ArrayList<>();
     @Builder.Default

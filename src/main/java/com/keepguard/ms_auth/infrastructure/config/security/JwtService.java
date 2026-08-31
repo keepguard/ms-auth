@@ -56,20 +56,27 @@ public class JwtService {
 
     public String generateServiceToken(UUID clientUuid, String clientId, UUID companyId,
                                        List<String> authorities, long ttlMillis) {
-        return generateServiceToken(clientUuid, clientId, companyId, authorities, ttlMillis, null, null);
+        return generateServiceToken(clientUuid, clientId, companyId, authorities, ttlMillis, null, null, List.of());
     }
 
     public String generateServiceToken(UUID clientUuid, String clientId, UUID companyId,
                                        List<String> authorities, long ttlMillis,
                                        String agentId, String agentCode) {
+        return generateServiceToken(clientUuid, clientId, companyId, authorities, ttlMillis, agentId, agentCode, List.of());
+    }
+
+    public String generateServiceToken(UUID clientUuid, String clientId, UUID companyId,
+                                       List<String> authorities, long ttlMillis,
+                                       String agentId, String agentCode, List<String> roles) {
         String finalClientId = sanitizeClientId(clientId);
         List<String> tokenAuthorities = authorities == null ? List.of() : List.copyOf(authorities);
+        List<String> tokenRoles = roles == null ? List.of() : List.copyOf(roles);
         var builder = Jwts.builder()
                 .issuer("ms-auth")
                 .audience().add(finalClientId).and()
                 .id(UUID.randomUUID().toString())
                 .subject(clientUuid.toString())
-                .claim("roles", List.of())
+                .claim("roles", tokenRoles)
                 .claim("authorities", tokenAuthorities)
                 .claim("client_id", finalClientId)
                 .claim("company_id", companyId.toString())

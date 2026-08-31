@@ -14,6 +14,7 @@ public final class SystemAuthorityNames {
     public static final String MANAGER_DELETE = "manager:delete";
     public static final String AUDIT_READ = "audit:read";
     public static final String KNOWLEDGE_WRITE = "knowledge:write";
+    public static final String KNOWLEDGE_READ = "knowledge:read";
 
     public static final List<String> USER_ACTIONS = List.of(USER_BLOCK, USER_UNBLOCK, USER_DELETE);
     public static final List<String> MANAGER_ACTIONS = List.of(MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE);
@@ -21,7 +22,8 @@ public final class SystemAuthorityNames {
             USER_BLOCK, USER_UNBLOCK, USER_DELETE,
             MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE,
             AUDIT_READ,
-            KNOWLEDGE_WRITE
+            KNOWLEDGE_WRITE,
+            KNOWLEDGE_READ
     );
 
     private SystemAuthorityNames() {
@@ -51,6 +53,9 @@ public final class SystemAuthorityNames {
         }
         if (KNOWLEDGE_WRITE.equals(name)) {
             return "Permite gravar documentos na base de conhecimento da empresa";
+        }
+        if (KNOWLEDGE_READ.equals(name)) {
+            return "Permite consultar documentos na base de conhecimento da empresa";
         }
         return "Permissão do catálogo KeepGuard: " + name;
     }

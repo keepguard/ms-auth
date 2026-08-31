@@ -14,6 +14,7 @@ import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
 import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
+import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
 import com.keepguard.ms_auth.infrastructure.config.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +43,7 @@ public class OAuthClientCommandService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final OAuthClientApplicationMapper mapper;
+    private final OAuthClientRoleResolver roleResolver;
     private final MetricsPort metricsPort;
 
     @Value("${security.jwt.service-token.min-ttl-seconds:900}")
@@ -73,13 +74,17 @@ public class OAuthClientCommandService {
             throw new AlreadyExistsException("OAuth client já existe: " + clientId);
         }
 
+        Role role = roleResolver.requireAssignable(command.getRoleId());
+
         String plainSecret = generateSecret();
         LocalDateTime now = LocalDateTime.now();
         OAuthClient client = OAuthClient.builder()
                 .companyId(companyId)
                 .clientId(clientId)
                 .secretHash(passwordEncoder.encode(plainSecret))
-                .authorities(normalizeAuthorities(command.getAuthorities()))
+                .serviceRoleId(role.getId())
+                .serviceRoleName(role.getName())
+                .authorities(List.of())
                 .status(OAuthClientStatus.ACTIVE)
                 .tokenTtlSeconds(ttl)
                 .description(trimToNull(command.getDescription()))
@@ -87,7 +92,7 @@ public class OAuthClientCommandService {
                 .updatedAt(now)
                 .build();
 
-        OAuthClient saved = oauthClientRepository.save(client);
+        OAuthClient saved = roleResolver.enrich(oauthClientRepository.save(client));
         metricsPort.incrementCounter("oauth_client_created_total",
                 Map.of("client_id", clientId));
         return mapper.toCreateView(saved, plainSecret);
@@ -104,7 +109,7 @@ public class OAuthClientCommandService {
     public OAuthClientView block(OAuthClientIdCommandDTO command) {
         OAuthClient client = requireClient(command.getCompanyId(), command.getId(), "block");
         client.block();
-        OAuthClient saved = oauthClientRepository.save(client);
+        OAuthClient saved = roleResolver.enrich(oauthClientRepository.save(client));
         metricsPort.incrementCounter("oauth_client_blocked_total",
                 Map.of("client_id", saved.getClientId()));
         return mapper.toView(saved);
@@ -121,7 +126,7 @@ public class OAuthClientCommandService {
     public OAuthClientView unblock(OAuthClientIdCommandDTO command) {
         OAuthClient client = requireClient(command.getCompanyId(), command.getId(), "unblock");
         client.unblock();
-        OAuthClient saved = oauthClientRepository.save(client);
+        OAuthClient saved = roleResolver.enrich(oauthClientRepository.save(client));
         metricsPort.incrementCounter("oauth_client_unblocked_total",
                 Map.of("client_id", saved.getClientId()));
         return mapper.toView(saved);
@@ -162,17 +167,22 @@ public class OAuthClientCommandService {
             throw new InvalidCredentialsException();
         }
 
-        long ttlMillis = client.getTokenTtlSeconds() * 1000L;
+        OAuthClient resolved = roleResolver.enrich(client);
+        long ttlMillis = resolved.getTokenTtlSeconds() * 1000L;
         String agentId = sanitizeOptionalAgentClaim(command.getAgentId(), "agentId");
         String agentCode = sanitizeOptionalAgentClaim(command.getAgentCode(), "agentCode");
+        List<String> roles = resolved.getServiceRoleName() == null
+                ? List.of()
+                : List.of(resolved.getServiceRoleName());
         String token = jwtService.generateServiceToken(
-                client.getId(),
-                client.getClientId(),
-                client.getCompanyId(),
-                client.getAuthorities(),
+                resolved.getId(),
+                resolved.getClientId(),
+                resolved.getCompanyId(),
+                resolved.getAuthorities(),
                 ttlMillis,
                 agentId,
-                agentCode
+                agentCode,
+                roles
         );
         metricsPort.incrementCounter("oauth_token_issued_total",
                 Map.of("client_id", client.getClientId()));
@@ -196,6 +206,7 @@ public class OAuthClientCommandService {
             throw new IllegalArgumentException("companyId e id são obrigatórios.");
         }
         return oauthClientRepository.findByIdAndCompanyId(id, companyId)
+                .map(roleResolver::enrich)
                 .orElseThrow(() -> {
                     metricsPort.incrementCounter("oauth_client_business_errors_total",
                             Map.of("error_type", "client_not_found", "operation", operation));
@@ -232,19 +243,6 @@ public class OAuthClientCommandService {
             throw new IllegalArgumentException(fieldName + " deve ser um UUID válido.");
         }
         return trimmed;
-    }
-
-    private List<String> normalizeAuthorities(List<String> authorities) {
-        if (authorities == null || authorities.isEmpty()) {
-            return List.of();
-        }
-        List<String> normalized = new ArrayList<>();
-        for (String authority : authorities) {
-            if (authority != null && !authority.isBlank()) {
-                normalized.add(authority.trim());
-            }
-        }
-        return normalized;
     }
 
     private String trimToNull(String value) {

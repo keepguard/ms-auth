@@ -10,6 +10,8 @@ public record OAuthClientView(
         UUID id,
         UUID companyId,
         String clientId,
+        UUID serviceRoleId,
+        String serviceRoleName,
         List<String> authorities,
         OAuthClientStatus status,
         int tokenTtlSeconds,

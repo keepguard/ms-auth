@@ -2,13 +2,14 @@ package com.keepguard.ms_auth.adapters.in.rest.oauth.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -26,8 +27,9 @@ public class OAuthClientCreateRequestDTO {
     @Schema(description = "Descrição do client")
     private String description;
 
-    @Schema(description = "Authorities do token de serviço", example = "[\"knowledge:write\"]")
-    private List<String> authorities;
+    @NotNull(message = "roleId é obrigatório")
+    @Schema(description = "ID da service role global", requiredMode = Schema.RequiredMode.REQUIRED)
+    private UUID roleId;
 
     @Schema(description = "TTL do JWT em segundos (900 a 86400). Padrão 28800 (8h).", example = "28800")
     private Integer tokenTtlSeconds;

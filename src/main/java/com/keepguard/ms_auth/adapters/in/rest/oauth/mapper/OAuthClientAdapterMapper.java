@@ -3,10 +3,13 @@ package com.keepguard.ms_auth.adapters.in.rest.oauth.mapper;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthServiceRoleAuthorityDTO;
+import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthServiceRoleResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthTokenRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthTokenResponseDTO;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
@@ -26,7 +29,7 @@ public class OAuthClientAdapterMapper {
                 .companyId(companyId)
                 .clientId(dto.getClientId())
                 .description(dto.getDescription())
-                .authorities(dto.getAuthorities())
+                .roleId(dto.getRoleId())
                 .tokenTtlSeconds(dto.getTokenTtlSeconds())
                 .build();
     }
@@ -61,6 +64,8 @@ public class OAuthClientAdapterMapper {
                 .companyId(view.companyId())
                 .clientId(view.clientId())
                 .clientSecret(view.clientSecret())
+                .serviceRoleId(view.serviceRoleId())
+                .serviceRoleName(view.serviceRoleName())
                 .authorities(view.authorities())
                 .status(view.status())
                 .tokenTtlSeconds(view.tokenTtlSeconds())
@@ -78,6 +83,8 @@ public class OAuthClientAdapterMapper {
                 .id(view.id())
                 .companyId(view.companyId())
                 .clientId(view.clientId())
+                .serviceRoleId(view.serviceRoleId())
+                .serviceRoleName(view.serviceRoleName())
                 .authorities(view.authorities())
                 .status(view.status())
                 .tokenTtlSeconds(view.tokenTtlSeconds())
@@ -95,6 +102,23 @@ public class OAuthClientAdapterMapper {
                 .accessToken(view.accessToken())
                 .tokenType(view.tokenType())
                 .expiresIn(view.expiresIn())
+                .build();
+    }
+
+    public OAuthServiceRoleResponseDTO toServiceRoleResponse(OAuthServiceRoleView view) {
+        if (view == null) {
+            return null;
+        }
+        return OAuthServiceRoleResponseDTO.builder()
+                .id(view.id())
+                .name(view.name())
+                .description(view.description())
+                .authorities(view.authorities() == null ? java.util.List.of() : view.authorities().stream()
+                        .map(item -> OAuthServiceRoleAuthorityDTO.builder()
+                                .name(item.name())
+                                .description(item.description())
+                                .build())
+                        .toList())
                 .build();
     }
 }

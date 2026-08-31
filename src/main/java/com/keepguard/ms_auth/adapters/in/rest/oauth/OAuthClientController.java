@@ -4,6 +4,7 @@ import com.keepguard.lib_common.metrics.annotation.MetricsEndpoint;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthServiceRoleResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.mapper.OAuthClientAdapterMapper;
 import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
@@ -93,6 +94,18 @@ public class OAuthClientController {
                 result.hasNext(),
                 result.hasPrevious()
         ));
+    }
+
+    @GetMapping("/service-roles")
+    @Operation(summary = "Listar service roles globais assignáveis a OAuth clients")
+    @MetricsEndpoint(endpoint = "oauth_client_service_roles", operation = "listar service roles")
+    public ResponseEntity<List<OAuthServiceRoleResponseDTO>> listServiceRoles(
+            @AuthenticationPrincipal Jwt jwt) {
+        oauthAdminAccess.requireAdminOrSystem(jwt);
+        List<OAuthServiceRoleResponseDTO> response = oauthClientPort.listServiceRoles().stream()
+                .map(mapper::toServiceRoleResponse)
+                .toList();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")

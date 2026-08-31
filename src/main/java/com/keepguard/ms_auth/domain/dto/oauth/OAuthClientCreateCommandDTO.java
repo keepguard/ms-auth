@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -16,6 +15,6 @@ public class OAuthClientCreateCommandDTO {
     private UUID companyId;
     private String clientId;
     private String description;
-    private List<String> authorities;
+    private UUID roleId;
     private Integer tokenTtlSeconds;
 }

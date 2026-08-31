@@ -40,6 +40,9 @@ public class OAuthClientJpaEntity {
     @Column(name = "secret_hash", nullable = false, length = 255)
     private String secretHash;
 
+    @Column(name = "service_role_id", columnDefinition = "uuid")
+    private UUID serviceRoleId;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "oauth_client_authorities", joinColumns = @JoinColumn(name = "oauth_client_id"))
     @Column(name = "authority", nullable = false, length = 80)
