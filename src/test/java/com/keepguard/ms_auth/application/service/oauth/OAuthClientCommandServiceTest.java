@@ -136,7 +136,7 @@ class OAuthClientCommandServiceTest {
         when(repository.findByCompanyIdAndClientId(companyId, "investbot-collector")).thenReturn(Optional.of(client));
         when(passwordEncoder.matches("plain-secret", "hashed-secret")).thenReturn(true);
         when(jwtService.generateServiceToken(eq(clientUuid), eq("investbot-collector"), eq(companyId),
-                eq(List.of("knowledge:write")), eq(28800_000L))).thenReturn("jwt-token");
+                eq(List.of("knowledge:write")), eq(28800_000L), eq(null), eq(null))).thenReturn("jwt-token");
 
         OAuthTokenView view = commandService.issueToken(OAuthTokenCommandDTO.builder()
                 .companyId(companyId)
@@ -151,7 +151,31 @@ class OAuthClientCommandServiceTest {
     }
 
     @Test
-    @DisplayName("issueToken recusa client bloqueado")
+    @DisplayName("issueToken propaga agentId e agentCode para o JWT")
+    void issueToken_shouldPropagateAgentClaims() {
+        UUID clientUuid = UUID.randomUUID();
+        UUID agentId = UUID.randomUUID();
+        UUID agentCode = UUID.randomUUID();
+        OAuthClient client = activeClient(clientUuid);
+        when(repository.findByCompanyIdAndClientId(companyId, "investbot-collector")).thenReturn(Optional.of(client));
+        when(passwordEncoder.matches("plain-secret", "hashed-secret")).thenReturn(true);
+        when(jwtService.generateServiceToken(eq(clientUuid), eq("investbot-collector"), eq(companyId),
+                eq(List.of("knowledge:write")), eq(28800_000L), eq(agentId.toString()), eq(agentCode.toString())))
+                .thenReturn("jwt-with-agent");
+
+        OAuthTokenView view = commandService.issueToken(OAuthTokenCommandDTO.builder()
+                .companyId(companyId)
+                .grantType("client_credentials")
+                .clientId("investbot-collector")
+                .clientSecret("plain-secret")
+                .agentId(agentId.toString())
+                .agentCode(agentCode.toString())
+                .build());
+
+        assertEquals("jwt-with-agent", view.accessToken());
+    }
+
+    @Test
     void issueToken_shouldRejectBlockedClient() {
         OAuthClient client = activeClient(UUID.randomUUID());
         client.setStatus(OAuthClientStatus.BLOCKED);
@@ -164,7 +188,7 @@ class OAuthClientCommandServiceTest {
                 .clientId("investbot-collector")
                 .clientSecret("plain-secret")
                 .build()));
-        verify(jwtService, never()).generateServiceToken(any(), any(), any(), any(), anyLong());
+        verify(jwtService, never()).generateServiceToken(any(), any(), any(), any(), anyLong(), any(), any());
     }
 
     @Test

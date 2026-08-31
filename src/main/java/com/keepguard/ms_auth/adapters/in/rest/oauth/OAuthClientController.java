@@ -5,13 +5,19 @@ import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateRequest
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.mapper.OAuthClientAdapterMapper;
+import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
 import com.keepguard.ms_auth.application.port.in.OAuthClientPort;
+import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientSearchQueryDTO;
+import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,6 +29,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -52,16 +59,40 @@ public class OAuthClientController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar OAuth clients da empresa")
+    @Operation(summary = "Listar OAuth clients da empresa com filtros e paginação")
     @MetricsEndpoint(endpoint = "oauth_client_list", operation = "listar oauth clients")
-    public ResponseEntity<List<OAuthClientResponseDTO>> list(
+    public ResponseEntity<PageResultView<OAuthClientResponseDTO>> list(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestHeader("X-Company-Id") UUID companyId) {
+            @RequestHeader("X-Company-Id") UUID companyId,
+            @RequestParam(required = false) String clientId,
+            @RequestParam(required = false) OAuthClientStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "desc") String dir) {
         oauthAdminAccess.requireAdminOrSystem(jwt);
-        List<OAuthClientResponseDTO> response = oauthClientPort.listByCompany(companyId).stream()
+        Sort.Direction direction = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        var query = OAuthClientSearchQueryDTO.builder()
+                .companyId(companyId)
+                .clientId(clientId)
+                .status(status)
+                .pageable(PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by(direction, sort)))
+                .build();
+        PageResultView<OAuthClientView> result = oauthClientPort.search(query);
+        List<OAuthClientResponseDTO> content = result.getContent().stream()
                 .map(mapper::toResponse)
                 .toList();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new PageResultView<>(
+                content,
+                result.getPageNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.isFirst(),
+                result.isLast(),
+                result.hasNext(),
+                result.hasPrevious()
+        ));
     }
 
     @GetMapping("/{id}")

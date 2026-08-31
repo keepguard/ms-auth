@@ -25,4 +25,10 @@ public class OAuthTokenRequestDTO {
     @NotBlank(message = "clientSecret é obrigatório")
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private String clientSecret;
+
+    @Schema(description = "UUID do agente coletor (opcional, incluído no JWT como agent_id)", example = "f7fc7350-b9fc-4e54-9c58-ac9385b23ae4")
+    private String agentId;
+
+    @Schema(description = "Código público UUID do agente coletor (opcional, incluído no JWT como agent_code)", example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+    private String agentCode;
 }

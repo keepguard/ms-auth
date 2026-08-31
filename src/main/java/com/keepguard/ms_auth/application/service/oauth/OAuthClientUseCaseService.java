@@ -1,11 +1,13 @@
 package com.keepguard.ms_auth.application.service.oauth;
 
+import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
 import com.keepguard.ms_auth.application.port.in.OAuthClientPort;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
+import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientSearchQueryDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -37,6 +39,11 @@ public class OAuthClientUseCaseService implements OAuthClientPort {
     @Override
     public List<OAuthClientView> listByCompany(UUID companyId) {
         return queryService.listByCompany(companyId);
+    }
+
+    @Override
+    public PageResultView<OAuthClientView> search(OAuthClientSearchQueryDTO query) {
+        return queryService.search(query);
     }
 
     @Override

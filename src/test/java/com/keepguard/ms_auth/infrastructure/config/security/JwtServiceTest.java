@@ -276,6 +276,28 @@ class JwtServiceTest {
         assertTrue(expDelta >= ttlMillis - 2000);
         assertTrue(expDelta <= ttlMillis + 2000);
     }
+
+    @Test
+    @DisplayName("Deve gerar token de serviço com agent_id e agent_code opcionais")
+    void shouldGenerateServiceTokenWithAgentClaims() {
+        UUID clientUuid = UUID.randomUUID();
+        UUID companyId = UUID.randomUUID();
+        UUID agentId = UUID.randomUUID();
+        UUID agentCode = UUID.randomUUID();
+
+        String token = jwtService.generateServiceToken(
+                clientUuid, "srv-data-collector", companyId, List.of("knowledge:write"), 3600_000L,
+                agentId.toString(), agentCode.toString());
+
+        Claims claims = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        assertEquals(agentId.toString(), claims.get("agent_id", String.class));
+        assertEquals(agentCode.toString(), claims.get("agent_code", String.class));
+    }
  
     @Test
     @DisplayName("Deve detectar cliente Postman")

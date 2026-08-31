@@ -47,6 +47,8 @@ public class OAuthClientAdapterMapper {
                 .grantType(dto.getGrantType())
                 .clientId(dto.getClientId())
                 .clientSecret(dto.getClientSecret())
+                .agentId(dto.getAgentId())
+                .agentCode(dto.getAgentCode())
                 .build();
     }
 

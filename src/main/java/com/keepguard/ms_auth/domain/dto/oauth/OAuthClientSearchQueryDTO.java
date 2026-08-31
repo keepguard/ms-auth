@@ -1,9 +1,11 @@
 package com.keepguard.ms_auth.domain.dto.oauth;
 
+import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
 
@@ -11,11 +13,9 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OAuthTokenCommandDTO {
+public class OAuthClientSearchQueryDTO {
     private UUID companyId;
-    private String grantType;
     private String clientId;
-    private String clientSecret;
-    private String agentId;
-    private String agentCode;
+    private OAuthClientStatus status;
+    private Pageable pageable;
 }

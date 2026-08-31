@@ -56,9 +56,15 @@ public class JwtService {
 
     public String generateServiceToken(UUID clientUuid, String clientId, UUID companyId,
                                        List<String> authorities, long ttlMillis) {
+        return generateServiceToken(clientUuid, clientId, companyId, authorities, ttlMillis, null, null);
+    }
+
+    public String generateServiceToken(UUID clientUuid, String clientId, UUID companyId,
+                                       List<String> authorities, long ttlMillis,
+                                       String agentId, String agentCode) {
         String finalClientId = sanitizeClientId(clientId);
         List<String> tokenAuthorities = authorities == null ? List.of() : List.copyOf(authorities);
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .issuer("ms-auth")
                 .audience().add(finalClientId).and()
                 .id(UUID.randomUUID().toString())
@@ -68,7 +74,16 @@ public class JwtService {
                 .claim("client_id", finalClientId)
                 .claim("company_id", companyId.toString())
                 .claim("token_type", "service")
-                .claim("login_method", "client_credentials")
+                .claim("login_method", "client_credentials");
+
+        if (agentId != null && !agentId.isBlank()) {
+            builder.claim("agent_id", agentId.trim());
+        }
+        if (agentCode != null && !agentCode.isBlank()) {
+            builder.claim("agent_code", agentCode.trim());
+        }
+
+        return builder
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + ttlMillis))
                 .signWith(key, Jwts.SIG.HS256)

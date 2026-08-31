@@ -5,10 +5,13 @@ import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
 import com.keepguard.ms_auth.infrastructure.persistence.entity.OAuthClientJpaEntity;
 import com.keepguard.ms_auth.infrastructure.persistence.mapper.OAuthClientJpaMapper;
 import com.keepguard.ms_auth.infrastructure.persistence.spring.OAuthClientSpringRepository;
+import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -47,6 +50,11 @@ public class OAuthClientRepositoryAdapter implements OAuthClientRepositoryPort {
         return springRepository.findAllByCompanyIdOrderByCreatedAtDesc(companyId).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<OAuthClient> search(UUID companyId, String clientId, OAuthClientStatus status, Pageable pageable) {
+        return springRepository.search(companyId, clientId, status, pageable).map(mapper::toDomain);
     }
 
     @Override

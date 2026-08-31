@@ -163,12 +163,16 @@ public class OAuthClientCommandService {
         }
 
         long ttlMillis = client.getTokenTtlSeconds() * 1000L;
+        String agentId = sanitizeOptionalAgentClaim(command.getAgentId(), "agentId");
+        String agentCode = sanitizeOptionalAgentClaim(command.getAgentCode(), "agentCode");
         String token = jwtService.generateServiceToken(
                 client.getId(),
                 client.getClientId(),
                 client.getCompanyId(),
                 client.getAuthorities(),
-                ttlMillis
+                ttlMillis,
+                agentId,
+                agentCode
         );
         metricsPort.incrementCounter("oauth_token_issued_total",
                 Map.of("client_id", client.getClientId()));
@@ -213,6 +217,19 @@ public class OAuthClientCommandService {
         String trimmed = clientId.trim();
         if (trimmed.length() > 100) {
             throw new IllegalArgumentException("clientId deve ter no máximo 100 caracteres.");
+        }
+        return trimmed;
+    }
+
+    private String sanitizeOptionalAgentClaim(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        String trimmed = value.trim();
+        try {
+            UUID.fromString(trimmed);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException(fieldName + " deve ser um UUID válido.");
         }
         return trimmed;
     }
