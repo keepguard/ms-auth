@@ -9,6 +9,7 @@ import com.keepguard.ms_auth.application.port.in.OAuthClientPort;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientSearchQueryDTO;
+import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientUpdateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -30,6 +31,11 @@ public class OAuthClientUseCaseService implements OAuthClientPort {
     @Override
     public OAuthClientCreateView create(OAuthClientCreateCommandDTO command) {
         return commandService.create(command);
+    }
+
+    @Override
+    public OAuthClientView update(OAuthClientUpdateCommandDTO command) {
+        return commandService.update(command);
     }
 
     @Override

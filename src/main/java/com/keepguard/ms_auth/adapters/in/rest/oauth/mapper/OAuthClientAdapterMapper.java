@@ -3,6 +3,7 @@ package com.keepguard.ms_auth.adapters.in.rest.oauth.mapper;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientUpdateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthServiceRoleAuthorityDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthServiceRoleResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthTokenRequestDTO;
@@ -13,6 +14,7 @@ import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
+import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientUpdateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +30,19 @@ public class OAuthClientAdapterMapper {
         return OAuthClientCreateCommandDTO.builder()
                 .companyId(companyId)
                 .clientId(dto.getClientId())
+                .description(dto.getDescription())
+                .roleId(dto.getRoleId())
+                .tokenTtlSeconds(dto.getTokenTtlSeconds())
+                .build();
+    }
+
+    public OAuthClientUpdateCommandDTO toUpdateCommand(OAuthClientUpdateRequestDTO dto, UUID companyId, UUID id) {
+        if (dto == null) {
+            return null;
+        }
+        return OAuthClientUpdateCommandDTO.builder()
+                .companyId(companyId)
+                .id(id)
                 .description(dto.getDescription())
                 .roleId(dto.getRoleId())
                 .tokenTtlSeconds(dto.getTokenTtlSeconds())

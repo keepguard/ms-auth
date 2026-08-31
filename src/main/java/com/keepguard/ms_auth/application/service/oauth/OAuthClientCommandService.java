@@ -12,6 +12,7 @@ import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsExc
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
+import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientUpdateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
 import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
 import com.keepguard.ms_auth.domain.entity.role.Role;
@@ -96,6 +97,28 @@ public class OAuthClientCommandService {
         metricsPort.incrementCounter("oauth_client_created_total",
                 Map.of("client_id", clientId));
         return mapper.toCreateView(saved, plainSecret);
+    }
+
+    @LogOperation(
+            operation = "UPDATE_OAUTH_CLIENT",
+            description = "Atualizando oauth client: {command.id}",
+            audit = true,
+            auditAction = "UPDATE",
+            auditEntityType = "OAUTH_CLIENT"
+    )
+    @Transactional
+    public OAuthClientView update(OAuthClientUpdateCommandDTO command) {
+        if (command == null) {
+            throw new IllegalArgumentException("Dados de atualização são obrigatórios.");
+        }
+        OAuthClient client = requireClient(command.getCompanyId(), command.getId(), "update");
+        Role role = roleResolver.requireAssignable(command.getRoleId());
+        int ttl = resolveTtl(command.getTokenTtlSeconds());
+        client.updateMetadata(role.getId(), role.getName(), ttl, trimToNull(command.getDescription()));
+        OAuthClient saved = roleResolver.enrich(oauthClientRepository.save(client));
+        metricsPort.incrementCounter("oauth_client_updated_total",
+                Map.of("client_id", saved.getClientId()));
+        return mapper.toView(saved);
     }
 
     @LogOperation(

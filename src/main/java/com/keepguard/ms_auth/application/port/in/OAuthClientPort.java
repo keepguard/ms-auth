@@ -8,6 +8,7 @@ import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientSearchQueryDTO;
+import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientUpdateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
 
 import java.util.List;
@@ -16,6 +17,8 @@ import java.util.UUID;
 public interface OAuthClientPort {
 
     OAuthClientCreateView create(OAuthClientCreateCommandDTO command);
+
+    OAuthClientView update(OAuthClientUpdateCommandDTO command);
 
     OAuthClientView findById(UUID companyId, UUID id);
 

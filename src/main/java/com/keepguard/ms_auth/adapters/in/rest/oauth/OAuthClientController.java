@@ -4,6 +4,7 @@ import com.keepguard.lib_common.metrics.annotation.MetricsEndpoint;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientUpdateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthServiceRoleResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.mapper.OAuthClientAdapterMapper;
 import com.keepguard.ms_auth.application.dto.common.PageResultView;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -117,6 +119,19 @@ public class OAuthClientController {
             @Parameter(required = true) @PathVariable UUID id) {
         oauthAdminAccess.requireAdminOrSystem(jwt);
         return ResponseEntity.ok(mapper.toResponse(oauthClientPort.findById(companyId, id)));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualizar OAuth client de sistema")
+    @MetricsEndpoint(endpoint = "oauth_client_update", operation = "atualizar oauth client")
+    public ResponseEntity<OAuthClientResponseDTO> update(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader("X-Company-Id") UUID companyId,
+            @PathVariable UUID id,
+            @Valid @RequestBody OAuthClientUpdateRequestDTO request) {
+        oauthAdminAccess.requireAdminOrSystem(jwt);
+        return ResponseEntity.ok(mapper.toResponse(
+                oauthClientPort.update(mapper.toUpdateCommand(request, companyId, id))));
     }
 
     @PostMapping("/{id}/block")

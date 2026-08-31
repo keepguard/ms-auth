@@ -44,4 +44,12 @@ public class OAuthClient {
         this.status = OAuthClientStatus.ACTIVE;
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void updateMetadata(UUID serviceRoleId, String serviceRoleName, int tokenTtlSeconds, String description) {
+        this.serviceRoleId = serviceRoleId;
+        this.serviceRoleName = serviceRoleName;
+        this.tokenTtlSeconds = tokenTtlSeconds;
+        this.description = description;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

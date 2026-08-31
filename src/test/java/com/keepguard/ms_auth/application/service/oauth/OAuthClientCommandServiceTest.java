@@ -1,6 +1,7 @@
 package com.keepguard.ms_auth.application.service.oauth;
 
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
 import com.keepguard.ms_auth.application.mapper.OAuthClientApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
@@ -11,6 +12,7 @@ import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsExc
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
+import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientUpdateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
 import com.keepguard.ms_auth.domain.entity.authority.Authority;
 import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
@@ -265,6 +267,96 @@ class OAuthClientCommandServiceTest {
                         .roleId(companyRoleId)
                         .build()));
         assertTrue(ex.getMessage().contains("service role"));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("update altera descrição, TTL e service role sem regenerar secret")
+    void update_shouldChangeMetadataWithoutRotatingSecret() {
+        UUID id = UUID.randomUUID();
+        OAuthClient client = activeClient(id);
+        client.setDescription("antes");
+        when(repository.findByIdAndCompanyId(id, companyId)).thenReturn(Optional.of(client));
+        when(repository.save(any(OAuthClient.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        OAuthClientView view = commandService.update(OAuthClientUpdateCommandDTO.builder()
+                .companyId(companyId)
+                .id(id)
+                .description("collector atualizado")
+                .roleId(serviceRoleId)
+                .tokenTtlSeconds(3600)
+                .build());
+
+        assertEquals("collector atualizado", view.description());
+        assertEquals(3600, view.tokenTtlSeconds());
+        assertEquals(serviceRoleId, view.serviceRoleId());
+        assertEquals(SystemServiceRoleNames.ROLE_SERVICE_COLLECTOR, view.serviceRoleName());
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(metricsPort).incrementCounter(eq("oauth_client_updated_total"), anyMap());
+    }
+
+    @Test
+    @DisplayName("update rejeita role de empresa")
+    void update_shouldRejectCompanyRole() {
+        UUID id = UUID.randomUUID();
+        UUID companyRoleId = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        Role companyRole = Role.builder()
+                .id(companyRoleId)
+                .name("ROLE_ADMIN")
+                .companyId(companyId)
+                .isSystem(true)
+                .build();
+        RoleRepositoryPort roleRepository = mock(RoleRepositoryPort.class);
+        when(roleRepository.findById(companyRoleId)).thenReturn(Optional.of(companyRole));
+        OAuthClientRepositoryPort repo = mock(OAuthClientRepositoryPort.class);
+        when(repo.findByIdAndCompanyId(id, companyId)).thenReturn(Optional.of(activeClient(id)));
+        OAuthClientCommandService service = new OAuthClientCommandService(
+                repo, passwordEncoder, jwtService, new OAuthClientApplicationMapper(),
+                new OAuthClientRoleResolver(roleRepository), metricsPort);
+        ReflectionTestUtils.setField(service, "minTtlSeconds", 900);
+        ReflectionTestUtils.setField(service, "defaultTtlSeconds", 28800);
+        ReflectionTestUtils.setField(service, "maxTtlSeconds", 86400);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> service.update(
+                OAuthClientUpdateCommandDTO.builder()
+                        .companyId(companyId)
+                        .id(id)
+                        .roleId(companyRoleId)
+                        .tokenTtlSeconds(28800)
+                        .build()));
+        assertTrue(ex.getMessage().contains("service role"));
+        verify(repo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("update rejeita TTL inválido")
+    void update_shouldRejectInvalidTtl() {
+        UUID id = UUID.randomUUID();
+        when(repository.findByIdAndCompanyId(id, companyId)).thenReturn(Optional.of(activeClient(id)));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> commandService.update(
+                OAuthClientUpdateCommandDTO.builder()
+                        .companyId(companyId)
+                        .id(id)
+                        .roleId(serviceRoleId)
+                        .tokenTtlSeconds(899)
+                        .build()));
+        assertTrue(ex.getMessage().contains("tokenTtlSeconds"));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("update lança NotFound quando client não pertence à empresa")
+    void update_shouldThrowNotFound() {
+        UUID id = UUID.randomUUID();
+        when(repository.findByIdAndCompanyId(id, companyId)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> commandService.update(OAuthClientUpdateCommandDTO.builder()
+                .companyId(companyId)
+                .id(id)
+                .roleId(serviceRoleId)
+                .tokenTtlSeconds(28800)
+                .build()));
         verify(repository, never()).save(any());
     }
 
