@@ -16,7 +16,7 @@ env:
   springProfilesActive: local
   serverPort: 8081
   apiBaseUrl: "https://api.keepguard.com.br"
-  frontendBaseUrl: "https://app.keepguard.com.br"
+  frontendBaseUrl: "https://app-core.keepguard.com.br"
   companyServiceUrl: "http://ms-company:8083"
   userServiceUrl: "http://ms-user:8085"
   communicationServiceUrl: "http://ms-communication:8082"
