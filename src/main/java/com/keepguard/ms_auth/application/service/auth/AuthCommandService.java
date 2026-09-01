@@ -500,9 +500,15 @@ public class AuthCommandService {
 
         tokenCachePort.removeToken(codeUser.toString(), request.getToken());
 
+        // Logout invalida apenas o token; a sessão do dispositivo (isTrusted) permanece
+        // para que o MFA não seja exigido novamente no próximo login neste aparelho.
         String deviceId = jwtService.extractDeviceId(request.getToken());
         if (deviceId != null && !deviceId.isBlank()) {
-            sessionCachePort.removeUserSession(codeUser.toString(), deviceId);
+            sessionCachePort.getUserSession(codeUser.toString(), deviceId).ifPresent(session -> {
+                session.setRefreshToken(null);
+                session.setLastActiveAt(LocalDateTime.now().toString());
+                sessionCachePort.saveUserSession(session, 2592000L);
+            });
         }
 
         metricsPort.incrementCounter("auth_logouts_total",

@@ -166,7 +166,7 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(
         summary = "Realizar logout",
-        description = "Invalida o token JWT do usuário, fazendo logout do sistema."
+        description = "Invalida o token JWT do usuário sem encerrar a sessão do dispositivo. O MFA permanece dispensado neste aparelho no próximo login."
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Logout realizado com sucesso",

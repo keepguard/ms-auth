@@ -11,6 +11,7 @@ import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort
 import com.keepguard.ms_auth.application.service.exception.EmailNotVerifiedException;
 import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
+import com.keepguard.ms_auth.domain.entity.session.UserSession;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import com.keepguard.ms_auth.infrastructure.config.security.JwtService;
 import com.keepguard.ms_auth.application.port.out.cache.TokenCachePort;
@@ -485,10 +486,19 @@ class AuthCommandServiceTest {
             .companyId(companyId)
             .build();
         
+        UserSession trustedSession = UserSession.builder()
+            .codeUser(codeUser.toString())
+            .deviceId("device_123")
+            .isTrusted(true)
+            .refreshToken(token)
+            .build();
+
         when(jwtService.validateToken(token)).thenReturn(true);
         when(jwtService.extractUserId(token)).thenReturn(codeUser);
         when(jwtService.extractDeviceId(token)).thenReturn("device_123");
         when(tokenCachePort.isTokenValid(codeUser.toString(), token)).thenReturn(true);
+        when(sessionCachePort.getUserSession(codeUser.toString(), "device_123"))
+            .thenReturn(Optional.of(trustedSession));
         
         // When
         authCommandService.logout(logoutRequest);
@@ -499,7 +509,9 @@ class AuthCommandServiceTest {
         verify(jwtService, times(1)).extractDeviceId(token);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
         verify(tokenCachePort, times(1)).removeToken(codeUser.toString(), token);
-        verify(sessionCachePort, times(1)).removeUserSession(codeUser.toString(), "device_123");
+        verify(sessionCachePort, never()).removeUserSession(anyString(), anyString());
+        verify(sessionCachePort, times(1)).saveUserSession(trustedSession, 2592000L);
+        assertNull(trustedSession.getRefreshToken());
         verify(metricsPort, times(1)).incrementCounter(anyString(), any());
     }
     
