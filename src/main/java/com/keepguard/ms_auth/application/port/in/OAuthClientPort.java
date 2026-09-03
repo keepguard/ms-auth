@@ -4,6 +4,7 @@ import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientRuntimeSecretView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
@@ -33,6 +34,8 @@ public interface OAuthClientPort {
     OAuthClientView unblock(OAuthClientIdCommandDTO command);
 
     void delete(OAuthClientIdCommandDTO command);
+
+    OAuthClientRuntimeSecretView findRuntimeSecret(UUID companyId, String clientId, String presentedBase);
 
     OAuthTokenView issueToken(OAuthTokenCommandDTO command);
 }

@@ -20,6 +20,7 @@ public class OAuthClient {
     private UUID companyId;
     private String clientId;
     private String secretHash;
+    private String secretEncrypted;
     private UUID serviceRoleId;
     private String serviceRoleName;
     @Builder.Default

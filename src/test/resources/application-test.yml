@@ -59,7 +59,9 @@ management:
 security:
   jwt:
     secret: test-secret-key-for-testing-purposes-only
-    expiration: 3600000 # 1 hora 
+    expiration: 3600000 # 1 hora
+  oauth:
+    client-secret-base: test-oauth-secret-base-keepguard 
   rate-limiting:
     max-attempts: 3  # Menos tentativas para testes
     lockout-duration-minutes: 5  # Bloqueio mais curto para testes

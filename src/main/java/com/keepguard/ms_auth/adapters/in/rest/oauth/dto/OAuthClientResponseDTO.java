@@ -15,11 +15,12 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "OAuth client (sem secret)")
+@Schema(description = "OAuth client (clientSecret visível para ADMIN/SYSTEM)")
 public class OAuthClientResponseDTO {
     private UUID id;
     private UUID companyId;
     private String clientId;
+    private String clientSecret;
     private UUID serviceRoleId;
     private String serviceRoleName;
     private List<String> authorities;

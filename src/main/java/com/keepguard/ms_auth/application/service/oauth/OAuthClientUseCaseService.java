@@ -2,6 +2,7 @@ package com.keepguard.ms_auth.application.service.oauth;
 
 import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientRuntimeSecretView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
@@ -71,6 +72,11 @@ public class OAuthClientUseCaseService implements OAuthClientPort {
     @Override
     public void delete(OAuthClientIdCommandDTO command) {
         commandService.delete(command);
+    }
+
+    @Override
+    public OAuthClientRuntimeSecretView findRuntimeSecret(UUID companyId, String clientId, String presentedBase) {
+        return queryService.findRuntimeSecret(companyId, clientId, presentedBase);
     }
 
     @Override

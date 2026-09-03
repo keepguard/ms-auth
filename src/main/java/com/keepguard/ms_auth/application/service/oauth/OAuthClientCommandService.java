@@ -18,6 +18,7 @@ import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
 import com.keepguard.ms_auth.infrastructure.config.security.JwtService;
+import com.keepguard.ms_auth.infrastructure.config.security.OAuthClientSecretCrypto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +47,7 @@ public class OAuthClientCommandService {
     private final OAuthClientApplicationMapper mapper;
     private final OAuthClientRoleResolver roleResolver;
     private final MetricsPort metricsPort;
+    private final OAuthClientSecretCrypto secretCrypto;
 
     @Value("${security.jwt.service-token.min-ttl-seconds:900}")
     private int minTtlSeconds;
@@ -82,7 +84,8 @@ public class OAuthClientCommandService {
         OAuthClient client = OAuthClient.builder()
                 .companyId(companyId)
                 .clientId(clientId)
-                .secretHash(passwordEncoder.encode(plainSecret))
+                .secretHash(passwordEncoder.encode(secretCrypto.composeForHash(plainSecret)))
+                .secretEncrypted(secretCrypto.encrypt(plainSecret))
                 .serviceRoleId(role.getId())
                 .serviceRoleName(role.getName())
                 .authorities(List.of())
@@ -184,7 +187,7 @@ public class OAuthClientCommandService {
         OAuthClient client = oauthClientRepository.findByCompanyIdAndClientId(companyId, clientId)
                 .orElseThrow(InvalidCredentialsException::new);
 
-        if (!client.isActive() || !passwordEncoder.matches(command.getClientSecret(), client.getSecretHash())) {
+        if (!client.isActive() || !matchesSecret(command.getClientSecret(), client.getSecretHash())) {
             metricsPort.incrementCounter("oauth_token_business_errors_total",
                     Map.of("error_type", "invalid_client", "operation", "issue_token"));
             throw new InvalidCredentialsException();
@@ -274,6 +277,14 @@ public class OAuthClientCommandService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    boolean matchesSecret(String plainSecret, String secretHash) {
+        if (plainSecret == null || secretHash == null) {
+            return false;
+        }
+        return passwordEncoder.matches(plainSecret, secretHash)
+                || passwordEncoder.matches(secretCrypto.composeForHash(plainSecret), secretHash);
     }
 
     private String generateSecret() {

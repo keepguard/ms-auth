@@ -4,13 +4,17 @@ import com.keepguard.ms_auth.application.dto.common.PageResultView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleAuthorityView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleView;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientRuntimeSecretView;
 import com.keepguard.ms_auth.application.mapper.OAuthClientApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.persistence.OAuthClientRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
+import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientSearchQueryDTO;
+import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.domain.entity.role.SystemServiceRoleNames;
+import com.keepguard.ms_auth.infrastructure.config.security.OAuthClientSecretCrypto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,6 +40,7 @@ public class OAuthClientQueryService {
     private final RoleRepositoryPort roleRepository;
     private final OAuthClientApplicationMapper mapper;
     private final OAuthClientRoleResolver roleResolver;
+    private final OAuthClientSecretCrypto secretCrypto;
 
     @Transactional(readOnly = true)
     public OAuthClientView findById(UUID companyId, UUID id) {
@@ -44,7 +49,7 @@ public class OAuthClientQueryService {
         }
         return oauthClientRepository.findByIdAndCompanyId(id, companyId)
                 .map(roleResolver::enrich)
-                .map(mapper::toView)
+                .map(this::toSecretView)
                 .orElseThrow(() -> new NotFoundException("OAuth client não encontrado."));
     }
 
@@ -55,7 +60,7 @@ public class OAuthClientQueryService {
         }
         return oauthClientRepository.findAllByCompanyId(companyId).stream()
                 .map(roleResolver::enrich)
-                .map(mapper::toView)
+                .map(this::toSecretView)
                 .toList();
     }
 
@@ -69,7 +74,7 @@ public class OAuthClientQueryService {
         Page<OAuthClientView> page = oauthClientRepository
                 .search(query.getCompanyId(), clientId, query.getStatus(), pageable)
                 .map(roleResolver::enrich)
-                .map(mapper::toView);
+                .map(this::toSecretView);
         return PageResultView.<OAuthClientView>builder()
                 .content(page.getContent())
                 .page(page.getNumber())
@@ -90,6 +95,30 @@ public class OAuthClientQueryService {
                 .flatMap(java.util.Optional::stream)
                 .map(this::toServiceRoleView)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public OAuthClientRuntimeSecretView findRuntimeSecret(UUID companyId, String clientId, String presentedBase) {
+        if (!secretCrypto.matchesBase(presentedBase)) {
+            throw new InvalidCredentialsException();
+        }
+        if (companyId == null) {
+            throw new IllegalArgumentException("X-Company-Id é obrigatório.");
+        }
+        String resolvedClientId = StringUtils.hasText(clientId) ? clientId.trim() : "srv-data-collector";
+        OAuthClient client = oauthClientRepository.findByCompanyIdAndClientId(companyId, resolvedClientId)
+                .orElseThrow(() -> new NotFoundException("OAuth client não encontrado."));
+        if (!client.isActive()) {
+            throw new NotFoundException("OAuth client não encontrado.");
+        }
+        if (!StringUtils.hasText(client.getSecretEncrypted())) {
+            throw new NotFoundException("OAuth client sem secret cifrado. Recrie o client.");
+        }
+        return new OAuthClientRuntimeSecretView(client.getClientId(), client.getSecretEncrypted(), client.getStatus());
+    }
+
+    private OAuthClientView toSecretView(OAuthClient client) {
+        return mapper.toView(client, secretCrypto.decryptOrNull(client.getSecretEncrypted()));
     }
 
     private OAuthServiceRoleView toServiceRoleView(Role role) {

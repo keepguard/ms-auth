@@ -32,6 +32,10 @@ public class OAuthClientApplicationMapper {
     }
 
     public OAuthClientView toView(OAuthClient client) {
+        return toView(client, null);
+    }
+
+    public OAuthClientView toView(OAuthClient client, String clientSecret) {
         if (client == null) {
             return null;
         }
@@ -39,6 +43,7 @@ public class OAuthClientApplicationMapper {
                 client.getId(),
                 client.getCompanyId(),
                 client.getClientId(),
+                clientSecret,
                 client.getServiceRoleId(),
                 client.getServiceRoleName(),
                 copy(client.getAuthorities()),

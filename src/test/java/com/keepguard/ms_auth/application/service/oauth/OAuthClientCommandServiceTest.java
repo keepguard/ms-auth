@@ -20,6 +20,7 @@ import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.domain.entity.role.SystemServiceRoleNames;
 import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
 import com.keepguard.ms_auth.infrastructure.config.security.JwtService;
+import com.keepguard.ms_auth.infrastructure.config.security.OAuthClientSecretCrypto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -67,7 +68,8 @@ class OAuthClientCommandServiceTest {
         RoleRepositoryPort roleRepository = mock(RoleRepositoryPort.class);
         OAuthClientRoleResolver roleResolver = new OAuthClientRoleResolver(roleRepository);
         commandService = new OAuthClientCommandService(
-                repository, passwordEncoder, jwtService, new OAuthClientApplicationMapper(), roleResolver, metricsPort);
+                repository, passwordEncoder, jwtService, new OAuthClientApplicationMapper(), roleResolver, metricsPort,
+                new OAuthClientSecretCrypto("test-base"));
         UUID serviceRoleId = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         Role serviceRole = Role.builder()
                 .id(serviceRoleId)
@@ -107,7 +109,7 @@ class OAuthClientCommandServiceTest {
         assertTrue(view.clientSecret().length() > 20);
         assertEquals(28800, view.tokenTtlSeconds());
         assertEquals("investbot-collector", view.clientId());
-        verify(passwordEncoder).encode(view.clientSecret());
+        verify(passwordEncoder).encode(view.clientSecret() + "test-base");
         verify(metricsPort).incrementCounter(eq("oauth_client_created_total"), anyMap());
     }
 
@@ -172,6 +174,28 @@ class OAuthClientCommandServiceTest {
         assertEquals("jwt-token", view.accessToken());
         assertEquals("Bearer", view.tokenType());
         assertEquals(28800, view.expiresIn());
+    }
+
+    @Test
+    @DisplayName("issueToken aceita hash composto com AUTH_CLIENT_SECRET_BASE")
+    void issueToken_shouldAcceptComposedHash() {
+        UUID clientUuid = UUID.randomUUID();
+        OAuthClient client = activeClient(clientUuid);
+        when(repository.findByCompanyIdAndClientId(companyId, "investbot-collector")).thenReturn(Optional.of(client));
+        when(passwordEncoder.matches("plain-secret", "hashed-secret")).thenReturn(false);
+        when(passwordEncoder.matches("plain-secrettest-base", "hashed-secret")).thenReturn(true);
+        when(jwtService.generateServiceToken(eq(clientUuid), eq("investbot-collector"), eq(companyId),
+                eq(List.of("knowledge:read", "knowledge:write")), eq(28800_000L), eq(null), eq(null),
+                eq(List.of(SystemServiceRoleNames.ROLE_SERVICE_COLLECTOR)))).thenReturn("jwt-composed");
+
+        OAuthTokenView view = commandService.issueToken(OAuthTokenCommandDTO.builder()
+                .companyId(companyId)
+                .grantType("client_credentials")
+                .clientId("investbot-collector")
+                .clientSecret("plain-secret")
+                .build());
+
+        assertEquals("jwt-composed", view.accessToken());
     }
 
     @Test
@@ -255,7 +279,8 @@ class OAuthClientCommandServiceTest {
         when(roleRepository.findById(companyRoleId)).thenReturn(Optional.of(companyRole));
         OAuthClientCommandService service = new OAuthClientCommandService(
                 repository, passwordEncoder, jwtService, new OAuthClientApplicationMapper(),
-                new OAuthClientRoleResolver(roleRepository), metricsPort);
+                new OAuthClientRoleResolver(roleRepository), metricsPort,
+                new OAuthClientSecretCrypto("test-base"));
         ReflectionTestUtils.setField(service, "minTtlSeconds", 900);
         ReflectionTestUtils.setField(service, "defaultTtlSeconds", 28800);
         ReflectionTestUtils.setField(service, "maxTtlSeconds", 86400);
@@ -312,7 +337,8 @@ class OAuthClientCommandServiceTest {
         when(repo.findByIdAndCompanyId(id, companyId)).thenReturn(Optional.of(activeClient(id)));
         OAuthClientCommandService service = new OAuthClientCommandService(
                 repo, passwordEncoder, jwtService, new OAuthClientApplicationMapper(),
-                new OAuthClientRoleResolver(roleRepository), metricsPort);
+                new OAuthClientRoleResolver(roleRepository), metricsPort,
+                new OAuthClientSecretCrypto("test-base"));
         ReflectionTestUtils.setField(service, "minTtlSeconds", 900);
         ReflectionTestUtils.setField(service, "defaultTtlSeconds", 28800);
         ReflectionTestUtils.setField(service, "maxTtlSeconds", 86400);

@@ -8,6 +8,7 @@ import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort
 import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientSearchQueryDTO;
 import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
 import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
+import com.keepguard.ms_auth.infrastructure.config.security.OAuthClientSecretCrypto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,7 +42,8 @@ class OAuthClientQueryServiceTest {
     void setUp() {
         repository = mock(OAuthClientRepositoryPort.class);
         queryService = new OAuthClientQueryService(repository, mock(RoleRepositoryPort.class),
-                new OAuthClientApplicationMapper(), new OAuthClientRoleResolver(mock(RoleRepositoryPort.class)));
+                new OAuthClientApplicationMapper(), new OAuthClientRoleResolver(mock(RoleRepositoryPort.class)),
+                new OAuthClientSecretCrypto("test-base"));
     }
 
     @Test

@@ -3,12 +3,14 @@ package com.keepguard.ms_auth.adapters.in.rest.oauth.mapper;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientCreateResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientRuntimeSecretResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientUpdateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthServiceRoleAuthorityDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthServiceRoleResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthTokenRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthTokenResponseDTO;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientRuntimeSecretView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleView;
 import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
@@ -98,6 +100,7 @@ public class OAuthClientAdapterMapper {
                 .id(view.id())
                 .companyId(view.companyId())
                 .clientId(view.clientId())
+                .clientSecret(view.clientSecret())
                 .serviceRoleId(view.serviceRoleId())
                 .serviceRoleName(view.serviceRoleName())
                 .authorities(view.authorities())
@@ -134,6 +137,17 @@ public class OAuthClientAdapterMapper {
                                 .description(item.description())
                                 .build())
                         .toList())
+                .build();
+    }
+
+    public OAuthClientRuntimeSecretResponseDTO toRuntimeSecretResponse(OAuthClientRuntimeSecretView view) {
+        if (view == null) {
+            return null;
+        }
+        return OAuthClientRuntimeSecretResponseDTO.builder()
+                .clientId(view.clientId())
+                .secretEncrypted(view.secretEncrypted())
+                .status(view.status())
                 .build();
     }
 }

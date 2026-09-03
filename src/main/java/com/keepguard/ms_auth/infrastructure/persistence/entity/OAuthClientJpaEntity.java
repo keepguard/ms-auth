@@ -40,6 +40,9 @@ public class OAuthClientJpaEntity {
     @Column(name = "secret_hash", nullable = false, length = 255)
     private String secretHash;
 
+    @Column(name = "secret_encrypted", length = 512)
+    private String secretEncrypted;
+
     @Column(name = "service_role_id", columnDefinition = "uuid")
     private UUID serviceRoleId;
 

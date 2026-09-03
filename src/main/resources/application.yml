@@ -82,6 +82,8 @@ security:
       min-ttl-seconds: 900
       default-ttl-seconds: 28800
       max-ttl-seconds: 86400
+  oauth:
+    client-secret-base: ${AUTH_CLIENT_SECRET_BASE:}
   rate-limiting:
     max-attempts: 5  # Máximo de tentativas de login
     lockout-duration-minutes: 15  # Duração do bloqueio em minutos
