@@ -8,9 +8,10 @@ import java.util.Locale;
 public final class SystemServiceRoleNames {
 
     public static final String ROLE_SERVICE_COLLECTOR = "ROLE_SERVICE_COLLECTOR";
+    public static final String ROLE_SERVICE_BFF_CORE = "ROLE_SERVICE_BFF_CORE";
     public static final String SERVICE_ROLE_PREFIX = "ROLE_SERVICE_";
 
-    public static final List<String> SERVICE_TEMPLATES = List.of(ROLE_SERVICE_COLLECTOR);
+    public static final List<String> SERVICE_TEMPLATES = List.of(ROLE_SERVICE_COLLECTOR, ROLE_SERVICE_BFF_CORE);
 
     private SystemServiceRoleNames() {
     }
@@ -23,12 +24,18 @@ public final class SystemServiceRoleNames {
         if (ROLE_SERVICE_COLLECTOR.equals(name)) {
             return "Perfil para clients OAuth de coleta de dados. Permite leitura e escrita na base de conhecimento.";
         }
+        if (ROLE_SERVICE_BFF_CORE.equals(name)) {
+            return "Perfil para o BFF Core. Permite leitura na base de conhecimento em nome do usuário autenticado.";
+        }
         return "Perfil de serviço KeepGuard: " + name;
     }
 
     public static List<String> authoritiesFor(String roleName) {
         if (ROLE_SERVICE_COLLECTOR.equals(roleName)) {
             return List.of(SystemAuthorityNames.KNOWLEDGE_WRITE, SystemAuthorityNames.KNOWLEDGE_READ);
+        }
+        if (ROLE_SERVICE_BFF_CORE.equals(roleName)) {
+            return List.of(SystemAuthorityNames.KNOWLEDGE_READ);
         }
         return List.of();
     }
