@@ -9,9 +9,11 @@ public final class SystemServiceRoleNames {
 
     public static final String ROLE_SERVICE_COLLECTOR = "ROLE_SERVICE_COLLECTOR";
     public static final String ROLE_SERVICE_BFF_CORE = "ROLE_SERVICE_BFF_CORE";
+    public static final String ROLE_SERVICE_ANALYST_FINANCE = "ROLE_SERVICE_ANALYST_FINANCE";
     public static final String SERVICE_ROLE_PREFIX = "ROLE_SERVICE_";
 
-    public static final List<String> SERVICE_TEMPLATES = List.of(ROLE_SERVICE_COLLECTOR, ROLE_SERVICE_BFF_CORE);
+    public static final List<String> SERVICE_TEMPLATES = List.of(
+            ROLE_SERVICE_COLLECTOR, ROLE_SERVICE_BFF_CORE, ROLE_SERVICE_ANALYST_FINANCE);
 
     private SystemServiceRoleNames() {
     }
@@ -27,6 +29,9 @@ public final class SystemServiceRoleNames {
         if (ROLE_SERVICE_BFF_CORE.equals(name)) {
             return "Perfil para o BFF Core. Permite leitura na base de conhecimento em nome do usuário autenticado.";
         }
+        if (ROLE_SERVICE_ANALYST_FINANCE.equals(name)) {
+            return "Perfil para o analista financeiro do investbot. Permite leitura na base de conhecimento.";
+        }
         return "Perfil de serviço KeepGuard: " + name;
     }
 
@@ -35,6 +40,9 @@ public final class SystemServiceRoleNames {
             return List.of(SystemAuthorityNames.KNOWLEDGE_WRITE, SystemAuthorityNames.KNOWLEDGE_READ);
         }
         if (ROLE_SERVICE_BFF_CORE.equals(roleName)) {
+            return List.of(SystemAuthorityNames.KNOWLEDGE_READ);
+        }
+        if (ROLE_SERVICE_ANALYST_FINANCE.equals(roleName)) {
             return List.of(SystemAuthorityNames.KNOWLEDGE_READ);
         }
         return List.of();

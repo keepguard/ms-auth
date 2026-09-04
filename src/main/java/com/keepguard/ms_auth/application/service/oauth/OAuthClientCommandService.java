@@ -283,8 +283,9 @@ public class OAuthClientCommandService {
         if (plainSecret == null || secretHash == null) {
             return false;
         }
-        return passwordEncoder.matches(plainSecret, secretHash)
-                || passwordEncoder.matches(secretCrypto.composeForHash(plainSecret), secretHash);
+        return passwordEncoder.matches(secretCrypto.composeForHash(plainSecret), secretHash)
+                || passwordEncoder.matches(secretCrypto.composeForHashLegacy(plainSecret), secretHash)
+                || passwordEncoder.matches(plainSecret, secretHash);
     }
 
     private String generateSecret() {

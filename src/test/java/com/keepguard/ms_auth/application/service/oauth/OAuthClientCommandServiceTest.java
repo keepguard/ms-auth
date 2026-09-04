@@ -109,7 +109,7 @@ class OAuthClientCommandServiceTest {
         assertTrue(view.clientSecret().length() > 20);
         assertEquals(28800, view.tokenTtlSeconds());
         assertEquals("investbot-collector", view.clientId());
-        verify(passwordEncoder).encode(view.clientSecret() + "test-base");
+        verify(passwordEncoder).encode(new OAuthClientSecretCrypto("test-base").composeForHash(view.clientSecret()));
         verify(metricsPort).incrementCounter(eq("oauth_client_created_total"), anyMap());
     }
 
@@ -177,12 +177,12 @@ class OAuthClientCommandServiceTest {
     }
 
     @Test
-    @DisplayName("issueToken aceita hash composto com AUTH_CLIENT_SECRET_BASE")
+    @DisplayName("issueToken aceita hash legado concatenado plain+BASE")
     void issueToken_shouldAcceptComposedHash() {
         UUID clientUuid = UUID.randomUUID();
         OAuthClient client = activeClient(clientUuid);
         when(repository.findByCompanyIdAndClientId(companyId, "investbot-collector")).thenReturn(Optional.of(client));
-        when(passwordEncoder.matches("plain-secret", "hashed-secret")).thenReturn(false);
+        when(passwordEncoder.matches(anyString(), eq("hashed-secret"))).thenReturn(false);
         when(passwordEncoder.matches("plain-secrettest-base", "hashed-secret")).thenReturn(true);
         when(jwtService.generateServiceToken(eq(clientUuid), eq("investbot-collector"), eq(companyId),
                 eq(List.of("knowledge:read", "knowledge:write")), eq(28800_000L), eq(null), eq(null),
@@ -196,6 +196,28 @@ class OAuthClientCommandServiceTest {
                 .build());
 
         assertEquals("jwt-composed", view.accessToken());
+    }
+
+    @Test
+    @DisplayName("issueToken aceita hash SHA-256 hex + BASE")
+    void issueToken_shouldAcceptSha256HexHash() {
+        UUID clientUuid = UUID.randomUUID();
+        OAuthClient client = activeClient(clientUuid);
+        String composed = new OAuthClientSecretCrypto("test-base").composeForHash("plain-secret");
+        when(repository.findByCompanyIdAndClientId(companyId, "investbot-collector")).thenReturn(Optional.of(client));
+        when(passwordEncoder.matches(composed, "hashed-secret")).thenReturn(true);
+        when(jwtService.generateServiceToken(eq(clientUuid), eq("investbot-collector"), eq(companyId),
+                eq(List.of("knowledge:read", "knowledge:write")), eq(28800_000L), eq(null), eq(null),
+                eq(List.of(SystemServiceRoleNames.ROLE_SERVICE_COLLECTOR)))).thenReturn("jwt-sha256");
+
+        OAuthTokenView view = commandService.issueToken(OAuthTokenCommandDTO.builder()
+                .companyId(companyId)
+                .grantType("client_credentials")
+                .clientId("investbot-collector")
+                .clientSecret("plain-secret")
+                .build());
+
+        assertEquals("jwt-sha256", view.accessToken());
     }
 
     @Test

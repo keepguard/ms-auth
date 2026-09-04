@@ -13,9 +13,10 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HexFormat;
 
 /**
- * Hash: BCrypt(plain + AUTH_CLIENT_SECRET_BASE).
+ * Hash: BCrypt(hex(SHA-256(plain || AUTH_CLIENT_SECRET_BASE))) — 64 chars, cabe no limite 72 do BCrypt.
  * Persistência recuperável: AES-256-GCM, chave = SHA-256(BASE).
  * Payload: Base64(IV 12 bytes || ciphertext || tag 16 bytes).
  */
@@ -40,6 +41,11 @@ public class OAuthClientSecretCrypto {
     }
 
     public String composeForHash(String plainSecret) {
+        return HexFormat.of().formatHex(sha256(composeForHashLegacy(plainSecret)));
+    }
+
+    /** Concatenação usada nos hashes anteriores ao pré-hash SHA-256. */
+    public String composeForHashLegacy(String plainSecret) {
         if (plainSecret == null) {
             return secretBase;
         }
