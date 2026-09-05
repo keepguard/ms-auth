@@ -186,6 +186,7 @@ sed "s/VERSION_PLACEHOLDER/${VERSION}/g" "${DOCKERFILE_PATH}.bak" > "${DOCKERFIL
 # 3. Build Docker Image (Multi-Arch AMD64 para Produção Hostinger e Docker Local)
 log_step "3/5 Construindo imagem Docker (linux/amd64)..."
 docker build --platform linux/amd64 -t "${IMAGE_TAG}" -t "${IMAGE_LATEST}" .
+mv "${DOCKERFILE_PATH}.bak" "${DOCKERFILE_PATH}"
 log_success "Imagem Docker construída com sucesso: ${IMAGE_TAG}"
 
 # 4. Push para GitHub Container Registry
