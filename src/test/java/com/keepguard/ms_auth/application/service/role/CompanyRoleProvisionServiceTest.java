@@ -109,11 +109,19 @@ class CompanyRoleProvisionServiceTest {
         Role userClone = roleCaptor.getAllValues().stream()
             .filter(role -> SystemRoleNames.ROLE_USER.equals(role.getName()))
             .findFirst().orElseThrow();
-        assertEquals(9, adminClone.getAuthorities().size());
+        assertEquals(18, adminClone.getAuthorities().size());
         assertTrue(adminClone.getAuthorities().stream().anyMatch(a -> SystemAuthorityNames.AUDIT_READ.equals(a.getName())));
         assertTrue(adminClone.getAuthorities().stream().anyMatch(a -> SystemAuthorityNames.LLM_WRITE.equals(a.getName())));
-        assertEquals(4, managerClone.getAuthorities().size());
+        assertTrue(adminClone.getAuthorities().stream().anyMatch(a -> SystemAuthorityNames.COLLECTOR_WRITE.equals(a.getName())));
+        assertTrue(adminClone.getAuthorities().stream().anyMatch(a -> SystemAuthorityNames.GUARDIAN_READ.equals(a.getName())));
+        assertTrue(adminClone.getAuthorities().stream().anyMatch(a -> SystemAuthorityNames.OAUTH_WRITE.equals(a.getName())));
+        assertTrue(adminClone.getAuthorities().stream().anyMatch(a -> SystemAuthorityNames.OPS_READ.equals(a.getName())));
+        assertEquals(7, managerClone.getAuthorities().size());
         assertTrue(managerClone.getAuthorities().stream().anyMatch(a -> SystemAuthorityNames.LLM_READ.equals(a.getName())));
+        assertTrue(managerClone.getAuthorities().stream().anyMatch(a -> SystemAuthorityNames.COLLECTOR_READ.equals(a.getName())));
+        assertTrue(managerClone.getAuthorities().stream().anyMatch(a -> SystemAuthorityNames.SESSION_READ.equals(a.getName())));
+        assertTrue(managerClone.getAuthorities().stream().anyMatch(a -> SystemAuthorityNames.SESSION_WRITE.equals(a.getName())));
+        assertTrue(managerClone.getAuthorities().stream().noneMatch(a -> SystemAuthorityNames.COLLECTOR_WRITE.equals(a.getName())));
         assertTrue(userClone.getAuthorities().isEmpty());
         verify(authorityRepository, never()).save(any(Authority.class));
         ArgumentCaptor<CompanyRole> companyRoleCaptor = ArgumentCaptor.forClass(CompanyRole.class);

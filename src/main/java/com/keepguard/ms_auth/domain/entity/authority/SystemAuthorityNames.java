@@ -17,6 +17,15 @@ public final class SystemAuthorityNames {
     public static final String KNOWLEDGE_READ = "knowledge:read";
     public static final String LLM_READ = "llm:read";
     public static final String LLM_WRITE = "llm:write";
+    public static final String COLLECTOR_READ = "collector:read";
+    public static final String COLLECTOR_WRITE = "collector:write";
+    public static final String GUARDIAN_READ = "guardian:read";
+    public static final String GUARDIAN_WRITE = "guardian:write";
+    public static final String OAUTH_READ = "oauth:read";
+    public static final String OAUTH_WRITE = "oauth:write";
+    public static final String SESSION_READ = "session:read";
+    public static final String SESSION_WRITE = "session:write";
+    public static final String OPS_READ = "ops:read";
 
     public static final List<String> USER_ACTIONS = List.of(USER_BLOCK, USER_UNBLOCK, USER_DELETE);
     public static final List<String> MANAGER_ACTIONS = List.of(MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE);
@@ -27,7 +36,16 @@ public final class SystemAuthorityNames {
             KNOWLEDGE_WRITE,
             KNOWLEDGE_READ,
             LLM_READ,
-            LLM_WRITE
+            LLM_WRITE,
+            COLLECTOR_READ,
+            COLLECTOR_WRITE,
+            GUARDIAN_READ,
+            GUARDIAN_WRITE,
+            OAUTH_READ,
+            OAUTH_WRITE,
+            SESSION_READ,
+            SESSION_WRITE,
+            OPS_READ
     );
 
     private SystemAuthorityNames() {
@@ -67,6 +85,33 @@ public final class SystemAuthorityNames {
         if (LLM_WRITE.equals(name)) {
             return "Permite gerenciar provedores e regras de alerta LLM";
         }
+        if (COLLECTOR_READ.equals(name)) {
+            return "Permite consultar agents, execuções, fontes e incidentes de coleta";
+        }
+        if (COLLECTOR_WRITE.equals(name)) {
+            return "Permite criar, alterar e operar agents, fontes e incidentes de coleta";
+        }
+        if (GUARDIAN_READ.equals(name)) {
+            return "Permite consultar incidentes e destinatários do Guardian";
+        }
+        if (GUARDIAN_WRITE.equals(name)) {
+            return "Permite executar ações no Guardian e gerenciar destinatários";
+        }
+        if (OAUTH_READ.equals(name)) {
+            return "Permite consultar clients OAuth da empresa";
+        }
+        if (OAUTH_WRITE.equals(name)) {
+            return "Permite criar, alterar, bloquear e excluir clients OAuth";
+        }
+        if (SESSION_READ.equals(name)) {
+            return "Permite consultar sessões e blacklist da organização";
+        }
+        if (SESSION_WRITE.equals(name)) {
+            return "Permite revogar sessões e alterar a blacklist da organização";
+        }
+        if (OPS_READ.equals(name)) {
+            return "Permite consultar o health das conexões do core";
+        }
         return "Permissão do catálogo KeepGuard: " + name;
     }
 
@@ -75,11 +120,21 @@ public final class SystemAuthorityNames {
             return List.of(
                     USER_BLOCK, USER_UNBLOCK, USER_DELETE,
                     MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE,
-                    AUDIT_READ, LLM_READ, LLM_WRITE
+                    AUDIT_READ, LLM_READ, LLM_WRITE,
+                    COLLECTOR_READ, COLLECTOR_WRITE,
+                    GUARDIAN_READ, GUARDIAN_WRITE,
+                    OAUTH_READ, OAUTH_WRITE,
+                    SESSION_READ, SESSION_WRITE,
+                    OPS_READ
             );
         }
         if (SystemRoleNames.ROLE_MANAGER.equals(roleName)) {
-            return List.of(USER_BLOCK, USER_UNBLOCK, USER_DELETE, LLM_READ);
+            return List.of(
+                    USER_BLOCK, USER_UNBLOCK, USER_DELETE,
+                    LLM_READ,
+                    COLLECTOR_READ,
+                    SESSION_READ, SESSION_WRITE
+            );
         }
         return List.of();
     }
