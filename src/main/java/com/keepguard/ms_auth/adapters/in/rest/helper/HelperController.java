@@ -1,5 +1,6 @@
 package com.keepguard.ms_auth.adapters.in.rest.helper;
 
+import com.keepguard.lib_common.logging.annotation.LogOperation;
 import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthSimulateResetTokenRequestDTO;
 import com.keepguard.ms_auth.application.port.out.cache.TokenCachePort;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +60,13 @@ public class HelperController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
+    @LogOperation(
+            operation = "DEV_RESET_TOKEN_SIMULATED",
+            description = "Simulando token de reset (dev): {request.codeUser}",
+            audit = true,
+            auditAction = "DEV_RESET_TOKEN_SIMULATED",
+            auditEntityType = "USER"
+    )
     public ResponseEntity<?> simulateResetToken(
             @Parameter(description = "Dados para simulação do token de reset", required = true)
             @RequestBody AuthSimulateResetTokenRequestDTO request) {

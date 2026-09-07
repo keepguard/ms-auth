@@ -62,7 +62,7 @@ public class OAuthClientCommandService {
             operation = "CREATE_OAUTH_CLIENT",
             description = "Criando oauth client: {command.clientId}",
             audit = true,
-            auditAction = "CREATE",
+            auditAction = "OAUTH_CLIENT_CREATED",
             auditEntityType = "OAUTH_CLIENT"
     )
     @Transactional
@@ -106,7 +106,7 @@ public class OAuthClientCommandService {
             operation = "UPDATE_OAUTH_CLIENT",
             description = "Atualizando oauth client: {command.id}",
             audit = true,
-            auditAction = "UPDATE",
+            auditAction = "OAUTH_CLIENT_UPDATED",
             auditEntityType = "OAUTH_CLIENT"
     )
     @Transactional
@@ -128,7 +128,7 @@ public class OAuthClientCommandService {
             operation = "BLOCK_OAUTH_CLIENT",
             description = "Bloqueando oauth client: {command.id}",
             audit = true,
-            auditAction = "UPDATE",
+            auditAction = "OAUTH_CLIENT_BLOCKED",
             auditEntityType = "OAUTH_CLIENT"
     )
     @Transactional
@@ -145,7 +145,7 @@ public class OAuthClientCommandService {
             operation = "UNBLOCK_OAUTH_CLIENT",
             description = "Desbloqueando oauth client: {command.id}",
             audit = true,
-            auditAction = "UPDATE",
+            auditAction = "OAUTH_CLIENT_UNBLOCKED",
             auditEntityType = "OAUTH_CLIENT"
     )
     @Transactional
@@ -162,7 +162,7 @@ public class OAuthClientCommandService {
             operation = "DELETE_OAUTH_CLIENT",
             description = "Removendo oauth client: {command.id}",
             audit = true,
-            auditAction = "DELETE",
+            auditAction = "OAUTH_CLIENT_DELETED",
             auditEntityType = "OAUTH_CLIENT"
     )
     @Transactional
@@ -173,6 +173,13 @@ public class OAuthClientCommandService {
                 Map.of("client_id", client.getClientId()));
     }
 
+    @LogOperation(
+            operation = "ISSUE_OAUTH_TOKEN",
+            description = "Emitindo token oauth: {command.clientId}",
+            audit = true,
+            auditAction = "OAUTH_TOKEN_ISSUE",
+            auditEntityType = "OAUTH_CLIENT"
+    )
     @Transactional(readOnly = true)
     public OAuthTokenViewDTO issueToken(OAuthTokenCommandDTO command) {
         UUID companyId = requireCompanyId(command.getCompanyId());

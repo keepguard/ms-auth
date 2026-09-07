@@ -285,6 +285,13 @@ public class UserCommandService {
         log.info("User email validated successfully with ID: {}", user.getId());
     }
 
+    @LogOperation(
+        operation = "ADD_USER_ROLE",
+        description = "Adicionando role ao usuário: {command.idUserExternal}",
+        audit = true,
+        auditAction = "USER_ROLE_ADDED",
+        auditEntityType = "USER"
+    )
     @Transactional
     public void addRoleToUser(UserAddRoleCommandDTO command) {
         log.info("Adding role {} to user with external ID: {}", command.getRole(), command.getIdUserExternal());
@@ -315,6 +322,13 @@ public class UserCommandService {
         log.info("Role {} added successfully to user with ID: {}", command.getRole(), user.getId());
     }
 
+    @LogOperation(
+        operation = "REMOVE_USER_ROLE",
+        description = "Removendo role do usuário: {command.idUserExternal}",
+        audit = true,
+        auditAction = "USER_ROLE_REMOVED",
+        auditEntityType = "USER"
+    )
     @Transactional
     public void removeRoleFromUser(UserRemoveRoleCommandDTO command) {
         log.info("Removing role {} from user with external ID: {}", command.getRole(), command.getIdUserExternal());
@@ -343,6 +357,13 @@ public class UserCommandService {
     }
 
 
+    @LogOperation(
+        operation = "UPDATE_USER_EMAIL",
+        description = "Atualizando email do usuário: {command.idUserExternal}",
+        audit = true,
+        auditAction = "USER_EMAIL_UPDATED",
+        auditEntityType = "USER"
+    )
     @Transactional
     public void updateUserEmail(UserUpdateEmailCommandDTO command) {
         log.info("Updating email for user with external ID: {} to: {}", command.getIdUserExternal(), command.getNewEmail());
