@@ -3,12 +3,12 @@ package com.keepguard.ms_auth.adapters.in.rest.auth;
 import com.keepguard.ms_auth.adapters.in.rest.auth.dto.*;
 import com.keepguard.ms_auth.application.port.in.AuthPort;
 import com.keepguard.ms_auth.adapters.in.rest.auth.mapper.AuthAdapterMapper;
-import com.keepguard.ms_auth.domain.dto.auth.AuthLoginCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthRefreshTokenCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthLogoutCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthValidateTokenQueryDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthChangePasswordCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthResetPasswordCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLogoutCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthValidateTokenQueryDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthChangePasswordCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthResetPasswordCommandDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -84,11 +84,11 @@ class AuthControllerTest {
     void shouldLoginSuccessfully() {
         // Given
         String expectedToken = "jwt-token";
-        var expectedView = new com.keepguard.ms_auth.application.dto.auth.AuthLoginView(expectedToken, 3600L);
+        var expectedView = new com.keepguard.ms_auth.application.dto.auth.AuthLoginViewDTO(expectedToken, 3600L);
         
         when(authAdapterMapper.toLoginCommand(any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(AuthLoginCommandDTO.builder().build());
         when(authService.login(any(AuthLoginCommandDTO.class))).thenReturn(expectedView);
-        when(authAdapterMapper.toLoginResponseDTO(any(com.keepguard.ms_auth.application.dto.auth.AuthLoginView.class))).thenReturn(AuthLoginResponseDTO.builder()
+        when(authAdapterMapper.toLoginResponseDTO(any(com.keepguard.ms_auth.application.dto.auth.AuthLoginViewDTO.class))).thenReturn(AuthLoginResponseDTO.builder()
             .token(expectedToken)
             .expiresIn(3600L)
             .build());
@@ -112,11 +112,11 @@ class AuthControllerTest {
     void shouldRefreshTokenSuccessfully() {
         // Given
         String expectedToken = "new-jwt-token";
-        var expectedView = new com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenView(expectedToken, 3600L);
+        var expectedView = new com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenViewDTO(expectedToken, 3600L);
         
         when(authAdapterMapper.toRefreshTokenCommand(any(), any(), any())).thenReturn(AuthRefreshTokenCommandDTO.builder().build());
         when(authService.refreshToken(any(AuthRefreshTokenCommandDTO.class))).thenReturn(expectedView);
-        when(authAdapterMapper.toRefreshTokenResponseDTO(any(com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenView.class))).thenReturn(AuthRefreshTokenResponseDTO.builder()
+        when(authAdapterMapper.toRefreshTokenResponseDTO(any(com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenViewDTO.class))).thenReturn(AuthRefreshTokenResponseDTO.builder()
             .token(expectedToken)
             .expiresIn(3600L)
             .build());
@@ -140,11 +140,11 @@ class AuthControllerTest {
     void shouldLogoutSuccessfully() {
         // Given
         String token = "Bearer jwt-token";
-        var expectedView = new com.keepguard.ms_auth.application.dto.auth.AuthLogoutView("Logout realizado com sucesso", true);
+        var expectedView = new com.keepguard.ms_auth.application.dto.auth.AuthLogoutViewDTO("Logout realizado com sucesso", true);
         
         when(authAdapterMapper.toLogoutCommand(any(), any())).thenReturn(AuthLogoutCommandDTO.builder().build());
         when(authService.logout(any(AuthLogoutCommandDTO.class))).thenReturn(expectedView);
-        when(authAdapterMapper.toLogoutResponseDTO(any(com.keepguard.ms_auth.application.dto.auth.AuthLogoutView.class))).thenReturn(AuthLogoutResponseDTO.builder()
+        when(authAdapterMapper.toLogoutResponseDTO(any(com.keepguard.ms_auth.application.dto.auth.AuthLogoutViewDTO.class))).thenReturn(AuthLogoutResponseDTO.builder()
             .message("Logout realizado com sucesso")
             .success(true)
             .build());

@@ -1,11 +1,11 @@
 package com.keepguard.ms_auth.application.service.oauth;
 
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientViewDTO;
 import com.keepguard.ms_auth.application.mapper.OAuthClientApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.persistence.OAuthClientRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientSearchQueryDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientSearchQueryDTO;
 import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
 import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
 import com.keepguard.ms_auth.infrastructure.config.security.OAuthClientSecretCrypto;
@@ -53,7 +53,7 @@ class OAuthClientQueryServiceTest {
         when(repository.search(eq(companyId), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(client), PageRequest.of(0, 20), 1));
 
-        PageResultView<OAuthClientView> result = queryService.search(OAuthClientSearchQueryDTO.builder()
+        PageResultViewDTO<OAuthClientViewDTO> result = queryService.search(OAuthClientSearchQueryDTO.builder()
                 .companyId(companyId)
                 .pageable(PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt")))
                 .build());

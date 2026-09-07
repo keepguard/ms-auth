@@ -1,41 +1,41 @@
 package com.keepguard.ms_auth.application.port.in;
 
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientRuntimeSecretView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientSearchQueryDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientUpdateCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientRuntimeSecretViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientIdCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientSearchQueryDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientUpdateCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenCommandDTO;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface OAuthClientPort {
 
-    OAuthClientCreateView create(OAuthClientCreateCommandDTO command);
+    OAuthClientCreateViewDTO create(OAuthClientCreateCommandDTO command);
 
-    OAuthClientView update(OAuthClientUpdateCommandDTO command);
+    OAuthClientViewDTO update(OAuthClientUpdateCommandDTO command);
 
-    OAuthClientView findById(UUID companyId, UUID id);
+    OAuthClientViewDTO findById(UUID companyId, UUID id);
 
-    List<OAuthClientView> listByCompany(UUID companyId);
+    List<OAuthClientViewDTO> listByCompany(UUID companyId);
 
-    PageResultView<OAuthClientView> search(OAuthClientSearchQueryDTO query);
+    PageResultViewDTO<OAuthClientViewDTO> search(OAuthClientSearchQueryDTO query);
 
-    List<OAuthServiceRoleView> listServiceRoles();
+    List<OAuthServiceRoleViewDTO> listServiceRoles();
 
-    OAuthClientView block(OAuthClientIdCommandDTO command);
+    OAuthClientViewDTO block(OAuthClientIdCommandDTO command);
 
-    OAuthClientView unblock(OAuthClientIdCommandDTO command);
+    OAuthClientViewDTO unblock(OAuthClientIdCommandDTO command);
 
     void delete(OAuthClientIdCommandDTO command);
 
-    OAuthClientRuntimeSecretView findRuntimeSecret(UUID companyId, String clientId, String presentedBase);
+    OAuthClientRuntimeSecretViewDTO findRuntimeSecret(UUID companyId, String clientId, String presentedBase);
 
-    OAuthTokenView issueToken(OAuthTokenCommandDTO command);
+    OAuthTokenViewDTO issueToken(OAuthTokenCommandDTO command);
 }

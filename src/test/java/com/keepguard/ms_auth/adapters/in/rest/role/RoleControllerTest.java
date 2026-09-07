@@ -2,13 +2,15 @@ package com.keepguard.ms_auth.adapters.in.rest.role;
 
 import com.keepguard.lib_common.utils.ValidationUtils;
 import com.keepguard.ms_auth.adapters.in.rest.role.dto.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleCreateRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleUpdateRequestDTO;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.adapters.in.rest.role.mapper.RoleAdapterMapper;
 import com.keepguard.ms_auth.application.port.in.RolePort;
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
-import com.keepguard.ms_auth.domain.dto.role.*;
+import com.keepguard.ms_auth.application.dto.role.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,18 +50,18 @@ class RoleControllerTest {
     private UUID companyId;
     private String tenantIdStr;
     private RoleResponseDTO roleResponseDTO;
-    private RoleCreateDTO roleCreateDTO;
-    private RoleUpdateDTO roleUpdateDTO;
-    private PageResultView<RoleResponseDTO> pageResultView;
+    private RoleCreateRequestDTO roleCreateDTO;
+    private RoleUpdateRequestDTO roleUpdateDTO;
+    private PageResultViewDTO<RoleResponseDTO> pageResultView;
     
     // View objects
-    private RoleCreateView createRoleView;
-    private RoleUpdateView updateRoleView;
-    private RoleGetByIdView getRoleByIdView;
-    private RoleGetByNameView getRoleByNameView;
-    private RoleListView listRoleView;
-    private RoleSearchView searchRoleView;
-    private PageResultView<RoleSearchView> searchPageResultView;
+    private RoleCreateViewDTO createRoleView;
+    private RoleUpdateViewDTO updateRoleView;
+    private RoleGetByIdViewDTO getRoleByIdView;
+    private RoleGetByNameViewDTO getRoleByNameView;
+    private RoleListViewDTO listRoleView;
+    private RoleSearchViewDTO searchRoleView;
+    private PageResultViewDTO<RoleSearchViewDTO> searchPageResultView;
     
     @BeforeEach
     void setUp() {
@@ -78,17 +80,17 @@ class RoleControllerTest {
             .updatedAt(LocalDateTime.now())
             .build();
         
-        roleCreateDTO = RoleCreateDTO.builder()
+        roleCreateDTO = RoleCreateRequestDTO.builder()
             .name("USER")
             .description("Usuário comum")
             .build();
         
-        roleUpdateDTO = RoleUpdateDTO.builder()
+        roleUpdateDTO = RoleUpdateRequestDTO.builder()
             .name("ADMIN_UPDATED")
             .description("Administrador atualizado")
             .build();
         
-        pageResultView = new PageResultView<>(
+        pageResultView = new PageResultViewDTO<>(
             List.of(roleResponseDTO),
             0,
             10,
@@ -101,13 +103,13 @@ class RoleControllerTest {
         );
         
         // Initialize View objects
-        createRoleView = new RoleCreateView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
-        updateRoleView = new RoleUpdateView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
-        getRoleByIdView = new RoleGetByIdView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
-        getRoleByNameView = new RoleGetByNameView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
-        listRoleView = new RoleListView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
-        searchRoleView = new RoleSearchView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
-        searchPageResultView = new PageResultView<>(
+        createRoleView = new RoleCreateViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        updateRoleView = new RoleUpdateViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        getRoleByIdView = new RoleGetByIdViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        getRoleByNameView = new RoleGetByNameViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        listRoleView = new RoleListViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        searchRoleView = new RoleSearchViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        searchPageResultView = new PageResultViewDTO<>(
             List.of(searchRoleView),
             0,
             10,
@@ -132,9 +134,9 @@ class RoleControllerTest {
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
-            when(mapper.toCreateCommand(any(RoleCreateDTO.class), any(UUID.class))).thenReturn(command);
+            when(mapper.toCreateCommand(any(RoleCreateRequestDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.create(any(RoleCreateCommandDTO.class))).thenReturn(createRoleView);
-            when(mapper.toCreateResponseDTO(any(RoleCreateView.class))).thenReturn(RoleCreateResponseDTO.builder()
+            when(mapper.toCreateResponseDTO(any(RoleCreateViewDTO.class))).thenReturn(RoleCreateResponseDTO.builder()
                 .id(roleId)
                 .name("ADMIN")
                 .description("Administrador do sistema")
@@ -169,7 +171,7 @@ class RoleControllerTest {
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
-            when(mapper.toCreateCommand(any(RoleCreateDTO.class), any(UUID.class))).thenReturn(command);
+            when(mapper.toCreateCommand(any(RoleCreateRequestDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.create(any(RoleCreateCommandDTO.class)))
                 .thenThrow(new AlreadyExistsException("Role já existe"));
             
@@ -195,10 +197,10 @@ class RoleControllerTest {
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
-            when(mapper.toUpdateCommand(any(UUID.class), any(RoleUpdateDTO.class), any(UUID.class))).thenReturn(command);
+            when(mapper.toUpdateCommand(any(UUID.class), any(RoleUpdateRequestDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.update(any(RoleUpdateCommandDTO.class)))
                 .thenReturn(updateRoleView);
-            when(mapper.toUpdateResponseDTO(any(RoleUpdateView.class))).thenReturn(RoleUpdateResponseDTO.builder()
+            when(mapper.toUpdateResponseDTO(any(RoleUpdateViewDTO.class))).thenReturn(RoleUpdateResponseDTO.builder()
                 .id(roleId)
                 .name("ADMIN")
                 .description("Administrador atualizado")
@@ -232,7 +234,7 @@ class RoleControllerTest {
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
-            when(mapper.toUpdateCommand(any(UUID.class), any(RoleUpdateDTO.class), any(UUID.class))).thenReturn(command);
+            when(mapper.toUpdateCommand(any(UUID.class), any(RoleUpdateRequestDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.update(any(RoleUpdateCommandDTO.class)))
                 .thenThrow(new NotFoundException("Role não encontrado"));
             
@@ -306,7 +308,7 @@ class RoleControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toGetByIdCommand(any(UUID.class), any(UUID.class))).thenReturn(command);
             when(rolePort.findById(any(RoleGetByIdQueryDTO.class))).thenReturn(Optional.of(getRoleByIdView));
-            when(mapper.toGetByIdResponseDTO(any(RoleGetByIdView.class))).thenReturn(RoleGetByIdResponseDTO.builder()
+            when(mapper.toGetByIdResponseDTO(any(RoleGetByIdViewDTO.class))).thenReturn(RoleGetByIdResponseDTO.builder()
                 .id(roleId)
                 .name("ADMIN")
                 .description("Administrador do sistema")
@@ -367,7 +369,7 @@ class RoleControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toGetByNameCommand(any(String.class), any(UUID.class))).thenReturn(command);
             when(rolePort.findByName(any(RoleGetByNameQueryDTO.class))).thenReturn(Optional.of(getRoleByNameView));
-            when(mapper.toGetByNameResponseDTO(any(RoleGetByNameView.class))).thenReturn(RoleGetByNameResponseDTO.builder()
+            when(mapper.toGetByNameResponseDTO(any(RoleGetByNameViewDTO.class))).thenReturn(RoleGetByNameResponseDTO.builder()
                 .id(roleId)
                 .name(roleName)
                 .description("Administrador do sistema")
@@ -419,7 +421,7 @@ class RoleControllerTest {
     @DisplayName("Deve listar todos os roles com sucesso")
     void shouldListAllRolesSuccessfully() {
         // Given
-        List<RoleListView> roles = List.of(listRoleView);
+        List<RoleListViewDTO> roles = List.of(listRoleView);
         var command = RoleGetAllQueryDTO.builder()
             .companyId(companyId)
             .build();
@@ -428,7 +430,7 @@ class RoleControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toGetAllCommand(any(UUID.class))).thenReturn(command);
             when(rolePort.findAll(any(RoleGetAllQueryDTO.class))).thenReturn(roles);
-            when(mapper.toListResponseDTO(any(RoleListView.class))).thenReturn(RoleListResponseDTO.builder()
+            when(mapper.toListResponseDTO(any(RoleListViewDTO.class))).thenReturn(RoleListResponseDTO.builder()
                 .id(roleId)
                 .name("ADMIN")
                 .description("Administrador do sistema")
@@ -464,7 +466,7 @@ class RoleControllerTest {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
             when(mapper.toSearchCommand(any(Pageable.class), any(UUID.class))).thenReturn(command);
             when(rolePort.findAll(any(RoleSearchQueryDTO.class))).thenReturn(searchPageResultView);
-            when(mapper.toSearchResponseDTO(any(RoleSearchView.class))).thenReturn(RoleSearchResponseDTO.builder()
+            when(mapper.toSearchResponseDTO(any(RoleSearchViewDTO.class))).thenReturn(RoleSearchResponseDTO.builder()
                 .id(roleId)
                 .name("ADMIN")
                 .description("Administrador do sistema")
@@ -474,7 +476,7 @@ class RoleControllerTest {
                 .build());
             
             // When
-            ResponseEntity<PageResultView<RoleSearchResponseDTO>> response = roleController.search(companyId, pageable);
+            ResponseEntity<PageResultViewDTO<RoleSearchResponseDTO>> response = roleController.search(companyId, pageable);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -518,7 +520,7 @@ class RoleControllerTest {
     void shouldReturnEmptyPageWhenNoRolesInSearch() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        PageResultView<RoleSearchView> emptyPageResultView = new PageResultView<>(List.of(), 0, 10, 0L, 0, true, true, false, false);
+        PageResultViewDTO<RoleSearchViewDTO> emptyPageResultView = new PageResultViewDTO<>(List.of(), 0, 10, 0L, 0, true, true, false, false);
         var command = RoleSearchQueryDTO.builder()
             .pageable(pageable)
             .companyId(companyId)
@@ -530,7 +532,7 @@ class RoleControllerTest {
             when(rolePort.findAll(any(RoleSearchQueryDTO.class))).thenReturn(emptyPageResultView);
             
             // When
-            ResponseEntity<PageResultView<RoleSearchResponseDTO>> response = roleController.search(companyId, pageable);
+            ResponseEntity<PageResultViewDTO<RoleSearchResponseDTO>> response = roleController.search(companyId, pageable);
             
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -546,7 +548,7 @@ class RoleControllerTest {
     @DisplayName("Deve criar role com nome em maiúsculo")
     void shouldCreateRoleWithUppercaseName() {
         // Given
-        RoleCreateDTO createDTO = RoleCreateDTO.builder()
+        RoleCreateRequestDTO createDTO = RoleCreateRequestDTO.builder()
             .name("user")
             .description("Usuário comum")
             .build();
@@ -567,9 +569,9 @@ class RoleControllerTest {
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
-            when(mapper.toCreateCommand(any(RoleCreateDTO.class), any(UUID.class))).thenReturn(command);
+            when(mapper.toCreateCommand(any(RoleCreateRequestDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.create(any(RoleCreateCommandDTO.class))).thenReturn(createRoleView);
-            when(mapper.toCreateResponseDTO(any(RoleCreateView.class))).thenReturn(RoleCreateResponseDTO.builder()
+            when(mapper.toCreateResponseDTO(any(RoleCreateViewDTO.class))).thenReturn(RoleCreateResponseDTO.builder()
                 .id(roleId)
                 .name("USER")
                 .description("Usuário comum")
@@ -594,7 +596,7 @@ class RoleControllerTest {
     @DisplayName("Deve atualizar role com nome em maiúsculo")
     void shouldUpdateRoleWithUppercaseName() {
         // Given
-        RoleUpdateDTO updateDTO = RoleUpdateDTO.builder()
+        RoleUpdateRequestDTO updateDTO = RoleUpdateRequestDTO.builder()
             .name("admin_updated")
             .description("Administrador atualizado")
             .build();
@@ -616,9 +618,9 @@ class RoleControllerTest {
         
         try (MockedStatic<ValidationUtils> mockedValidation = mockStatic(ValidationUtils.class)) {
             mockedValidation.when(() -> ValidationUtils.validateTenantId(tenantIdStr)).thenReturn(companyId);
-            when(mapper.toUpdateCommand(any(UUID.class), any(RoleUpdateDTO.class), any(UUID.class))).thenReturn(command);
+            when(mapper.toUpdateCommand(any(UUID.class), any(RoleUpdateRequestDTO.class), any(UUID.class))).thenReturn(command);
             when(rolePort.update(any(RoleUpdateCommandDTO.class))).thenReturn(updateRoleView);
-            when(mapper.toUpdateResponseDTO(any(RoleUpdateView.class))).thenReturn(RoleUpdateResponseDTO.builder()
+            when(mapper.toUpdateResponseDTO(any(RoleUpdateViewDTO.class))).thenReturn(RoleUpdateResponseDTO.builder()
                 .id(roleId)
                 .name("ADMIN_UPDATED")
                 .description("Administrador atualizado")

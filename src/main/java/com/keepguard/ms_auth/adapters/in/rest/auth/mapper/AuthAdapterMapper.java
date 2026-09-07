@@ -10,18 +10,18 @@ import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthResetPasswordRequestD
 import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthGenerateResetTokenRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthGenerateResetTokenResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthRegisterLoginRequestDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthLoginCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthRefreshTokenCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthValidateTokenQueryDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthChangePasswordCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthResetPasswordCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthGenerateResetTokenCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthGenerateResetTokenViewDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthValidateTokenQueryDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthChangePasswordCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthResetPasswordCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthGenerateResetTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthGenerateResetTokenViewDTO;
 import com.keepguard.ms_auth.application.dto.auth.AuthRegisterLoginCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthLogoutCommandDTO;
-import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
-import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenView;
-import com.keepguard.ms_auth.application.dto.auth.AuthLogoutView;
+import com.keepguard.ms_auth.application.dto.auth.AuthLogoutCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginViewDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenViewDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLogoutViewDTO;
 import com.keepguard.ms_auth.infrastructure.util.IpAddressUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -193,7 +193,7 @@ public class AuthAdapterMapper {
         }
     }
 
-    public AuthLoginResponseDTO toLoginResponseDTO(AuthLoginView view) {
+    public AuthLoginResponseDTO toLoginResponseDTO(AuthLoginViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -208,12 +208,12 @@ public class AuthAdapterMapper {
                     .availableChannels(view.availableChannels())
                     .build();
         } catch (Exception e) {
-            log.error("Erro ao mapear AuthLoginView para AuthLoginResponseDTO: {}", e.getMessage(), e);
+            log.error("Erro ao mapear AuthLoginViewDTO para AuthLoginResponseDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
-    public AuthRefreshTokenResponseDTO toRefreshTokenResponseDTO(AuthRefreshTokenView view) {
+    public AuthRefreshTokenResponseDTO toRefreshTokenResponseDTO(AuthRefreshTokenViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -224,12 +224,12 @@ public class AuthAdapterMapper {
                     .expiresIn(view.expiresIn())
                     .build();
         } catch (Exception e) {
-            log.error("Erro ao mapear AuthRefreshTokenView para AuthRefreshTokenResponseDTO: {}", e.getMessage(), e);
+            log.error("Erro ao mapear AuthRefreshTokenViewDTO para AuthRefreshTokenResponseDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
-    public com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthLogoutResponseDTO toLogoutResponseDTO(AuthLogoutView view) {
+    public com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthLogoutResponseDTO toLogoutResponseDTO(AuthLogoutViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -240,7 +240,7 @@ public class AuthAdapterMapper {
                     .success(view.success())
                     .build();
         } catch (Exception e) {
-            log.error("Erro ao mapear AuthLogoutView para AuthLogoutResponseDTO: {}", e.getMessage(), e);
+            log.error("Erro ao mapear AuthLogoutViewDTO para AuthLogoutResponseDTO: {}", e.getMessage(), e);
             throw e;
         }
     }

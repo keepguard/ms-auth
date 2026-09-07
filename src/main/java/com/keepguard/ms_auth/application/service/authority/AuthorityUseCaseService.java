@@ -1,9 +1,9 @@
 package com.keepguard.ms_auth.application.service.authority;
 
 import com.keepguard.ms_auth.application.dto.authority.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.port.in.AuthorityPort;
-import com.keepguard.ms_auth.domain.dto.authority.*;
+import com.keepguard.ms_auth.application.dto.authority.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,13 +20,13 @@ public class AuthorityUseCaseService implements AuthorityPort {
     private final AuthorityQueryService authorityQueryService;
 
     @Override
-    public AuthorityCreateView create(AuthorityCreateCommandDTO command) {
+    public AuthorityCreateViewDTO create(AuthorityCreateCommandDTO command) {
         log.info("Creating authority: {}", command.getName());
         return authorityCommandService.create(command);
     }
 
     @Override
-    public AuthorityUpdateView update(AuthorityUpdateCommandDTO command) {
+    public AuthorityUpdateViewDTO update(AuthorityUpdateCommandDTO command) {
         log.info("Updating authority with ID: {}", command.getId());
         return authorityCommandService.update(command);
     }
@@ -38,25 +38,25 @@ public class AuthorityUseCaseService implements AuthorityPort {
     }
 
     @Override
-    public Optional<AuthorityGetByIdView> findById(AuthorityGetByIdQueryDTO command) {
+    public Optional<AuthorityGetByIdViewDTO> findById(AuthorityGetByIdQueryDTO command) {
         log.debug("Finding authority by ID: {}", command.getId());
         return authorityQueryService.findById(command.getId());
     }
 
     @Override
-    public Optional<AuthorityGetByNameView> findByName(AuthorityGetByNameQueryDTO command) {
+    public Optional<AuthorityGetByNameViewDTO> findByName(AuthorityGetByNameQueryDTO command) {
         log.debug("Finding authority by name: {}", command.getName());
         return authorityQueryService.findByName(command.getName());
     }
 
     @Override
-    public List<AuthorityListView> findAll(AuthorityGetAllQueryDTO command) {
+    public List<AuthorityListViewDTO> findAll(AuthorityGetAllQueryDTO command) {
         log.debug("Finding all authorities");
         return authorityQueryService.findAll();
     }
 
     @Override
-    public PageResultView<AuthoritySearchView> findAll(AuthoritySearchQueryDTO command) {
+    public PageResultViewDTO<AuthoritySearchViewDTO> findAll(AuthoritySearchQueryDTO command) {
         log.debug("Finding all authorities with pagination");
         return authorityQueryService.findAll(command.getPageable());
     }

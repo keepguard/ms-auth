@@ -9,15 +9,15 @@ import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthServiceRoleAuthorit
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthServiceRoleResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthTokenRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthTokenResponseDTO;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientRuntimeSecretView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientUpdateCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientRuntimeSecretViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientIdCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientUpdateCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenCommandDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -72,7 +72,7 @@ public class OAuthClientAdapterMapper {
                 .build();
     }
 
-    public OAuthClientCreateResponseDTO toCreateResponse(OAuthClientCreateView view) {
+    public OAuthClientCreateResponseDTO toCreateResponse(OAuthClientCreateViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -92,7 +92,7 @@ public class OAuthClientAdapterMapper {
                 .build();
     }
 
-    public OAuthClientResponseDTO toResponse(OAuthClientView view) {
+    public OAuthClientResponseDTO toResponse(OAuthClientViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -112,7 +112,7 @@ public class OAuthClientAdapterMapper {
                 .build();
     }
 
-    public OAuthTokenResponseDTO toTokenResponse(OAuthTokenView view) {
+    public OAuthTokenResponseDTO toTokenResponse(OAuthTokenViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -123,7 +123,7 @@ public class OAuthClientAdapterMapper {
                 .build();
     }
 
-    public OAuthServiceRoleResponseDTO toServiceRoleResponse(OAuthServiceRoleView view) {
+    public OAuthServiceRoleResponseDTO toServiceRoleResponse(OAuthServiceRoleViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -140,7 +140,7 @@ public class OAuthClientAdapterMapper {
                 .build();
     }
 
-    public OAuthClientRuntimeSecretResponseDTO toRuntimeSecretResponse(OAuthClientRuntimeSecretView view) {
+    public OAuthClientRuntimeSecretResponseDTO toRuntimeSecretResponse(OAuthClientRuntimeSecretViewDTO view) {
         if (view == null) {
             return null;
         }

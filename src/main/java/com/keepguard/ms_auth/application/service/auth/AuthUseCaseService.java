@@ -1,19 +1,19 @@
 package com.keepguard.ms_auth.application.service.auth;
 
-import com.keepguard.ms_auth.domain.dto.auth.AuthLoginCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthRefreshTokenCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthLogoutCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthValidateTokenQueryDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthChangePasswordCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthResetPasswordCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthGenerateResetTokenCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthGenerateResetTokenViewDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLogoutCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthValidateTokenQueryDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthChangePasswordCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthResetPasswordCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthGenerateResetTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthGenerateResetTokenViewDTO;
 import com.keepguard.ms_auth.application.dto.auth.AuthRegisterLoginCommandDTO;
-import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
-import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenView;
-import com.keepguard.ms_auth.application.dto.auth.AuthLogoutView;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginViewDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenViewDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLogoutViewDTO;
 import com.keepguard.ms_auth.application.port.in.AuthPort;
-import com.keepguard.ms_auth.application.dto.user.UserView;
+import com.keepguard.ms_auth.application.dto.user.UserViewDTO;
 import com.keepguard.ms_auth.application.mapper.AuthApplicationMapper;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -68,30 +68,30 @@ public class AuthUseCaseService implements AuthPort {
      * </ul>
      * 
      * @param request Dados de login (username, password, etc)
-     * @return AuthLoginView com token JWT e tempo de expiração
+     * @return AuthLoginViewDTO com token JWT e tempo de expiração
      * @throws RuntimeException quando rate limit é excedido
      */
     @Override
     @RateLimiter(name = "loginAttempt", fallbackMethod = "loginRateLimitExceeded")
-    public AuthLoginView login(AuthLoginCommandDTO request) {
+    public AuthLoginViewDTO login(AuthLoginCommandDTO request) {
         log.info("Processando login | username={} | application={} | clientId={}", 
             request.getUsername(), request.getCompanyId(), request.getClientId());
         
-        AuthLoginView view = authCommandService.login(request);
+        AuthLoginViewDTO view = authCommandService.login(request);
         
         log.info("Login processado | username={} | status={}", request.getUsername(), view.status());
         return view;
     }
 
     @Override
-    public AuthLoginView registerLogin(AuthRegisterLoginCommandDTO request) {
+    public AuthLoginViewDTO registerLogin(AuthRegisterLoginCommandDTO request) {
         log.info("Processando register login | username={} | application={} | clientId={}", 
             request.getUsername(), request.getCompanyId(), request.getClientId());
         
         String token = authCommandService.registerLogin(request);
         
         log.info("Register login bem-sucedido | username={}", request.getUsername());
-        return new AuthLoginView(token, 3600L);
+        return new AuthLoginViewDTO(token, 3600L);
     }
     
     /**
@@ -109,7 +109,7 @@ public class AuthUseCaseService implements AuthPort {
      * @param ex RequestNotPermitted lançada pelo Rate Limiter
      * @throws RuntimeException com mensagem amigável
      */
-    private AuthLoginView loginRateLimitExceeded(AuthLoginCommandDTO request, RequestNotPermitted ex) {
+    private AuthLoginViewDTO loginRateLimitExceeded(AuthLoginCommandDTO request, RequestNotPermitted ex) {
         log.warn("RATE LIMIT EXCEDIDO | username={} | application={} | clientId={}", 
             request.getUsername(), 
             request.getCompanyId(), 
@@ -121,18 +121,18 @@ public class AuthUseCaseService implements AuthPort {
     }
 
     @Override
-    public AuthRefreshTokenView refreshToken(AuthRefreshTokenCommandDTO request) {
+    public AuthRefreshTokenViewDTO refreshToken(AuthRefreshTokenCommandDTO request) {
         log.info("Processing refresh token request - application={}, clientId={}", 
             request.getCompanyId(), request.getClientId());
         String token = authCommandService.refreshToken(request);
-        return new AuthRefreshTokenView(token, 3600L);
+        return new AuthRefreshTokenViewDTO(token, 3600L);
     }
 
     @Override
-    public AuthLogoutView logout(AuthLogoutCommandDTO request) {
+    public AuthLogoutViewDTO logout(AuthLogoutCommandDTO request) {
         log.info("Processing logout request - application={}", request.getCompanyId());
         authCommandService.logout(request);
-        return new AuthLogoutView("Logout realizado com sucesso", true);
+        return new AuthLogoutViewDTO("Logout realizado com sucesso", true);
     }
 
     @Override
@@ -163,28 +163,28 @@ public class AuthUseCaseService implements AuthPort {
     }
 
     @Override
-    public Optional<UserView> findByUsername(String username, UUID companyId) {
+    public Optional<UserViewDTO> findByUsername(String username, UUID companyId) {
         log.debug("Finding user by username: {}", username);
             return authQueryService.findByUsername(username, companyId)
                     .map(authApplicationMapper::toUserView);
     }
 
     @Override
-    public Optional<UserView> findByEmail(String email, UUID companyId) {
+    public Optional<UserViewDTO> findByEmail(String email, UUID companyId) {
         log.debug("Finding user by email: {}", email);
             return authQueryService.findByEmail(email, companyId)
                     .map(authApplicationMapper::toUserView);
     }
 
     @Override
-    public Optional<UserView> findByIdUserExternal(UUID idUserExternal) {
+    public Optional<UserViewDTO> findByIdUserExternal(UUID idUserExternal) {
         log.debug("Finding user by external ID: {}", idUserExternal);
             return authQueryService.findByIdUserExternal(idUserExternal)
                     .map(authApplicationMapper::toUserView);
     }
 
     @Override
-    public Optional<UserView> findByCodeUser(UUID codeUser) {
+    public Optional<UserViewDTO> findByCodeUser(UUID codeUser) {
         log.debug("Finding user by code: {}", codeUser);
             return authQueryService.findByCodeUser(codeUser)
                     .map(authApplicationMapper::toUserView);

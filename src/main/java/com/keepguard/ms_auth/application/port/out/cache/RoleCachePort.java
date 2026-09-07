@@ -1,12 +1,12 @@
 package com.keepguard.ms_auth.application.port.out.cache;
 
-import com.keepguard.ms_auth.application.dto.role.RoleCacheView;
+import com.keepguard.ms_auth.application.dto.role.RoleCacheViewDTO;
 
 public interface RoleCachePort {
 
     // By RoleId
-    void cacheRoleById(String roleId, RoleCacheView role);
-    RoleCacheView getRoleByIdFromCache(String roleId);
+    void cacheRoleById(String roleId, RoleCacheViewDTO role);
+    RoleCacheViewDTO getRoleByIdFromCache(String roleId);
     void removeRoleFromCacheById(String roleId);
 
     // Clear All

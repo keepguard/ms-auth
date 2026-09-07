@@ -39,7 +39,7 @@ public class UserCacheService implements UserCachePort {
     private String userRolesCachePrefix;
 
     @CircuitBreaker(name = "redisCache")
-    public void cacheUserByUsername(UUID companyId, String username, UserGetByUsernameView user) {
+    public void cacheUserByUsername(UUID companyId, String username, UserGetByUsernameViewDTO user) {
         try {
             String key = scopedKey("username", companyId, username);
             String value = objectMapper.writeValueAsString(user);
@@ -51,7 +51,7 @@ public class UserCacheService implements UserCachePort {
 
     @CircuitBreaker(name = "redisCache", fallbackMethod = "scopedCacheFallback")
     @Retry(name = "redisCache")
-    public UserAuthCacheView getUserByUsernameFromCache(UUID companyId, String username) {
+    public UserAuthCacheViewDTO getUserByUsernameFromCache(UUID companyId, String username) {
         try {
             var key = scopedKey("username", companyId, username);
             var value = redisTemplate.opsForValue().get(key);
@@ -60,7 +60,7 @@ public class UserCacheService implements UserCachePort {
                 return null;
             }
 
-            return objectMapper.readValue(value, UserAuthCacheView.class);
+            return objectMapper.readValue(value, UserAuthCacheViewDTO.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -76,7 +76,7 @@ public class UserCacheService implements UserCachePort {
     }
 
     @CircuitBreaker(name = "redisCache")
-    public void cacheUserByEmail(UUID companyId, String email, UserGetByEmailView user) {
+    public void cacheUserByEmail(UUID companyId, String email, UserGetByEmailViewDTO user) {
         try {
             String key = scopedKey("email", companyId, email);
             String value = objectMapper.writeValueAsString(user);
@@ -88,7 +88,7 @@ public class UserCacheService implements UserCachePort {
 
     @CircuitBreaker(name = "redisCache", fallbackMethod = "scopedCacheFallback")
     @Retry(name = "redisCache")
-    public UserAuthCacheView getUserByEmailFromCache(UUID companyId, String email) {
+    public UserAuthCacheViewDTO getUserByEmailFromCache(UUID companyId, String email) {
         try {
             var key = scopedKey("email", companyId, email);
             var value = redisTemplate.opsForValue().get(key);
@@ -97,7 +97,7 @@ public class UserCacheService implements UserCachePort {
                 return null;
             }
 
-            return objectMapper.readValue(value, UserAuthCacheView.class);
+            return objectMapper.readValue(value, UserAuthCacheViewDTO.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -113,7 +113,7 @@ public class UserCacheService implements UserCachePort {
     }
 
     @CircuitBreaker(name = "redisCache")
-    public void cacheUserByCodeUser(String codeUser, UserGetByCodeView user) {
+    public void cacheUserByCodeUser(String codeUser, UserGetByCodeViewDTO user) {
         try {
             String key = authKey("codeuser", codeUser);
             String value = objectMapper.writeValueAsString(user);
@@ -125,7 +125,7 @@ public class UserCacheService implements UserCachePort {
 
     @CircuitBreaker(name = "redisCache", fallbackMethod = "cacheFallback")
     @Retry(name = "redisCache")
-    public UserAuthCacheView getUserByCodeUserFromCache(String codeUser) {
+    public UserAuthCacheViewDTO getUserByCodeUserFromCache(String codeUser) {
         try {
             var key = authKey("codeuser", codeUser);
             var value = redisTemplate.opsForValue().get(key);
@@ -134,7 +134,7 @@ public class UserCacheService implements UserCachePort {
                 return null;
             }
 
-            return objectMapper.readValue(value, UserAuthCacheView.class);
+            return objectMapper.readValue(value, UserAuthCacheViewDTO.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -150,7 +150,7 @@ public class UserCacheService implements UserCachePort {
     }
 
     @CircuitBreaker(name = "redisCache")
-    public void cacheUserByIdExternal(String idUserExternal, UserAuthCacheView user) {
+    public void cacheUserByIdExternal(String idUserExternal, UserAuthCacheViewDTO user) {
         try {
             String key = authKey("external", idUserExternal);
             String value = objectMapper.writeValueAsString(user);
@@ -162,7 +162,7 @@ public class UserCacheService implements UserCachePort {
 
     @CircuitBreaker(name = "redisCache", fallbackMethod = "cacheFallback")
     @Retry(name = "redisCache")
-    public UserAuthCacheView getUserByIdExternalFromCache(String idUserExternal) {
+    public UserAuthCacheViewDTO getUserByIdExternalFromCache(String idUserExternal) {
         try {
             var key = authKey("external", idUserExternal);
             var value = redisTemplate.opsForValue().get(key);
@@ -171,7 +171,7 @@ public class UserCacheService implements UserCachePort {
                 return null;
             }
 
-            return objectMapper.readValue(value, UserAuthCacheView.class);
+            return objectMapper.readValue(value, UserAuthCacheViewDTO.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -187,7 +187,7 @@ public class UserCacheService implements UserCachePort {
     }
 
     @CircuitBreaker(name = "redisCache")
-    public void cacheUserRoles(String codeUser, UserRolesCacheView userRoles) {
+    public void cacheUserRoles(String codeUser, UserRolesCacheViewDTO userRoles) {
         try {
             String key = rolesKey(codeUser);
             String value = objectMapper.writeValueAsString(userRoles);
@@ -199,7 +199,7 @@ public class UserCacheService implements UserCachePort {
 
     @CircuitBreaker(name = "redisCache", fallbackMethod = "cacheRolesFallback")
     @Retry(name = "redisCache")
-    public UserRolesCacheView getUserRolesFromCache(String codeUser) {
+    public UserRolesCacheViewDTO getUserRolesFromCache(String codeUser) {
         try {
             var key = rolesKey(codeUser);
             var value = redisTemplate.opsForValue().get(key);
@@ -208,7 +208,7 @@ public class UserCacheService implements UserCachePort {
                 return null;
             }
 
-            return objectMapper.readValue(value, UserRolesCacheView.class);
+            return objectMapper.readValue(value, UserRolesCacheViewDTO.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -281,19 +281,19 @@ public class UserCacheService implements UserCachePort {
         return authKey("roles", codeUser);
     }
 
-    private UserAuthCacheView cacheFallback(String param, Exception ex) {
+    private UserAuthCacheViewDTO cacheFallback(String param, Exception ex) {
         log.warn("FALLBACK: Redis indisponivel, buscando do banco | param={} | erro={}",
             param, ex.getClass().getSimpleName());
         return null;
     }
 
-    private UserAuthCacheView scopedCacheFallback(UUID companyId, String param, Exception ex) {
+    private UserAuthCacheViewDTO scopedCacheFallback(UUID companyId, String param, Exception ex) {
         log.warn("FALLBACK: Redis indisponivel, buscando do banco | companyId={} | param={} | erro={}",
             companyId, param, ex.getClass().getSimpleName());
         return null;
     }
 
-    private UserRolesCacheView cacheRolesFallback(String codeUser, Exception ex) {
+    private UserRolesCacheViewDTO cacheRolesFallback(String codeUser, Exception ex) {
         log.warn("FALLBACK: Redis indisponivel, buscando roles do banco | codeUser={} | erro={}",
             codeUser, ex.getClass().getSimpleName());
         return null;

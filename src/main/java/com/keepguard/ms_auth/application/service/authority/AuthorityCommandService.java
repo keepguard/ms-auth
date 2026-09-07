@@ -6,9 +6,9 @@ import com.keepguard.ms_auth.application.service.exception.AlreadyExistsExceptio
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.domain.entity.authority.Authority;
-import com.keepguard.ms_auth.domain.dto.authority.*;
-import com.keepguard.ms_auth.application.dto.authority.AuthorityCreateView;
-import com.keepguard.ms_auth.application.dto.authority.AuthorityUpdateView;
+import com.keepguard.ms_auth.application.dto.authority.*;
+import com.keepguard.ms_auth.application.dto.authority.AuthorityCreateViewDTO;
+import com.keepguard.ms_auth.application.dto.authority.AuthorityUpdateViewDTO;
 import com.keepguard.ms_auth.application.mapper.AuthorityApplicationMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class AuthorityCommandService {
         auditEntityType = "AUTHORITY"
     )
     @Transactional
-    public AuthorityCreateView create(AuthorityCreateCommandDTO command) {
+    public AuthorityCreateViewDTO create(AuthorityCreateCommandDTO command) {
         log.info("Creating authority: {}", command.getName());
 
         if (authorityRepository.findByName(command.getName()).isPresent()) {
@@ -67,7 +67,7 @@ public class AuthorityCommandService {
         auditEntityType = "AUTHORITY"
     )
     @Transactional
-    public AuthorityUpdateView update(AuthorityUpdateCommandDTO command) {
+    public AuthorityUpdateViewDTO update(AuthorityUpdateCommandDTO command) {
         log.info("Updating authority with ID: {}", command.getId());
         Authority existingAuthority = requireAuthority(command.getId(), "update");
 

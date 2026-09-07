@@ -1,13 +1,13 @@
 package com.keepguard.ms_auth.application.service.auth;
 
-import com.keepguard.ms_auth.domain.dto.auth.AuthLoginCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthRefreshTokenCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthLogoutCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthValidateTokenQueryDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthChangePasswordCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthResetPasswordCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthGenerateResetTokenCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthGenerateResetTokenViewDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLogoutCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthValidateTokenQueryDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthChangePasswordCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthResetPasswordCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthGenerateResetTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthGenerateResetTokenViewDTO;
 import com.keepguard.ms_auth.application.dto.auth.AuthRegisterLoginCommandDTO;
 import com.keepguard.ms_auth.application.service.exception.EmailNotVerifiedException;
 import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException;
@@ -31,9 +31,9 @@ import com.keepguard.lib_common.exception.InvalidPasswordException;
 import com.keepguard.lib_common.logging.annotation.LogOperation;
 import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
 import com.keepguard.ms_auth.application.dto.auth.AvailableMfaChannelDTO;
-import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginViewDTO;
 import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
-import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
+import com.keepguard.ms_auth.application.port.in.DeviceSessionPort;
 import com.keepguard.ms_auth.application.dto.session.PasswordChangedNotifyCommand;
 import com.keepguard.ms_auth.application.port.out.geo.GeoLocationPort;
 import com.keepguard.ms_auth.domain.entity.session.DeviceChallengeSession;
@@ -71,7 +71,7 @@ public class AuthCommandService {
     private final UserClient userClient;
     private final CompanyClient companyClient;
     private final LoginAttemptService loginAttemptService;
-    private final DeviceSessionService deviceSessionService;
+    private final DeviceSessionPort deviceSessionPort;
     private final GeoLocationPort geoLocationPort;
 
     @Value("${cache.redis.ttl.reset-token}")
@@ -85,7 +85,7 @@ public class AuthCommandService {
         auditEntityType = "USER"
     )
     @Transactional
-    public AuthLoginView login(AuthLoginCommandDTO request) {
+    public AuthLoginViewDTO login(AuthLoginCommandDTO request) {
         log.info("Processing login for username: {}", request.getUsername());
         if (request.getUsername() != null) {
             MDC.put("username", request.getUsername());
@@ -201,7 +201,7 @@ public class AuthCommandService {
 
                 sessionCachePort.saveDeviceChallenge(challenge, 600);
 
-                return new AuthLoginView(
+                return new AuthLoginViewDTO(
                         null,
                         null,
                         "MFA_REQUIRED",
@@ -279,7 +279,7 @@ public class AuthCommandService {
         metricsPort.incrementCounter("auth_login_success_total",
             Map.of("application", request.getCompanyId().toString()));
 
-        return new AuthLoginView(token, 3600L, "AUTHENTICATED", null, true, null);
+        return new AuthLoginViewDTO(token, 3600L, "AUTHENTICATED", null, true, null);
     }
 
     private List<AvailableMfaChannelDTO> fetchAvailableChannels(UUID companyId, User user) {
@@ -603,9 +603,9 @@ public class AuthCommandService {
 
         // Revoga todas as outras sessões e tokens ativos no Redis e DB para segurança Zero Trust
         if (request.getDeviceId() != null && !request.getDeviceId().isBlank()) {
-            deviceSessionService.revokeAllOtherSessions(request.getCodeUser(), request.getDeviceId());
+            deviceSessionPort.revokeAllOtherSessions(request.getCodeUser(), request.getDeviceId());
         } else {
-            deviceSessionService.revokeAllSessions(request.getCodeUser());
+            deviceSessionPort.revokeAllSessions(request.getCodeUser());
         }
 
         notifyPasswordChanged(user, request.getCompanyId().toString(),
@@ -761,7 +761,7 @@ public class AuthCommandService {
             request.getCodeUser(), request.getMessageType(), request.getTemplateType());
 
         // Revoga 100% das sessões e tokens no Redis e DB após reset de senha (exige novo login com a nova senha)
-        deviceSessionService.revokeAllSessions(request.getCodeUser());
+        deviceSessionPort.revokeAllSessions(request.getCodeUser());
 
         notifyPasswordChanged(user, request.getCompanyId().toString(),
                 request.getDeviceId(), request.getDeviceName(), request.getDeviceType(),
@@ -771,7 +771,7 @@ public class AuthCommandService {
     private void notifyPasswordChanged(User user, String companyId,
                                        String deviceId, String deviceName, String deviceType,
                                        String ipAddress, String userAgent) {
-        deviceSessionService.notifyPasswordChanged(PasswordChangedNotifyCommand.builder()
+        deviceSessionPort.notifyPasswordChanged(PasswordChangedNotifyCommand.builder()
                 .codeUser(user.getCodeUser() != null ? user.getCodeUser().toString() : null)
                 .companyId(companyId)
                 .email(user.getEmail())

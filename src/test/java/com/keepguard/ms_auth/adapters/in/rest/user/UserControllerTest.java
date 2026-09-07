@@ -5,7 +5,7 @@ import com.keepguard.ms_auth.adapters.in.rest.user.dto.response.*;
 import com.keepguard.ms_auth.adapters.in.rest.user.mapper.UserAdapterMapper;
 import com.keepguard.ms_auth.application.port.in.UserPort;
 import com.keepguard.ms_auth.application.dto.user.*;
-import com.keepguard.ms_auth.domain.dto.user.*;
+import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.lib_common.utils.ValidationUtils;
 import com.keepguard.ms_auth.test.builder.UserTestBuilder;
 import java.util.List;
@@ -44,11 +44,11 @@ class UserControllerTest {
     
     private UserCreateRequestDTO userCreateDTO;
     private UserResponseDTO userResponseDTO;
-    private UserView userView;
-    private UserGetByUsernameView userGetByUsernameView;
-    private UserGetByEmailView userGetByEmailView;
-    private UserGetByCodeView userGetByCodeView;
-    private UserGetByIdExternalView userGetByIdExternalView;
+    private UserViewDTO userView;
+    private UserGetByUsernameViewDTO userGetByUsernameView;
+    private UserGetByEmailViewDTO userGetByEmailView;
+    private UserGetByCodeViewDTO userGetByCodeView;
+    private UserGetByIdExternalViewDTO userGetByIdExternalView;
     private UUID userId;
     private UUID companyId;
     private String tenantIdStr;
@@ -69,7 +69,7 @@ class UserControllerTest {
             .withId(userId)
             .buildResponseDTO();
         
-        userView = new UserView(
+        userView = new UserViewDTO(
             userId,
             "testuser",
             "test@example.com",
@@ -374,7 +374,7 @@ class UserControllerTest {
     @DisplayName("Deve testar UserControllerMapper.toResponseDTO com dados válidos")
     void shouldTestUserControllerMapperToResponseDTOWithValidData() {
         // Given
-        UserView view = new UserView(
+        UserViewDTO view = new UserViewDTO(
             userId,
             "testuser",
             "test@example.com",
@@ -411,7 +411,7 @@ class UserControllerTest {
     @DisplayName("Deve testar UserControllerMapper.toDetailsResponseDTO com dados válidos")
     void shouldTestUserControllerMapperToDetailsResponseDTOWithValidData() {
         // Given
-        UserView view = new UserView(
+        UserViewDTO view = new UserViewDTO(
             userId,
             "testuser",
             "test@example.com",

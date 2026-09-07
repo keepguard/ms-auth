@@ -1,7 +1,7 @@
 package com.keepguard.ms_auth.application.service.role;
 
 import com.keepguard.lib_common.logging.annotation.LogOperation;
-import com.keepguard.ms_auth.application.dto.role.ProvisionCompanyRolesView;
+import com.keepguard.ms_auth.application.dto.role.ProvisionCompanyRolesViewDTO;
 import com.keepguard.ms_auth.application.port.in.CompanyRoleProvisionPort;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
@@ -45,7 +45,7 @@ public class CompanyRoleProvisionService implements CompanyRoleProvisionPort {
         auditAction = "CREATE",
         auditEntityType = "COMPANY_ROLE"
     )
-    public ProvisionCompanyRolesView provision(UUID companyId) {
+    public ProvisionCompanyRolesViewDTO provision(UUID companyId) {
         if (companyId == null) {
             throw new NotFoundException("companyId é obrigatório para provisionar roles");
         }
@@ -55,7 +55,7 @@ public class CompanyRoleProvisionService implements CompanyRoleProvisionPort {
             List<String> existingNames = roleRepository.findByCompanyId(companyId).stream()
                     .map(Role::getName)
                     .toList();
-            return new ProvisionCompanyRolesView(companyId, true, existingNames);
+            return new ProvisionCompanyRolesViewDTO(companyId, true, existingNames);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -96,6 +96,6 @@ public class CompanyRoleProvisionService implements CompanyRoleProvisionPort {
         metricsPort.incrementCounter("company_roles_provisioned_total",
                 Map.of("company_id", companyId.toString()));
         log.info("Roles provisionadas para company {}: {}", companyId, createdNames);
-        return new ProvisionCompanyRolesView(companyId, false, createdNames);
+        return new ProvisionCompanyRolesViewDTO(companyId, false, createdNames);
     }
 }

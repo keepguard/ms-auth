@@ -1,8 +1,8 @@
 package com.keepguard.ms_auth.application.service.role;
 
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
-import com.keepguard.ms_auth.application.dto.role.RoleCreateView;
-import com.keepguard.ms_auth.application.dto.role.RoleUpdateView;
+import com.keepguard.ms_auth.application.dto.role.RoleCreateViewDTO;
+import com.keepguard.ms_auth.application.dto.role.RoleUpdateViewDTO;
 import com.keepguard.ms_auth.application.mapper.RoleApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.CompanyRoleRepositoryPort;
@@ -13,7 +13,7 @@ import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.domain.entity.role.CompanyRole;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.domain.entity.role.SystemRoleNames;
-import com.keepguard.ms_auth.domain.dto.role.*;
+import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.test.builder.RoleTestBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -105,10 +105,10 @@ class RoleCommandServiceTest {
         // Given
         when(roleRepository.findByCompanyIdAndName(any(), anyString())).thenReturn(Optional.empty());
         when(roleRepository.save(any(Role.class))).thenReturn(role);
-        when(roleApplicationMapper.toCreateView(role)).thenReturn(new RoleCreateView(roleId, "ADMIN", "Admin role", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleApplicationMapper.toCreateView(role)).thenReturn(new RoleCreateViewDTO(roleId, "ADMIN", "Admin role", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
-        RoleCreateView result = roleCommandService.create(createCommand);
+        RoleCreateViewDTO result = roleCommandService.create(createCommand);
         
         // Then
         assertNotNull(result);
@@ -159,10 +159,10 @@ class RoleCommandServiceTest {
             savedRole.setDescription(updateCommand.getDescription());
             return savedRole;
         });
-        when(roleApplicationMapper.toUpdateView(any(Role.class))).thenReturn(new RoleUpdateView(roleId, "ADMIN_UPDATED", "Updated description", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleApplicationMapper.toUpdateView(any(Role.class))).thenReturn(new RoleUpdateViewDTO(roleId, "ADMIN_UPDATED", "Updated description", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
-        RoleUpdateView result = roleCommandService.update(updateCommand);
+        RoleUpdateViewDTO result = roleCommandService.update(updateCommand);
         
         // Then
         assertNotNull(result);
@@ -276,10 +276,10 @@ class RoleCommandServiceTest {
             
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(existingRole));
         when(roleRepository.save(any(Role.class))).thenReturn(role);
-        when(roleApplicationMapper.toUpdateView(any(Role.class))).thenReturn(new RoleUpdateView(roleId, "ADMIN", "Updated description", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleApplicationMapper.toUpdateView(any(Role.class))).thenReturn(new RoleUpdateViewDTO(roleId, "ADMIN", "Updated description", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
-        RoleUpdateView result = roleCommandService.update(sameNameCommand);
+        RoleUpdateViewDTO result = roleCommandService.update(sameNameCommand);
         
         // Then
         assertNotNull(result);
@@ -300,10 +300,10 @@ class RoleCommandServiceTest {
             
         when(roleRepository.findByCompanyIdAndName(companyId, "ADMIN")).thenReturn(Optional.empty());
         when(roleRepository.save(any(Role.class))).thenReturn(role);
-        when(roleApplicationMapper.toCreateView(role)).thenReturn(new RoleCreateView(roleId, "ADMIN", "Administrator role", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleApplicationMapper.toCreateView(role)).thenReturn(new RoleCreateViewDTO(roleId, "ADMIN", "Administrator role", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
-        RoleCreateView result = roleCommandService.create(uppercaseCommand);
+        RoleCreateViewDTO result = roleCommandService.create(uppercaseCommand);
         
         // Then
         assertNotNull(result);
@@ -331,10 +331,10 @@ class RoleCommandServiceTest {
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(existingRole));
         when(roleRepository.findByCompanyIdAndName(companyId, "ADMIN")).thenReturn(Optional.empty());
         when(roleRepository.save(any(Role.class))).thenReturn(role);
-        when(roleApplicationMapper.toUpdateView(any(Role.class))).thenReturn(new RoleUpdateView(roleId, "ADMIN", "Updated description", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleApplicationMapper.toUpdateView(any(Role.class))).thenReturn(new RoleUpdateViewDTO(roleId, "ADMIN", "Updated description", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
-        RoleUpdateView result = roleCommandService.update(uppercaseCommand);
+        RoleUpdateViewDTO result = roleCommandService.update(uppercaseCommand);
         
         // Then
         assertNotNull(result);
@@ -362,10 +362,10 @@ class RoleCommandServiceTest {
             savedRole.setUpdatedAt(LocalDateTime.now());
             return savedRole;
         });
-        when(roleApplicationMapper.toUpdateView(any(Role.class))).thenReturn(new RoleUpdateView(roleId, "ADMIN_UPDATED", "Updated description", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleApplicationMapper.toUpdateView(any(Role.class))).thenReturn(new RoleUpdateViewDTO(roleId, "ADMIN_UPDATED", "Updated description", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
-        RoleUpdateView result = roleCommandService.update(updateCommand);
+        RoleUpdateViewDTO result = roleCommandService.update(updateCommand);
         
         // Then
         assertNotNull(result);
@@ -385,10 +385,10 @@ class RoleCommandServiceTest {
             savedRole.setUpdatedAt(LocalDateTime.now());
             return savedRole;
         });
-        when(roleApplicationMapper.toCreateView(any(Role.class))).thenReturn(new RoleCreateView(roleId, "ADMIN", "Admin role", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleApplicationMapper.toCreateView(any(Role.class))).thenReturn(new RoleCreateViewDTO(roleId, "ADMIN", "Admin role", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
-        RoleCreateView result = roleCommandService.create(createCommand);
+        RoleCreateViewDTO result = roleCommandService.create(createCommand);
         
         // Then
         assertNotNull(result);

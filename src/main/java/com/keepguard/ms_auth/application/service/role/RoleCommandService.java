@@ -10,7 +10,7 @@ import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
 import com.keepguard.ms_auth.application.service.exception.ConflictException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
-import com.keepguard.ms_auth.domain.dto.role.*;
+import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.domain.entity.authority.Authority;
 import com.keepguard.ms_auth.domain.entity.role.CompanyRole;
 import com.keepguard.ms_auth.domain.entity.role.Role;
@@ -43,7 +43,7 @@ public class RoleCommandService {
         auditEntityType = "ROLE"
     )
     @Transactional
-    public RoleCreateView create(RoleCreateCommandDTO command) {
+    public RoleCreateViewDTO create(RoleCreateCommandDTO command) {
         log.info("Creating role: {}", command.getName());
         UUID companyId = command.getCompanyId();
 
@@ -85,7 +85,7 @@ public class RoleCommandService {
         auditEntityType = "ROLE"
     )
     @Transactional
-    public RoleUpdateView update(RoleUpdateCommandDTO command) {
+    public RoleUpdateViewDTO update(RoleUpdateCommandDTO command) {
         log.info("Updating role with ID: {}", command.getId());
         UUID companyId = command.getCompanyId();
         Role existingRole = requireMutableRoleOfCompany(command.getId(), companyId, "update");
@@ -139,7 +139,7 @@ public class RoleCommandService {
         auditEntityType = "ROLE"
     )
     @Transactional
-    public RoleAddAuthorityView addAuthority(RoleAddAuthorityCommandDTO command) {
+    public RoleAddAuthorityViewDTO addAuthority(RoleAddAuthorityCommandDTO command) {
         log.info("Adding authority {} to role: {}", command.getAuthorityName(), command.getRoleId());
         UUID companyId = command.getCompanyId();
         Role role = requireRoleOfCompany(command.getRoleId(), companyId, "add_authority");
@@ -178,7 +178,7 @@ public class RoleCommandService {
         auditEntityType = "ROLE"
     )
     @Transactional
-    public RoleRemoveAuthorityView removeAuthority(RoleRemoveAuthorityCommandDTO command) {
+    public RoleRemoveAuthorityViewDTO removeAuthority(RoleRemoveAuthorityCommandDTO command) {
         log.info("Removing authority {} from role: {}", command.getAuthorityName(), command.getRoleId());
         UUID companyId = command.getCompanyId();
         Role role = requireRoleOfCompany(command.getRoleId(), companyId, "remove_authority");

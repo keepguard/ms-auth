@@ -7,10 +7,10 @@ import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthClientUpdateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.dto.OAuthServiceRoleResponseDTO;
 import com.keepguard.ms_auth.adapters.in.rest.oauth.mapper.OAuthClientAdapterMapper;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientViewDTO;
 import com.keepguard.ms_auth.application.port.in.OAuthClientPort;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientSearchQueryDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientSearchQueryDTO;
 import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -64,7 +64,7 @@ public class OAuthClientController {
     @GetMapping
     @Operation(summary = "Listar OAuth clients da empresa com filtros e paginação")
     @MetricsEndpoint(endpoint = "oauth_client_list", operation = "listar oauth clients")
-    public ResponseEntity<PageResultView<OAuthClientResponseDTO>> list(
+    public ResponseEntity<PageResultViewDTO<OAuthClientResponseDTO>> list(
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader("X-Company-Id") UUID companyId,
             @RequestParam(required = false) String clientId,
@@ -81,11 +81,11 @@ public class OAuthClientController {
                 .status(status)
                 .pageable(PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by(direction, sort)))
                 .build();
-        PageResultView<OAuthClientView> result = oauthClientPort.search(query);
+        PageResultViewDTO<OAuthClientViewDTO> result = oauthClientPort.search(query);
         List<OAuthClientResponseDTO> content = result.getContent().stream()
                 .map(mapper::toResponse)
                 .toList();
-        return ResponseEntity.ok(new PageResultView<>(
+        return ResponseEntity.ok(new PageResultViewDTO<>(
                 content,
                 result.getPageNumber(),
                 result.getSize(),

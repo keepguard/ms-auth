@@ -3,7 +3,7 @@ package com.keepguard.ms_auth.adapters.in.rest.user.mapper;
 import com.keepguard.ms_auth.adapters.in.rest.user.dto.request.*;
 import com.keepguard.ms_auth.adapters.in.rest.user.dto.response.*;
 import com.keepguard.ms_auth.application.dto.user.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
 import com.keepguard.ms_auth.domain.enums.UserStatus;
 import com.keepguard.ms_auth.test.builder.UserTestBuilder;
@@ -154,10 +154,10 @@ class UserAdapterMapperTest {
     }
     
     @Test
-    @DisplayName("Deve mapear UserView para UserResponseDTO com dados nulos")
+    @DisplayName("Deve mapear UserViewDTO para UserResponseDTO com dados nulos")
     void shouldMapUserViewToResponseDTOWithNullData() {
         // Given
-        UserView view = new UserView(
+        UserViewDTO view = new UserViewDTO(
             userId,
             "testuser",
             "test@example.com",
@@ -188,10 +188,10 @@ class UserAdapterMapperTest {
     // Testes para os métodos do UserAdapterMapper
 
     @Test
-    @DisplayName("Deve mapear UserView para UserResponseDTO")
+    @DisplayName("Deve mapear UserViewDTO para UserResponseDTO")
     void shouldMapUserViewToResponseDTO() {
         // Given
-        UserView view = new UserView(
+        UserViewDTO view = new UserViewDTO(
             userId,
             "testuser",
             "test@example.com",
@@ -221,23 +221,23 @@ class UserAdapterMapperTest {
     }
 
     @Test
-    @DisplayName("Deve retornar null quando UserView for null")
+    @DisplayName("Deve retornar null quando UserViewDTO for null")
     void shouldReturnNullWhenUserViewIsNull() {
         // When
-        UserResponseDTO dto = userAdapterMapper.toResponseDTO((UserView) null);
+        UserResponseDTO dto = userAdapterMapper.toResponseDTO((UserViewDTO) null);
 
         // Then
         assertNull(dto);
     }
 
     @Test
-    @DisplayName("Deve mapear UserView para UserDetailsResponseDTO")
+    @DisplayName("Deve mapear UserViewDTO para UserDetailsResponseDTO")
     void shouldMapUserViewToDetailsResponseDTO() {
         // Given
         UUID idUserExternal = UUID.randomUUID();
         UUID codeUser = UUID.randomUUID();
         
-        UserView view = new UserView(
+        UserViewDTO view = new UserViewDTO(
             userId,
             "testuser",
             "test@example.com",
@@ -276,7 +276,7 @@ class UserAdapterMapperTest {
     @DisplayName("Deve mapear PageResult para UserSearchResponseDTO")
     void shouldMapPageResultToSearchResponseDTO() {
         // Given
-        UserSearchView view = new UserSearchView(
+        UserSearchViewDTO view = new UserSearchViewDTO(
             userId,
             "testuser",
             "test@example.com",
@@ -293,7 +293,7 @@ class UserAdapterMapperTest {
             UUID.randomUUID()
         );
 
-        PageResultView<UserSearchView> pageResultView = new PageResultView<>(
+        PageResultViewDTO<UserSearchViewDTO> pageResultView = new PageResultViewDTO<>(
             List.of(view),
             0,
             10,
@@ -347,7 +347,7 @@ class UserAdapterMapperTest {
     @DisplayName("Deve retornar null quando inputs forem null")
     void shouldReturnNullWhenInputsAreNull() {
         // When & Then
-        assertNull(userAdapterMapper.toResponseDTO((UserView) null));
+        assertNull(userAdapterMapper.toResponseDTO((UserViewDTO) null));
         assertNull(userAdapterMapper.toDetailsResponseDTO(null));
         assertNull(userAdapterMapper.toSearchResponseDTO(null));
         assertNull(userAdapterMapper.toStatusHistoryResponseDTO(null));
@@ -358,13 +358,13 @@ class UserAdapterMapperTest {
     }
 
     @Test
-    @DisplayName("Deve mapear UserGetByCodeView para UserByCodeResponseDTO")
+    @DisplayName("Deve mapear UserGetByCodeViewDTO para UserByCodeResponseDTO")
     void shouldMapUserViewToUserByCodeResponseDTO() {
         // Given
         UUID idUserExternal = UUID.randomUUID();
         UUID codeUser = UUID.randomUUID();
         
-        UserGetByCodeView view = new UserGetByCodeView(
+        UserGetByCodeViewDTO view = new UserGetByCodeViewDTO(
             userId,
             "testuser",
             "test@example.com",
@@ -397,13 +397,13 @@ class UserAdapterMapperTest {
     }
 
     @Test
-    @DisplayName("Deve mapear UserGetByIdExternalView para UserByIdExternalResponseDTO")
+    @DisplayName("Deve mapear UserGetByIdExternalViewDTO para UserByIdExternalResponseDTO")
     void shouldMapUserViewToUserByIdExternalResponseDTO() {
         // Given
         UUID idUserExternal = UUID.randomUUID();
         UUID codeUser = UUID.randomUUID();
         
-        UserGetByIdExternalView view = new UserGetByIdExternalView(
+        UserGetByIdExternalViewDTO view = new UserGetByIdExternalViewDTO(
             userId,
             "testuser",
             "test@example.com",
@@ -436,13 +436,13 @@ class UserAdapterMapperTest {
     }
 
     @Test
-    @DisplayName("Deve mapear UserGetByEmailView para UserByEmailResponseDTO")
+    @DisplayName("Deve mapear UserGetByEmailViewDTO para UserByEmailResponseDTO")
     void shouldMapUserViewToUserByEmailResponseDTO() {
         // Given
         UUID idUserExternal = UUID.randomUUID();
         UUID codeUser = UUID.randomUUID();
         
-        UserGetByEmailView view = new UserGetByEmailView(
+        UserGetByEmailViewDTO view = new UserGetByEmailViewDTO(
             userId,
             "testuser",
             "test@example.com",
@@ -475,13 +475,13 @@ class UserAdapterMapperTest {
     }
 
     @Test
-    @DisplayName("Deve mapear UserGetByUsernameView para UserByUsernameResponseDTO")
+    @DisplayName("Deve mapear UserGetByUsernameViewDTO para UserByUsernameResponseDTO")
     void shouldMapUserViewToUserByUsernameResponseDTO() {
         // Given
         UUID idUserExternal = UUID.randomUUID();
         UUID codeUser = UUID.randomUUID();
         
-        UserGetByUsernameView view = new UserGetByUsernameView(
+        UserGetByUsernameViewDTO view = new UserGetByUsernameViewDTO(
             userId,
             "testuser",
             "test@example.com",

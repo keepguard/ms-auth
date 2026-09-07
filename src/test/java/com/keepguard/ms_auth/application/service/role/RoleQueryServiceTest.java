@@ -1,6 +1,6 @@
 package com.keepguard.ms_auth.application.service.role;
 
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.mapper.RoleApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.domain.entity.role.Role;
@@ -168,7 +168,7 @@ class RoleQueryServiceTest {
         when(roleRepository.findAll(pageable)).thenReturn(page);
         
         // When
-        PageResultView<Role> result = roleQueryService.findAll(pageable);
+        PageResultViewDTO<Role> result = roleQueryService.findAll(pageable);
         
         // Then
         assertNotNull(result);
@@ -195,7 +195,7 @@ class RoleQueryServiceTest {
         when(roleRepository.findAll(pageable)).thenReturn(emptyPage);
         
         // When
-        PageResultView<Role> result = roleQueryService.findAll(pageable);
+        PageResultViewDTO<Role> result = roleQueryService.findAll(pageable);
         
         // Then
         assertNotNull(result);
@@ -223,7 +223,7 @@ class RoleQueryServiceTest {
         when(roleRepository.findAll(middlePageable)).thenReturn(page);
         
         // When
-        PageResultView<Role> result = roleQueryService.findAll(middlePageable);
+        PageResultViewDTO<Role> result = roleQueryService.findAll(middlePageable);
         
         // Then
         assertNotNull(result);
@@ -251,7 +251,7 @@ class RoleQueryServiceTest {
         when(roleRepository.findAll(lastPageable)).thenReturn(page);
         
         // When
-        PageResultView<Role> result = roleQueryService.findAll(lastPageable);
+        PageResultViewDTO<Role> result = roleQueryService.findAll(lastPageable);
         
         // Then
         assertNotNull(result);
@@ -279,7 +279,7 @@ class RoleQueryServiceTest {
         when(roleRepository.findAll(firstPageable)).thenReturn(page);
         
         // When
-        PageResultView<Role> result = roleQueryService.findAll(firstPageable);
+        PageResultViewDTO<Role> result = roleQueryService.findAll(firstPageable);
         
         // Then
         assertNotNull(result);
@@ -307,7 +307,7 @@ class RoleQueryServiceTest {
         when(roleRepository.findAll(smallPageable)).thenReturn(page);
         
         // When
-        PageResultView<Role> result = roleQueryService.findAll(smallPageable);
+        PageResultViewDTO<Role> result = roleQueryService.findAll(smallPageable);
         
         // Then
         assertNotNull(result);

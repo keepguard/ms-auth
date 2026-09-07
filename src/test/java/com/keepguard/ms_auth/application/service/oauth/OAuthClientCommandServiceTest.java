@@ -1,8 +1,8 @@
 package com.keepguard.ms_auth.application.service.oauth;
 
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenViewDTO;
 import com.keepguard.ms_auth.application.mapper.OAuthClientApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.port.out.persistence.OAuthClientRepositoryPort;
@@ -10,10 +10,10 @@ import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
 import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientUpdateCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientIdCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientUpdateCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenCommandDTO;
 import com.keepguard.ms_auth.domain.entity.authority.Authority;
 import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
 import com.keepguard.ms_auth.domain.entity.role.Role;
@@ -99,7 +99,7 @@ class OAuthClientCommandServiceTest {
             return client;
         });
 
-        OAuthClientCreateView view = commandService.create(OAuthClientCreateCommandDTO.builder()
+        OAuthClientCreateViewDTO view = commandService.create(OAuthClientCreateCommandDTO.builder()
                 .companyId(companyId)
                 .clientId("investbot-collector")
                 .roleId(serviceRoleId)
@@ -164,7 +164,7 @@ class OAuthClientCommandServiceTest {
                 eq(List.of("knowledge:read", "knowledge:write")), eq(28800_000L), eq(null), eq(null),
                 eq(List.of(SystemServiceRoleNames.ROLE_SERVICE_COLLECTOR)))).thenReturn("jwt-token");
 
-        OAuthTokenView view = commandService.issueToken(OAuthTokenCommandDTO.builder()
+        OAuthTokenViewDTO view = commandService.issueToken(OAuthTokenCommandDTO.builder()
                 .companyId(companyId)
                 .grantType("client_credentials")
                 .clientId("investbot-collector")
@@ -188,7 +188,7 @@ class OAuthClientCommandServiceTest {
                 eq(List.of("knowledge:read", "knowledge:write")), eq(28800_000L), eq(null), eq(null),
                 eq(List.of(SystemServiceRoleNames.ROLE_SERVICE_COLLECTOR)))).thenReturn("jwt-composed");
 
-        OAuthTokenView view = commandService.issueToken(OAuthTokenCommandDTO.builder()
+        OAuthTokenViewDTO view = commandService.issueToken(OAuthTokenCommandDTO.builder()
                 .companyId(companyId)
                 .grantType("client_credentials")
                 .clientId("investbot-collector")
@@ -210,7 +210,7 @@ class OAuthClientCommandServiceTest {
                 eq(List.of("knowledge:read", "knowledge:write")), eq(28800_000L), eq(null), eq(null),
                 eq(List.of(SystemServiceRoleNames.ROLE_SERVICE_COLLECTOR)))).thenReturn("jwt-sha256");
 
-        OAuthTokenView view = commandService.issueToken(OAuthTokenCommandDTO.builder()
+        OAuthTokenViewDTO view = commandService.issueToken(OAuthTokenCommandDTO.builder()
                 .companyId(companyId)
                 .grantType("client_credentials")
                 .clientId("investbot-collector")
@@ -234,7 +234,7 @@ class OAuthClientCommandServiceTest {
                 eq(List.of(SystemServiceRoleNames.ROLE_SERVICE_COLLECTOR))))
                 .thenReturn("jwt-with-agent");
 
-        OAuthTokenView view = commandService.issueToken(OAuthTokenCommandDTO.builder()
+        OAuthTokenViewDTO view = commandService.issueToken(OAuthTokenCommandDTO.builder()
                 .companyId(companyId)
                 .grantType("client_credentials")
                 .clientId("investbot-collector")
@@ -326,7 +326,7 @@ class OAuthClientCommandServiceTest {
         when(repository.findByIdAndCompanyId(id, companyId)).thenReturn(Optional.of(client));
         when(repository.save(any(OAuthClient.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        OAuthClientView view = commandService.update(OAuthClientUpdateCommandDTO.builder()
+        OAuthClientViewDTO view = commandService.update(OAuthClientUpdateCommandDTO.builder()
                 .companyId(companyId)
                 .id(id)
                 .description("collector atualizado")

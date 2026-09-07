@@ -4,7 +4,7 @@ import com.keepguard.lib_common.metrics.annotation.MetricsEndpoint;
 import com.keepguard.ms_auth.adapters.in.rest.authority.dto.*;
 import com.keepguard.ms_auth.adapters.in.rest.authority.mapper.AuthorityAdapterMapper;
 import com.keepguard.ms_auth.application.dto.authority.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.port.in.AuthorityPort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -136,7 +136,7 @@ public class AuthorityController {
 
         log.info("Buscando authority por ID: {}", id);
         var query = mapper.toGetByIdQuery(id);
-        Optional<AuthorityGetByIdView> authorityView = authorityService.findById(query);
+        Optional<AuthorityGetByIdViewDTO> authorityView = authorityService.findById(query);
         if (authorityView.isPresent()) {
             var response = mapper.toGetByIdResponseDTO(authorityView.get());
             log.info("Authority found: {}", id);
@@ -168,7 +168,7 @@ public class AuthorityController {
 
         log.info("Buscando authority por nome: {}", name);
         var query = mapper.toGetByNameQuery(name);
-        Optional<AuthorityGetByNameView> authorityView = authorityService.findByName(query);
+        Optional<AuthorityGetByNameViewDTO> authorityView = authorityService.findByName(query);
         if (authorityView.isPresent()) {
             var response = mapper.toGetByNameResponseDTO(authorityView.get());
             log.info("Authority found by name: {}", name);
@@ -196,7 +196,7 @@ public class AuthorityController {
 
         log.info("Listando todas as authorities");
         var query = mapper.toGetAllQuery();
-        List<AuthorityListView> authorityViews = authorityService.findAll(query);
+        List<AuthorityListViewDTO> authorityViews = authorityService.findAll(query);
         List<AuthorityListResponseDTO> response = authorityViews.stream()
                 .map(mapper::toListResponseDTO)
                 .toList();
@@ -217,20 +217,20 @@ public class AuthorityController {
         endpoint = "authority_search",
         operation = "buscar authorities com paginação"
     )
-    public ResponseEntity<PageResultView<AuthoritySearchResponseDTO>> search(
+    public ResponseEntity<PageResultViewDTO<AuthoritySearchResponseDTO>> search(
             @Valid @ModelAttribute AuthoritySearchRequestDTO searchRequest) {
 
         log.info("Buscando authorities com paginação: página {}, tamanho {}",
                 searchRequest.getPage(), searchRequest.getSize());
         
         var query = mapper.toSearchQuery(searchRequest);
-        PageResultView<AuthoritySearchView> pageResultView = authorityService.findAll(query);
+        PageResultViewDTO<AuthoritySearchViewDTO> pageResultView = authorityService.findAll(query);
         
         List<AuthoritySearchResponseDTO> content = pageResultView.getContent().stream()
                 .map(mapper::toSearchResponseDTO)
                 .toList();
         
-        PageResultView<AuthoritySearchResponseDTO> response = new PageResultView<>(
+        PageResultViewDTO<AuthoritySearchResponseDTO> response = new PageResultViewDTO<>(
                 content, 
                 pageResultView.getPageNumber(),
                 pageResultView.getSize(),

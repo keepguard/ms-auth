@@ -1,6 +1,6 @@
 package com.keepguard.ms_auth.application.mapper;
 
-import com.keepguard.ms_auth.application.dto.user.UserView;
+import com.keepguard.ms_auth.application.dto.user.UserViewDTO;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import com.keepguard.ms_auth.domain.enums.UserStatus;
 import com.keepguard.ms_auth.test.builder.UserTestBuilder;
@@ -49,10 +49,10 @@ class UserSearchMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter User para UserView com sucesso")
+    @DisplayName("Deve converter User para UserViewDTO com sucesso")
     void shouldConvertUserToUserViewSuccessfully() {
         // When
-        UserView result = userApplicationMapper.toView(user);
+        UserViewDTO result = userApplicationMapper.toView(user);
         
         // Then
         assertNotNull(result);
@@ -70,10 +70,10 @@ class UserSearchMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter User nulo para UserView nulo")
+    @DisplayName("Deve converter User nulo para UserViewDTO nulo")
     void shouldConvertNullUserToNullUserView() {
         // When
-        UserView result = userApplicationMapper.toView(null);
+        UserViewDTO result = userApplicationMapper.toView(null);
         
         // Then
         assertNull(result);
@@ -97,7 +97,7 @@ class UserSearchMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(userWithNulls);
+        UserViewDTO result = userApplicationMapper.toView(userWithNulls);
         
         // Then
         assertNotNull(result);
@@ -137,7 +137,7 @@ class UserSearchMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(specificUser);
+        UserViewDTO result = userApplicationMapper.toView(specificUser);
         
         // Then
         assertNotNull(result);
@@ -155,14 +155,14 @@ class UserSearchMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter Page<User> para Page<UserView> com sucesso")
+    @DisplayName("Deve converter Page<User> para Page<UserViewDTO> com sucesso")
     void shouldConvertUserPageToUserViewPageSuccessfully() {
         // Given
         List<User> users = List.of(user);
         Page<User> userPage = new PageImpl<>(users, pageable, 1L);
         
         // When
-        Page<UserView> result = userApplicationMapper.toViewPage(userPage);
+        Page<UserViewDTO> result = userApplicationMapper.toViewPage(userPage);
         
         // Then
         assertNotNull(result);
@@ -172,17 +172,17 @@ class UserSearchMapperTest {
         assertEquals(10, result.getSize());
         assertEquals(0, result.getNumber());
         
-        UserView userView = result.getContent().get(0);
+        UserViewDTO userView = result.getContent().get(0);
         assertEquals(user.getId(), userView.id());
         assertEquals(user.getUsername(), userView.username());
         assertEquals(user.getEmail(), userView.email());
     }
     
     @Test
-    @DisplayName("Deve converter Page<User> nula para Page<UserView> vazia")
+    @DisplayName("Deve converter Page<User> nula para Page<UserViewDTO> vazia")
     void shouldConvertNullUserPageToEmptyUserViewPage() {
         // When
-        Page<UserView> result = userApplicationMapper.toViewPage(null);
+        Page<UserViewDTO> result = userApplicationMapper.toViewPage(null);
         
         // Then
         assertNotNull(result);
@@ -192,13 +192,13 @@ class UserSearchMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter Page<User> vazia para Page<UserView> vazia")
+    @DisplayName("Deve converter Page<User> vazia para Page<UserViewDTO> vazia")
     void shouldConvertEmptyUserPageToEmptyUserViewPage() {
         // Given
         Page<User> emptyUserPage = new PageImpl<>(List.of(), pageable, 0L);
         
         // When
-        Page<UserView> result = userApplicationMapper.toViewPage(emptyUserPage);
+        Page<UserViewDTO> result = userApplicationMapper.toViewPage(emptyUserPage);
         
         // Then
         assertNotNull(result);
@@ -222,7 +222,7 @@ class UserSearchMapperTest {
         Page<User> userPage = new PageImpl<>(users, pageable, 2L);
         
         // When
-        Page<UserView> result = userApplicationMapper.toViewPage(userPage);
+        Page<UserViewDTO> result = userApplicationMapper.toViewPage(userPage);
         
         // Then
         assertNotNull(result);
@@ -230,11 +230,11 @@ class UserSearchMapperTest {
         assertEquals(2L, result.getTotalElements());
         assertEquals(1, result.getTotalPages());
         
-        UserView userView1 = result.getContent().get(0);
+        UserViewDTO userView1 = result.getContent().get(0);
         assertEquals(user.getId(), userView1.id());
         assertEquals(user.getUsername(), userView1.username());
         
-        UserView userView2 = result.getContent().get(1);
+        UserViewDTO userView2 = result.getContent().get(1);
         assertEquals(user2.getId(), userView2.id());
         assertEquals(user2.getUsername(), userView2.username());
     }
@@ -248,7 +248,7 @@ class UserSearchMapperTest {
         Page<User> userPage = new PageImpl<>(users, middlePageable, 11L); // Total 11 elementos
         
         // When
-        Page<UserView> result = userApplicationMapper.toViewPage(userPage);
+        Page<UserViewDTO> result = userApplicationMapper.toViewPage(userPage);
         
         // Then
         assertNotNull(result);
@@ -277,7 +277,7 @@ class UserSearchMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(userWithEmailVerified);
+        UserViewDTO result = userApplicationMapper.toView(userWithEmailVerified);
         
         // Then
         assertNotNull(result);
@@ -302,7 +302,7 @@ class UserSearchMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(userWithEmailNotVerified);
+        UserViewDTO result = userApplicationMapper.toView(userWithEmailNotVerified);
         
         // Then
         assertNotNull(result);
@@ -327,7 +327,7 @@ class UserSearchMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(userWithStatus);
+        UserViewDTO result = userApplicationMapper.toView(userWithStatus);
         
         // Then
         assertNotNull(result);
@@ -352,7 +352,7 @@ class UserSearchMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(userWithEmptyFields);
+        UserViewDTO result = userApplicationMapper.toView(userWithEmptyFields);
         
         // Then
         assertNotNull(result);

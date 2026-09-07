@@ -1,7 +1,7 @@
 package com.keepguard.ms_auth.application.service.user;
 
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.ms_auth.application.mapper.UserApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.cache.UserCachePort;
@@ -50,11 +50,11 @@ class UserQueryServiceTest {
     @InjectMocks private UserQueryService userQueryService;
 
     private User user;
-    private UserView userView;
-    private UserGetByUsernameView userGetByUsernameView;
-    private UserGetByEmailView userGetByEmailView;
-    private UserGetByIdExternalView userGetByIdExternalView;
-    private UserSearchView userSearchView;
+    private UserViewDTO userView;
+    private UserGetByUsernameViewDTO userGetByUsernameView;
+    private UserGetByEmailViewDTO userGetByEmailView;
+    private UserGetByIdExternalViewDTO userGetByIdExternalView;
+    private UserSearchViewDTO userSearchView;
     private UserStatusHistory userStatusHistory;
     private UUID userId;
     private UUID idUserExternal;
@@ -102,7 +102,7 @@ class UserQueryServiceTest {
         when(userMapper.toUserGetByUsernameView(eq(user), anyList())).thenReturn(userGetByUsernameView);
 
         // When
-        UserGetByUsernameView result = userQueryService.findByUsername(command);
+        UserGetByUsernameViewDTO result = userQueryService.findByUsername(command);
 
         // Then
         assertNotNull(result);
@@ -124,7 +124,7 @@ class UserQueryServiceTest {
             .thenReturn(Optional.of(user));
         when(userMapper.toUserGetByCodeView(eq(user), anyList())).thenReturn(view);
 
-        UserGetByCodeView result = userQueryService.findByCodeUser(command);
+        UserGetByCodeViewDTO result = userQueryService.findByCodeUser(command);
 
         assertNotNull(result);
         verify(userRepository).findByCodeUserAndCompanyId(user.getCodeUser(), command.getCompanyId());
@@ -157,7 +157,7 @@ class UserQueryServiceTest {
         when(userMapper.toUserGetByEmailView(eq(user), anyList())).thenReturn(userGetByEmailView);
 
         // When
-        UserGetByEmailView result = userQueryService.findByEmail(command);
+        UserGetByEmailViewDTO result = userQueryService.findByEmail(command);
 
         // Then
         assertNotNull(result);
@@ -195,7 +195,7 @@ class UserQueryServiceTest {
 
         // When
         var command = userTestBuilder.buildGetByIdExternalCommand(idUserExternal);
-        UserGetByIdExternalView result = userQueryService.findByIdUserExternal(command);
+        UserGetByIdExternalViewDTO result = userQueryService.findByIdUserExternal(command);
 
         // Then
         assertNotNull(result);
@@ -234,7 +234,7 @@ class UserQueryServiceTest {
 
         // When
         var command = userTestBuilder.buildGetStatusHistoryCommand(idUserExternal, 0, 1);
-        PageResultView<UserStatusHistory> result = userQueryService.getUserStatusHistory(command);
+        PageResultViewDTO<UserStatusHistory> result = userQueryService.getUserStatusHistory(command);
 
         // Then
         assertNotNull(result);
@@ -251,7 +251,7 @@ class UserQueryServiceTest {
     @DisplayName("Deve buscar usuários com critérios de busca com sucesso")
     void shouldSearchUsersSuccessfully() {
         // Given
-        UserSearchCriteriaView criteria = new UserSearchCriteriaView(
+        UserSearchCriteriaViewDTO criteria = new UserSearchCriteriaViewDTO(
             null, "test", "test@example.com", null, null, null, "ACTIVE", null, null, null, null, null, null, null, null, null, null, null, 0, 10, "username", "ASC"
         );
         Page<User> userPage = new PageImpl<>(List.of(user));
@@ -260,7 +260,7 @@ class UserQueryServiceTest {
 
         // When
         var command = userTestBuilder.buildSearchCommandWithCriteria(criteria);
-        PageResultView<UserSearchView> result = userQueryService.searchUsers(command);
+        PageResultViewDTO<UserSearchViewDTO> result = userQueryService.searchUsers(command);
 
         // Then
         assertNotNull(result);
@@ -277,7 +277,7 @@ class UserQueryServiceTest {
     @DisplayName("Deve buscar usuários com critérios vazios")
     void shouldSearchUsersWithEmptyCriteria() {
         // Given
-        UserSearchCriteriaView criteria = new UserSearchCriteriaView(
+        UserSearchCriteriaViewDTO criteria = new UserSearchCriteriaViewDTO(
             null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, "username", "ASC"
         );
         Page<User> userPage = new PageImpl<>(List.of(user));
@@ -286,7 +286,7 @@ class UserQueryServiceTest {
 
         // When
         var command = userTestBuilder.buildSearchCommandWithCriteria(criteria);
-        PageResultView<UserSearchView> result = userQueryService.searchUsers(command);
+        PageResultViewDTO<UserSearchViewDTO> result = userQueryService.searchUsers(command);
 
         // Then
         assertNotNull(result);
@@ -300,7 +300,7 @@ class UserQueryServiceTest {
     @DisplayName("Deve buscar usuários com paginação na primeira página")
     void shouldSearchUsersWithPaginationFirstPage() {
         // Given
-        UserSearchCriteriaView criteria = new UserSearchCriteriaView(
+        UserSearchCriteriaViewDTO criteria = new UserSearchCriteriaViewDTO(
             null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 5, "username", "ASC"
         );
         Page<User> userPage = new PageImpl<>(List.of(user), PageRequest.of(0, 5), 1L);
@@ -309,7 +309,7 @@ class UserQueryServiceTest {
 
         // When
         var command = userTestBuilder.buildSearchCommandWithCriteria(criteria);
-        PageResultView<UserSearchView> result = userQueryService.searchUsers(command);
+        PageResultViewDTO<UserSearchViewDTO> result = userQueryService.searchUsers(command);
 
         // Then
         assertNotNull(result);
@@ -327,7 +327,7 @@ class UserQueryServiceTest {
     @DisplayName("Deve buscar usuários com paginação na última página")
     void shouldSearchUsersWithPaginationLastPage() {
         // Given
-        UserSearchCriteriaView criteria = new UserSearchCriteriaView(
+        UserSearchCriteriaViewDTO criteria = new UserSearchCriteriaViewDTO(
             null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 1, 5, "username", "ASC"
         );
         Page<User> userPage = new PageImpl<>(List.of(user), PageRequest.of(1, 5), 6L);
@@ -336,7 +336,7 @@ class UserQueryServiceTest {
 
         // When
         var command = userTestBuilder.buildSearchCommandWithCriteria(criteria);
-        PageResultView<UserSearchView> result = userQueryService.searchUsers(command);
+        PageResultViewDTO<UserSearchViewDTO> result = userQueryService.searchUsers(command);
 
         // Then
         assertNotNull(result);

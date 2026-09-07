@@ -1,11 +1,11 @@
 package com.keepguard.ms_auth.infrastructure.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.keepguard.ms_auth.application.dto.user.UserAuthCacheView;
-import com.keepguard.ms_auth.application.dto.user.UserGetByUsernameView;
-import com.keepguard.ms_auth.application.dto.user.UserGetByEmailView;
-import com.keepguard.ms_auth.application.dto.user.UserGetByCodeView;
-import com.keepguard.ms_auth.application.dto.user.UserRolesCacheView;
+import com.keepguard.ms_auth.application.dto.user.UserAuthCacheViewDTO;
+import com.keepguard.ms_auth.application.dto.user.UserGetByUsernameViewDTO;
+import com.keepguard.ms_auth.application.dto.user.UserGetByEmailViewDTO;
+import com.keepguard.ms_auth.application.dto.user.UserGetByCodeViewDTO;
+import com.keepguard.ms_auth.application.dto.user.UserRolesCacheViewDTO;
 import com.keepguard.ms_auth.domain.enums.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,11 +38,11 @@ class UserCacheServiceTest {
     private ValueOperations<String, String> valueOperations;
 
     private ObjectMapper objectMapper;
-    private UserAuthCacheView userAuthCacheViewDTO;
-    private UserGetByUsernameView userGetByUsernameView;
-    private UserGetByEmailView userGetByEmailView;
-    private UserGetByCodeView userGetByCodeView;
-    private UserRolesCacheView userRolesCacheViewDTO;
+    private UserAuthCacheViewDTO userAuthCacheViewDTO;
+    private UserGetByUsernameViewDTO userGetByUsernameView;
+    private UserGetByEmailViewDTO userGetByEmailView;
+    private UserGetByCodeViewDTO userGetByCodeView;
+    private UserRolesCacheViewDTO userRolesCacheViewDTO;
     private UUID companyId;
 
     @BeforeEach
@@ -66,7 +66,7 @@ class UserCacheServiceTest {
         lenient().when(redisTemplate.delete(anyString())).thenReturn(true);
 
         // Setup test data
-        userAuthCacheViewDTO = new UserAuthCacheView(
+        userAuthCacheViewDTO = new UserAuthCacheViewDTO(
             UUID.randomUUID(),
             UUID.randomUUID(),
             UUID.randomUUID(),
@@ -83,12 +83,12 @@ class UserCacheServiceTest {
             UUID.randomUUID()
         );
 
-        userRolesCacheViewDTO = new UserRolesCacheView(
+        userRolesCacheViewDTO = new UserRolesCacheViewDTO(
             UUID.randomUUID(),
             List.of("ADMIN", "USER")
         );
         
-        userGetByUsernameView = new UserGetByUsernameView(
+        userGetByUsernameView = new UserGetByUsernameViewDTO(
             UUID.randomUUID(),
             "testuser",
             "test@example.com",
@@ -105,7 +105,7 @@ class UserCacheServiceTest {
             UUID.randomUUID()
         );
         
-        userGetByEmailView = new UserGetByEmailView(
+        userGetByEmailView = new UserGetByEmailViewDTO(
             UUID.randomUUID(),
             "testuser",
             "test@example.com",
@@ -122,7 +122,7 @@ class UserCacheServiceTest {
             UUID.randomUUID()
         );
         
-        userGetByCodeView = new UserGetByCodeView(
+        userGetByCodeView = new UserGetByCodeViewDTO(
             UUID.randomUUID(),
             "testuser",
             "test@example.com",
@@ -165,7 +165,7 @@ class UserCacheServiceTest {
         when(valueOperations.get("user_cache:auth:username:" + companyId + ":testuser")).thenReturn(userJson);
 
         // When
-        UserAuthCacheView result = userCacheServiceAdapter.getUserByUsernameFromCache(companyId, "testuser");
+        UserAuthCacheViewDTO result = userCacheServiceAdapter.getUserByUsernameFromCache(companyId, "testuser");
 
         // Then
         assertNotNull(result);
@@ -202,7 +202,7 @@ class UserCacheServiceTest {
         when(valueOperations.get("user_cache:auth:email:" + companyId + ":test@example.com")).thenReturn(userJson);
 
         // When
-        UserAuthCacheView result = userCacheServiceAdapter.getUserByEmailFromCache(companyId, "test@example.com");
+        UserAuthCacheViewDTO result = userCacheServiceAdapter.getUserByEmailFromCache(companyId, "test@example.com");
 
         // Then
         assertNotNull(result);
@@ -238,7 +238,7 @@ class UserCacheServiceTest {
         when(valueOperations.get("user_cache:auth:codeuser:user123")).thenReturn(userJson);
 
         // When
-        UserAuthCacheView result = userCacheServiceAdapter.getUserByCodeUserFromCache("user123");
+        UserAuthCacheViewDTO result = userCacheServiceAdapter.getUserByCodeUserFromCache("user123");
 
         // Then
         assertNotNull(result);
@@ -273,7 +273,7 @@ class UserCacheServiceTest {
         when(valueOperations.get("user_cache:auth:external:ext123")).thenReturn(userJson);
 
         // When
-        UserAuthCacheView result = userCacheServiceAdapter.getUserByIdExternalFromCache("ext123");
+        UserAuthCacheViewDTO result = userCacheServiceAdapter.getUserByIdExternalFromCache("ext123");
 
         // Then
         assertNotNull(result);
@@ -308,7 +308,7 @@ class UserCacheServiceTest {
         when(valueOperations.get("user_cache:auth:roles:user123")).thenReturn(rolesJson);
 
         // When
-        UserRolesCacheView result = userCacheServiceAdapter.getUserRolesFromCache("user123");
+        UserRolesCacheViewDTO result = userCacheServiceAdapter.getUserRolesFromCache("user123");
 
         // Then
         assertNotNull(result);
@@ -335,7 +335,7 @@ class UserCacheServiceTest {
         when(valueOperations.get("user_cache:auth:username:" + companyId + ":nonexistent")).thenReturn(null);
 
         // When
-        UserAuthCacheView result = userCacheServiceAdapter.getUserByUsernameFromCache(companyId, "nonexistent");
+        UserAuthCacheViewDTO result = userCacheServiceAdapter.getUserByUsernameFromCache(companyId, "nonexistent");
 
         // Then
         assertNull(result);
@@ -348,7 +348,7 @@ class UserCacheServiceTest {
         when(valueOperations.get("user_cache:auth:roles:user123")).thenReturn(null);
 
         // When
-        UserRolesCacheView result = userCacheServiceAdapter.getUserRolesFromCache("user123");
+        UserRolesCacheViewDTO result = userCacheServiceAdapter.getUserRolesFromCache("user123");
 
         // Then
         assertNull(result);

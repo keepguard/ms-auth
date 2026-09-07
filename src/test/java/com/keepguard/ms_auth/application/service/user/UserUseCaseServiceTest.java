@@ -1,8 +1,8 @@
 package com.keepguard.ms_auth.application.service.user;
 
 import com.keepguard.ms_auth.application.dto.user.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
-import com.keepguard.ms_auth.domain.dto.user.UserCreateCommandDTO;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
+import com.keepguard.ms_auth.application.dto.user.UserCreateCommandDTO;
 import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
 import com.keepguard.ms_auth.test.builder.UserTestBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,12 +37,12 @@ class UserUseCaseServiceTest {
     private UserUseCaseService userUseCaseService;
     
     private UserCreateCommandDTO userCreateCommand;
-    private UserView userView;
-    private UserGetByUsernameView userGetByUsernameView;
-    private UserGetByEmailView userGetByEmailView;
-    private UserGetByIdExternalView userGetByIdExternalView;
-    private UserSearchCriteriaView searchCriteria;
-    private PageResultView<UserStatusHistory> statusHistoryPage;
+    private UserViewDTO userView;
+    private UserGetByUsernameViewDTO userGetByUsernameView;
+    private UserGetByEmailViewDTO userGetByEmailView;
+    private UserGetByIdExternalViewDTO userGetByIdExternalView;
+    private UserSearchCriteriaViewDTO searchCriteria;
+    private PageResultViewDTO<UserStatusHistory> statusHistoryPage;
     private UUID idUserExternal;
     private String reason;
     private UserTestBuilder userTestBuilder;
@@ -57,7 +57,7 @@ class UserUseCaseServiceTest {
             
         userCreateCommand = userTestBuilder.buildCreateCommand();
         
-        userView = new UserView(
+        userView = new UserViewDTO(
             UUID.randomUUID(),
             "testuser",
             "test@example.com",
@@ -78,7 +78,7 @@ class UserUseCaseServiceTest {
         userGetByEmailView = userTestBuilder.buildGetByEmailView();
         userGetByIdExternalView = userTestBuilder.buildGetByIdExternalView();
         
-        searchCriteria = new UserSearchCriteriaView(
+        searchCriteria = new UserSearchCriteriaViewDTO(
             null, // id
             "testuser",
             "test@example.com",
@@ -103,7 +103,7 @@ class UserUseCaseServiceTest {
             "DESC"
         );
         
-        statusHistoryPage = new PageResultView<>(
+        statusHistoryPage = new PageResultViewDTO<>(
             List.of(),
             0,
             10,
@@ -123,7 +123,7 @@ class UserUseCaseServiceTest {
         when(commandService.create(userCreateCommand)).thenReturn(userView);
         
         // When
-        UserView result = userUseCaseService.create(userCreateCommand);
+        UserViewDTO result = userUseCaseService.create(userCreateCommand);
         
         // Then
         assertNotNull(result);
@@ -137,7 +137,7 @@ class UserUseCaseServiceTest {
     void shouldCreateAdminSuccessfully() {
         when(commandService.createAdmin(userCreateCommand)).thenReturn(userView);
 
-        UserView result = userUseCaseService.createAdmin(userCreateCommand);
+        UserViewDTO result = userUseCaseService.createAdmin(userCreateCommand);
 
         assertNotNull(result);
         assertEquals(userView, result);
@@ -150,7 +150,7 @@ class UserUseCaseServiceTest {
     void shouldCreateManagerSuccessfully() {
         when(commandService.createManager(userCreateCommand)).thenReturn(userView);
 
-        UserView result = userUseCaseService.createManager(userCreateCommand);
+        UserViewDTO result = userUseCaseService.createManager(userCreateCommand);
 
         assertNotNull(result);
         assertEquals(userView, result);
@@ -209,7 +209,7 @@ class UserUseCaseServiceTest {
         when(queryService.findByUsername(command)).thenReturn(userGetByUsernameView);
         
         // When
-        UserGetByUsernameView result = userUseCaseService.findByUsername(command);
+        UserGetByUsernameViewDTO result = userUseCaseService.findByUsername(command);
         
         // Then
         assertNotNull(result);
@@ -227,7 +227,7 @@ class UserUseCaseServiceTest {
         when(queryService.findByEmail(command)).thenReturn(userGetByEmailView);
         
         // When
-        UserGetByEmailView result = userUseCaseService.findByEmail(command);
+        UserGetByEmailViewDTO result = userUseCaseService.findByEmail(command);
         
         // Then
         assertNotNull(result);
@@ -244,7 +244,7 @@ class UserUseCaseServiceTest {
         when(queryService.findByIdUserExternal(command)).thenReturn(userGetByIdExternalView);
         
         // When
-        UserGetByIdExternalView result = userUseCaseService.findByIdUserExternal(command);
+        UserGetByIdExternalViewDTO result = userUseCaseService.findByIdUserExternal(command);
         
         // Then
         assertNotNull(result);
@@ -263,7 +263,7 @@ class UserUseCaseServiceTest {
         when(queryService.getUserStatusHistory(command)).thenReturn(statusHistoryPage);
         
         // When
-        PageResultView<UserStatusHistory> result = userUseCaseService.getUserStatusHistory(command);
+        PageResultViewDTO<UserStatusHistory> result = userUseCaseService.getUserStatusHistory(command);
         
         // Then
         assertNotNull(result);
@@ -307,8 +307,8 @@ class UserUseCaseServiceTest {
     @DisplayName("Deve buscar usuários com critérios com sucesso")
     void shouldSearchUsersSuccessfully() {
         // Given
-        UserSearchView searchView = userTestBuilder.buildSearchView();
-        PageResultView<UserSearchView> searchResult = new PageResultView<>(
+        UserSearchViewDTO searchView = userTestBuilder.buildSearchView();
+        PageResultViewDTO<UserSearchViewDTO> searchResult = new PageResultViewDTO<>(
             List.of(searchView),
             0,
             10,
@@ -323,7 +323,7 @@ class UserUseCaseServiceTest {
         when(queryService.searchUsers(command)).thenReturn(searchResult);
         
         // When
-        PageResultView<UserSearchView> result = userUseCaseService.searchUsers(command);
+        PageResultViewDTO<UserSearchViewDTO> result = userUseCaseService.searchUsers(command);
         
         // Then
         assertNotNull(result);

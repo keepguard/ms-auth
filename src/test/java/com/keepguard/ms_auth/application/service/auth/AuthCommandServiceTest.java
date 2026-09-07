@@ -17,17 +17,17 @@ import com.keepguard.ms_auth.infrastructure.config.security.JwtService;
 import com.keepguard.ms_auth.application.port.out.cache.TokenCachePort;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.test.builder.UserTestBuilder;
-import com.keepguard.ms_auth.domain.dto.auth.AuthLoginCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthRefreshTokenCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthLogoutCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthValidateTokenQueryDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthChangePasswordCommandDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthResetPasswordCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLogoutCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthValidateTokenQueryDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthChangePasswordCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthResetPasswordCommandDTO;
 import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
 import com.keepguard.ms_auth.adapters.out.feign.UserClient;
 import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
 import com.keepguard.ms_auth.application.port.out.geo.GeoLocationPort;
-import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
+import com.keepguard.ms_auth.application.port.in.DeviceSessionPort;
 import com.keepguard.ms_auth.infrastructure.config.security.LoginAttemptService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -95,7 +95,7 @@ class AuthCommandServiceTest {
     private LoginAttemptService loginAttemptService;
 
     @Mock
-    private DeviceSessionService deviceSessionService;
+    private DeviceSessionPort deviceSessionService;
 
     @Mock
     private GeoLocationPort geoLocationPort;
@@ -750,8 +750,8 @@ class AuthCommandServiceTest {
     void shouldThrowExceptionWhenResetTokenCooldownIsActive() {
         // Given
         String codeUserString = codeUser.toString();
-        com.keepguard.ms_auth.domain.dto.auth.AuthGenerateResetTokenCommandDTO request =
-            com.keepguard.ms_auth.domain.dto.auth.AuthGenerateResetTokenCommandDTO.builder()
+        com.keepguard.ms_auth.application.dto.auth.AuthGenerateResetTokenCommandDTO request =
+            com.keepguard.ms_auth.application.dto.auth.AuthGenerateResetTokenCommandDTO.builder()
                 .codeUser(codeUserString)
                 .companyId(companyId)
                 .messageType(MessageTypeEnum.EMAIL)

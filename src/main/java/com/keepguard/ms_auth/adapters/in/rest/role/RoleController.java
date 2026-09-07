@@ -3,8 +3,10 @@ package com.keepguard.ms_auth.adapters.in.rest.role;
 import com.keepguard.lib_common.metrics.annotation.MetricsEndpoint;
 import com.keepguard.lib_common.utils.ValidationUtils;
 import com.keepguard.ms_auth.adapters.in.rest.role.dto.*;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleCreateRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleUpdateRequestDTO;
 import com.keepguard.ms_auth.application.dto.role.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.adapters.in.rest.role.mapper.RoleAdapterMapper;
 import com.keepguard.ms_auth.application.port.in.RolePort;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +57,7 @@ public class RoleController {
             @Parameter(description = "Identificador da empresa", required = true)
             @RequestHeader("X-Company-Id") UUID companyId,
             @Parameter(description = "Dados do role a ser criado", required = true)
-            @RequestBody @Valid RoleCreateDTO dto) {
+            @RequestBody @Valid RoleCreateRequestDTO dto) {
 
         log.info("Criando role: {}, application={}", dto.getName(), companyId);
         var command = mapper.toCreateCommand(dto, companyId);
@@ -87,7 +89,7 @@ public class RoleController {
             @Parameter(description = "ID do role", required = true)
             @PathVariable UUID id,
             @Parameter(description = "Dados do role a ser atualizado", required = true)
-            @RequestBody @Valid RoleUpdateDTO dto) {
+            @RequestBody @Valid RoleUpdateRequestDTO dto) {
 
         log.info("Atualizando role: {} com nome: {}, application={}", id, dto.getName(), companyId);
         var command = mapper.toUpdateCommand(id, dto, companyId);
@@ -147,7 +149,7 @@ public class RoleController {
 
         log.info("Buscando role por ID: {}, application={}", id, companyId);
         var command = mapper.toGetByIdCommand(id, companyId);
-        Optional<RoleGetByIdView> roleView = roleService.findById(command);
+        Optional<RoleGetByIdViewDTO> roleView = roleService.findById(command);
         if (roleView.isPresent()) {
             var response = mapper.toGetByIdResponseDTO(roleView.get());
             log.info("Role found: {} with application: {}", id, companyId);
@@ -181,7 +183,7 @@ public class RoleController {
 
         log.info("Buscando role por nome: {}, application={}", name, companyId);
         var command = mapper.toGetByNameCommand(name, companyId);
-        Optional<RoleGetByNameView> roleView = roleService.findByName(command);
+        Optional<RoleGetByNameViewDTO> roleView = roleService.findByName(command);
         if (roleView.isPresent()) {
             var response = mapper.toGetByNameResponseDTO(roleView.get());
             log.info("Role found by name: {} with application: {}", name, companyId);
@@ -211,7 +213,7 @@ public class RoleController {
 
         log.info("Listando todas as roles, application={}", companyId);
         var command = mapper.toGetAllCommand(companyId);
-        List<RoleListView> roleViews = roleService.findAll(command);
+        List<RoleListViewDTO> roleViews = roleService.findAll(command);
         List<RoleListResponseDTO> response = roleViews.stream()
                 .map(mapper::toListResponseDTO)
                 .toList();
@@ -232,7 +234,7 @@ public class RoleController {
         endpoint = "role_search",
         operation = "buscar roles com paginação"
     )
-    public ResponseEntity<PageResultView<RoleSearchResponseDTO>> search(
+    public ResponseEntity<PageResultViewDTO<RoleSearchResponseDTO>> search(
             @Parameter(description = "Identificador da empresa", required = true)
             @RequestHeader("X-Company-Id") UUID companyId,
             Pageable pageable) {
@@ -240,11 +242,11 @@ public class RoleController {
         log.info("Buscando roles com paginação: página {}, tamanho {}, application={}", 
                 pageable.getPageNumber(), pageable.getPageSize(), companyId);
         var command = mapper.toSearchCommand(pageable, companyId);
-        PageResultView<RoleSearchView> pageResultView = roleService.findAll(command);
+        PageResultViewDTO<RoleSearchViewDTO> pageResultView = roleService.findAll(command);
         List<RoleSearchResponseDTO> content = pageResultView.getContent().stream()
                 .map(mapper::toSearchResponseDTO)
                 .toList();
-        PageResultView<RoleSearchResponseDTO> response = new PageResultView<>(
+        PageResultViewDTO<RoleSearchResponseDTO> response = new PageResultViewDTO<>(
                 content, 
                 pageResultView.getPageNumber(),
                 pageResultView.getSize(),

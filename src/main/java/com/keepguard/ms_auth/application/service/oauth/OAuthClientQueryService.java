@@ -1,16 +1,16 @@
 package com.keepguard.ms_auth.application.service.oauth;
 
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleAuthorityView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientRuntimeSecretView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleAuthorityViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthServiceRoleViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientRuntimeSecretViewDTO;
 import com.keepguard.ms_auth.application.mapper.OAuthClientApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.persistence.OAuthClientRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientSearchQueryDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientSearchQueryDTO;
 import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.domain.entity.role.SystemServiceRoleNames;
@@ -43,7 +43,7 @@ public class OAuthClientQueryService {
     private final OAuthClientSecretCrypto secretCrypto;
 
     @Transactional(readOnly = true)
-    public OAuthClientView findById(UUID companyId, UUID id) {
+    public OAuthClientViewDTO findById(UUID companyId, UUID id) {
         if (companyId == null || id == null) {
             throw new IllegalArgumentException("companyId e id são obrigatórios.");
         }
@@ -54,7 +54,7 @@ public class OAuthClientQueryService {
     }
 
     @Transactional(readOnly = true)
-    public List<OAuthClientView> listByCompany(UUID companyId) {
+    public List<OAuthClientViewDTO> listByCompany(UUID companyId) {
         if (companyId == null) {
             throw new IllegalArgumentException("X-Company-Id é obrigatório.");
         }
@@ -65,17 +65,17 @@ public class OAuthClientQueryService {
     }
 
     @Transactional(readOnly = true)
-    public PageResultView<OAuthClientView> search(OAuthClientSearchQueryDTO query) {
+    public PageResultViewDTO<OAuthClientViewDTO> search(OAuthClientSearchQueryDTO query) {
         if (query == null || query.getCompanyId() == null) {
             throw new IllegalArgumentException("X-Company-Id é obrigatório.");
         }
         String clientId = StringUtils.hasText(query.getClientId()) ? query.getClientId().trim() : null;
         Pageable pageable = sanitizePageable(query.getPageable());
-        Page<OAuthClientView> page = oauthClientRepository
+        Page<OAuthClientViewDTO> page = oauthClientRepository
                 .search(query.getCompanyId(), clientId, query.getStatus(), pageable)
                 .map(roleResolver::enrich)
                 .map(this::toSecretView);
-        return PageResultView.<OAuthClientView>builder()
+        return PageResultViewDTO.<OAuthClientViewDTO>builder()
                 .content(page.getContent())
                 .page(page.getNumber())
                 .size(page.getSize())
@@ -89,7 +89,7 @@ public class OAuthClientQueryService {
     }
 
     @Transactional(readOnly = true)
-    public List<OAuthServiceRoleView> listServiceRoles() {
+    public List<OAuthServiceRoleViewDTO> listServiceRoles() {
         return SystemServiceRoleNames.SERVICE_TEMPLATES.stream()
                 .map(roleRepository::findByCompanyIdIsNullAndName)
                 .flatMap(java.util.Optional::stream)
@@ -98,7 +98,7 @@ public class OAuthClientQueryService {
     }
 
     @Transactional(readOnly = true)
-    public OAuthClientRuntimeSecretView findRuntimeSecret(UUID companyId, String clientId, String presentedBase) {
+    public OAuthClientRuntimeSecretViewDTO findRuntimeSecret(UUID companyId, String clientId, String presentedBase) {
         if (!secretCrypto.matchesBase(presentedBase)) {
             throw new InvalidCredentialsException();
         }
@@ -114,20 +114,20 @@ public class OAuthClientQueryService {
         if (!StringUtils.hasText(client.getSecretEncrypted())) {
             throw new NotFoundException("OAuth client sem secret cifrado. Recrie o client.");
         }
-        return new OAuthClientRuntimeSecretView(client.getClientId(), client.getSecretEncrypted(), client.getStatus());
+        return new OAuthClientRuntimeSecretViewDTO(client.getClientId(), client.getSecretEncrypted(), client.getStatus());
     }
 
-    private OAuthClientView toSecretView(OAuthClient client) {
+    private OAuthClientViewDTO toSecretView(OAuthClient client) {
         return mapper.toView(client, secretCrypto.decryptOrNull(client.getSecretEncrypted()));
     }
 
-    private OAuthServiceRoleView toServiceRoleView(Role role) {
-        List<OAuthServiceRoleAuthorityView> authorities = role.getAuthorities() == null
+    private OAuthServiceRoleViewDTO toServiceRoleView(Role role) {
+        List<OAuthServiceRoleAuthorityViewDTO> authorities = role.getAuthorities() == null
                 ? List.of()
                 : role.getAuthorities().stream()
-                .map(authority -> new OAuthServiceRoleAuthorityView(authority.getName(), authority.getDescription()))
+                .map(authority -> new OAuthServiceRoleAuthorityViewDTO(authority.getName(), authority.getDescription()))
                 .toList();
-        return new OAuthServiceRoleView(role.getId(), role.getName(), role.getDescription(), authorities);
+        return new OAuthServiceRoleViewDTO(role.getId(), role.getName(), role.getDescription(), authorities);
     }
 
     private Pageable sanitizePageable(Pageable pageable) {

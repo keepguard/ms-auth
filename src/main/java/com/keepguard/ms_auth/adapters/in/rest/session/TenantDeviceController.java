@@ -1,9 +1,13 @@
 package com.keepguard.ms_auth.adapters.in.rest.session;
 
 import com.keepguard.lib_common.metrics.annotation.MetricsEndpoint;
-import com.keepguard.ms_auth.application.dto.session.DeviceSessionView;
-import com.keepguard.ms_auth.application.dto.session.TenantDeviceBlacklistView;
-import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
+import com.keepguard.ms_auth.adapters.in.rest.session.dto.request.DeviceBlacklistRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.session.dto.response.DeviceBlacklistResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.session.dto.response.DeviceSessionResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.session.mapper.DeviceSessionAdapterMapper;
+import com.keepguard.ms_auth.application.port.in.DeviceSessionPort;
+import com.keepguard.ms_auth.infrastructure.util.ClientIpResolver;
+import com.keepguard.ms_auth.infrastructure.util.ClientLocation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -31,26 +34,26 @@ import java.util.UUID;
 @Tag(name = "Tenant Devices & Sessions", description = "Gestão de sessões e blacklist no escopo do tenant")
 public class TenantDeviceController {
 
-    private final DeviceSessionService deviceSessionService;
+    private final DeviceSessionPort deviceSessionPort;
+    private final DeviceSessionAdapterMapper mapper;
 
     @GetMapping("/users/{userId}/sessions")
     @Operation(summary = "Listar sessões de um usuário do tenant")
     @MetricsEndpoint(endpoint = "tenant_list_user_sessions")
-    public ResponseEntity<List<DeviceSessionView>> listUserSessions(
+    public ResponseEntity<List<DeviceSessionResponseDTO>> listUserSessions(
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader("X-Company-Id") UUID companyId,
             @PathVariable("userId") String userId,
             HttpServletRequest httpRequest) {
 
-        List<DeviceSessionView> sessions = deviceSessionService.listSessionsForUser(
+        return ResponseEntity.ok(mapper.toSessionResponseList(deviceSessionPort.listSessionsForUser(
                 companyId,
                 actorCodeUser(jwt),
                 userId,
                 null,
-                com.keepguard.ms_auth.infrastructure.util.ClientIpResolver.from(httpRequest),
-                com.keepguard.ms_auth.infrastructure.util.ClientLocation.from(httpRequest)
-        );
-        return ResponseEntity.ok(sessions);
+                ClientIpResolver.from(httpRequest),
+                ClientLocation.from(httpRequest)
+        )));
     }
 
     @DeleteMapping("/users/{userId}/sessions/{deviceId}")
@@ -62,19 +65,20 @@ public class TenantDeviceController {
             @PathVariable("userId") String userId,
             @PathVariable("deviceId") String deviceId) {
 
-        deviceSessionService.revokeSessionForUser(companyId, actorCodeUser(jwt), userId, deviceId);
+        deviceSessionPort.revokeSessionForUser(companyId, actorCodeUser(jwt), userId, deviceId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/users/{userId}/devices/blacklist")
     @Operation(summary = "Listar blacklist de um usuário do tenant")
     @MetricsEndpoint(endpoint = "tenant_list_user_blacklist")
-    public ResponseEntity<List<TenantDeviceBlacklistView>> listUserBlacklist(
+    public ResponseEntity<List<DeviceBlacklistResponseDTO>> listUserBlacklist(
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader("X-Company-Id") UUID companyId,
             @PathVariable("userId") String userId) {
 
-        return ResponseEntity.ok(deviceSessionService.listBlacklistForUser(companyId, actorCodeUser(jwt), userId));
+        return ResponseEntity.ok(mapper.toTenantBlacklistResponseList(
+                deviceSessionPort.listBlacklistForUser(companyId, actorCodeUser(jwt), userId)));
     }
 
     @PostMapping("/users/{userId}/devices/blacklist")
@@ -84,22 +88,21 @@ public class TenantDeviceController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader("X-Company-Id") UUID companyId,
             @PathVariable("userId") String userId,
-            @RequestBody Map<String, String> request) {
+            @RequestBody DeviceBlacklistRequestDTO request) {
 
-        String deviceId = request != null ? request.get("deviceId") : null;
-        if (deviceId == null || deviceId.isBlank()) {
+        DeviceBlacklistRequestDTO body = mapper.emptyIfNull(request);
+        if (body.getDeviceId() == null || body.getDeviceId().isBlank()) {
             return ResponseEntity.badRequest().build();
         }
-        LocalDateTime expiresAt = parseExpiresAt(request != null ? request.get("expiresAt") : null);
-        deviceSessionService.addDeviceToBlacklistForUser(
+        deviceSessionPort.addDeviceToBlacklistForUser(
                 companyId,
                 actorCodeUser(jwt),
                 userId,
-                deviceId,
-                request.get("deviceName"),
-                request.get("reason"),
+                body.getDeviceId(),
+                body.getDeviceName(),
+                body.getReason(),
                 blockedBy(jwt),
-                expiresAt
+                parseExpiresAt(body.getExpiresAt())
         );
         return ResponseEntity.noContent().build();
     }
@@ -113,14 +116,14 @@ public class TenantDeviceController {
             @PathVariable("userId") String userId,
             @PathVariable("deviceId") String deviceId) {
 
-        deviceSessionService.removeDeviceFromBlacklistForUser(companyId, actorCodeUser(jwt), userId, deviceId);
+        deviceSessionPort.removeDeviceFromBlacklistForUser(companyId, actorCodeUser(jwt), userId, deviceId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/devices/blacklist")
     @Operation(summary = "Buscar blacklist do tenant", description = "Busca paginada de dispositivos bloqueados no tenant do ator")
     @MetricsEndpoint(endpoint = "tenant_search_device_blacklist")
-    public ResponseEntity<Page<TenantDeviceBlacklistView>> searchBlacklist(
+    public ResponseEntity<Page<DeviceBlacklistResponseDTO>> searchBlacklist(
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader("X-Company-Id") UUID companyId,
             @RequestParam(value = "userId", required = false) UUID userId,
@@ -133,17 +136,16 @@ public class TenantDeviceController {
             @RequestParam(value = "size", defaultValue = "20") int size,
             @RequestParam(value = "sort", defaultValue = "blockedAt,desc") String sort) {
 
-        Page<TenantDeviceBlacklistView> result = deviceSessionService.searchTenantBlacklist(
+        return ResponseEntity.ok(mapper.toTenantBlacklistResponsePage(deviceSessionPort.searchTenantBlacklist(
                 companyId, actorCodeUser(jwt), userId, deviceId, deviceName, ipAddress, startDate, endDate,
                 pageable(page, size, sort)
-        );
-        return ResponseEntity.ok(result);
+        )));
     }
 
     @GetMapping("/sessions")
     @Operation(summary = "Buscar sessões do tenant", description = "Busca paginada de sessões ativas no tenant do ator")
     @MetricsEndpoint(endpoint = "tenant_search_sessions")
-    public ResponseEntity<Page<DeviceSessionView>> searchSessions(
+    public ResponseEntity<Page<DeviceSessionResponseDTO>> searchSessions(
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader("X-Company-Id") UUID companyId,
             @RequestParam(value = "userId", required = false) UUID userId,
@@ -152,10 +154,9 @@ public class TenantDeviceController {
             @RequestParam(value = "size", defaultValue = "20") int size,
             @RequestParam(value = "sort", defaultValue = "lastActiveAt,desc") String sort) {
 
-        Page<DeviceSessionView> result = deviceSessionService.searchTenantSessions(
+        return ResponseEntity.ok(mapper.toSessionResponsePage(deviceSessionPort.searchTenantSessions(
                 companyId, actorCodeUser(jwt), userId, deviceId, pageable(page, size, sort)
-        );
-        return ResponseEntity.ok(result);
+        )));
     }
 
     static String actorCodeUser(Jwt jwt) {

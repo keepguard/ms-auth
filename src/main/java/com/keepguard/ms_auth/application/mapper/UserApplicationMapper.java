@@ -15,13 +15,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserApplicationMapper {
 
-    public UserView toView(User user) {
+    public UserViewDTO toView(User user) {
         if (user == null) {
             return null;
         }
 
         try {
-            return new UserView(
+            return new UserViewDTO(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
@@ -38,22 +38,22 @@ public class UserApplicationMapper {
                 user.getCompanyCode()
             );
         } catch (Exception e) {
-            log.error("Erro ao mapear User para UserView: {}", e.getMessage(), e);
+            log.error("Erro ao mapear User para UserViewDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
     /**
-     * Converte User para UserView incluindo as roles do usuário
+     * Converte User para UserViewDTO incluindo as roles do usuário
      * Utilizado pelas operações de query para retornar dados completos do usuário
      */
-    public UserView toViewWithRoles(User user, List<String> roles) {
+    public UserViewDTO toViewWithRoles(User user, List<String> roles) {
         if (user == null) {
             return null;
         }
 
         try {
-            return new UserView(
+            return new UserViewDTO(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
@@ -70,23 +70,23 @@ public class UserApplicationMapper {
                 user.getCompanyCode()
             );
         } catch (Exception e) {
-            log.error("Erro ao mapear User para UserView com roles: {}", e.getMessage(), e);
+            log.error("Erro ao mapear User para UserViewDTO com roles: {}", e.getMessage(), e);
             throw e;
         }
     }
 
     /**
-     * Converte User para UserView incluindo as roles do usuário
+     * Converte User para UserViewDTO incluindo as roles do usuário
      * Versão com valores padrão para campos opcionais para evitar nulls
      * Utilizado em cenários onde é necessário garantir que não haverá campos vazios
      */
-    public UserView toViewWithRolesAndDefaults(User user, List<String> roles) {
+    public UserViewDTO toViewWithRolesAndDefaults(User user, List<String> roles) {
         if (user == null) {
             return null;
         }
 
         try {
-            return new UserView(
+            return new UserViewDTO(
                 user.getId(),
                 user.getUsername() != null ? user.getUsername() : "",
                 user.getEmail() != null ? user.getEmail() : "",
@@ -103,7 +103,7 @@ public class UserApplicationMapper {
                 user.getCompanyCode()
             );
         } catch (Exception e) {
-            log.error("Erro ao mapear User para UserView com roles e defaults: {}", e.getMessage(), e);
+            log.error("Erro ao mapear User para UserViewDTO com roles e defaults: {}", e.getMessage(), e);
             throw e;
         }
     }
@@ -111,16 +111,16 @@ public class UserApplicationMapper {
     // ========== VIEWS ESPECÍFICAS POR QUERY ==========
 
     /**
-     * Converte User para UserGetByUsernameView incluindo as roles do usuário
+     * Converte User para UserGetByUsernameViewDTO incluindo as roles do usuário
      * Usado especificamente pela query findByUsername
      */
-    public UserGetByUsernameView toUserGetByUsernameView(User user, List<String> roles) {
+    public UserGetByUsernameViewDTO toUserGetByUsernameView(User user, List<String> roles) {
         if (user == null) {
             return null;
         }
 
         try {
-            return new UserGetByUsernameView(
+            return new UserGetByUsernameViewDTO(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
@@ -137,22 +137,22 @@ public class UserApplicationMapper {
                 user.getCompanyCode()
             );
         } catch (Exception e) {
-            log.error("Erro ao mapear User para UserGetByUsernameView: {}", e.getMessage(), e);
+            log.error("Erro ao mapear User para UserGetByUsernameViewDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
     /**
-     * Converte User para UserGetByEmailView incluindo as roles do usuário
+     * Converte User para UserGetByEmailViewDTO incluindo as roles do usuário
      * Usado especificamente pela query findByEmail
      */
-    public UserGetByEmailView toUserGetByEmailView(User user, List<String> roles) {
+    public UserGetByEmailViewDTO toUserGetByEmailView(User user, List<String> roles) {
         if (user == null) {
             return null;
         }
 
         try {
-            return new UserGetByEmailView(
+            return new UserGetByEmailViewDTO(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
@@ -169,22 +169,22 @@ public class UserApplicationMapper {
                 user.getCompanyCode()
             );
         } catch (Exception e) {
-            log.error("Erro ao mapear User para UserGetByEmailView: {}", e.getMessage(), e);
+            log.error("Erro ao mapear User para UserGetByEmailViewDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
     /**
-     * Converte User para UserGetByCodeView incluindo as roles do usuário
+     * Converte User para UserGetByCodeViewDTO incluindo as roles do usuário
      * Usado especificamente pela query findByCodeUser
      */
-    public UserGetByCodeView toUserGetByCodeView(User user, List<String> roles) {
+    public UserGetByCodeViewDTO toUserGetByCodeView(User user, List<String> roles) {
         if (user == null) {
             return null;
         }
 
         try {
-            return new UserGetByCodeView(
+            return new UserGetByCodeViewDTO(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
@@ -201,23 +201,23 @@ public class UserApplicationMapper {
                 user.getCompanyCode()
             );
         } catch (Exception e) {
-            log.error("Erro ao mapear User para UserGetByCodeView: {}", e.getMessage(), e);
+            log.error("Erro ao mapear User para UserGetByCodeViewDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
     /**
-     * Converte User para UserGetByIdExternalView incluindo as roles do usuário
+     * Converte User para UserGetByIdExternalViewDTO incluindo as roles do usuário
      * Usado especificamente pela query findByIdUserExternal
      * Versão com defaults para garantir valores não nulos
      */
-    public UserGetByIdExternalView toUserGetByIdExternalView(User user, List<String> roles) {
+    public UserGetByIdExternalViewDTO toUserGetByIdExternalView(User user, List<String> roles) {
         if (user == null) {
             return null;
         }
 
         try {
-            return new UserGetByIdExternalView(
+            return new UserGetByIdExternalViewDTO(
                 user.getId(),
                 user.getUsername() != null ? user.getUsername() : "",
                 user.getEmail() != null ? user.getEmail() : "",
@@ -234,22 +234,22 @@ public class UserApplicationMapper {
                 user.getCompanyCode()
             );
         } catch (Exception e) {
-            log.error("Erro ao mapear User para UserGetByIdExternalView: {}", e.getMessage(), e);
+            log.error("Erro ao mapear User para UserGetByIdExternalViewDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
     /**
-     * Converte User para UserSearchView incluindo as roles do usuário
+     * Converte User para UserSearchViewDTO incluindo as roles do usuário
      * Usado especificamente pela query searchUsers
      */
-    public UserSearchView toUserSearchView(User user, List<String> roles) {
+    public UserSearchViewDTO toUserSearchView(User user, List<String> roles) {
         if (user == null) {
             return null;
         }
 
         try {
-            return new UserSearchView(
+            return new UserSearchViewDTO(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
@@ -266,12 +266,12 @@ public class UserApplicationMapper {
                 user.getCompanyCode()
             );
         } catch (Exception e) {
-            log.error("Erro ao mapear User para UserSearchView: {}", e.getMessage(), e);
+            log.error("Erro ao mapear User para UserSearchViewDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
     
-    public UserSearchCriteriaView toSearchCriteria(String id, String username, String email, String name,
+    public UserSearchCriteriaViewDTO toSearchCriteria(String id, String username, String email, String name,
                                              String idUserExternal, String codeUser, String status,
                                              String role, List<String> roles, String companyId,
                                              String companyCode, Boolean emailVerified,
@@ -280,7 +280,7 @@ public class UserApplicationMapper {
                                              String lastLoginFrom, String lastLoginTo,
                                              Integer page, Integer size, String sortBy, String sortDirection) {
         try {
-            return new UserSearchCriteriaView(
+            return new UserSearchCriteriaViewDTO(
                 id, username, email, name, idUserExternal, codeUser, status, role, roles,
                 companyId, companyCode, emailVerified, 
                 null, // createdAtFrom - TODO: converter de String para LocalDateTime
@@ -292,17 +292,17 @@ public class UserApplicationMapper {
                 page, size, sortBy, sortDirection
             );
         } catch (Exception e) {
-            log.error("Erro ao mapear dados para UserSearchCriteriaView: {}", e.getMessage(), e);
+            log.error("Erro ao mapear dados para UserSearchCriteriaViewDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
-    public Page<UserView> toViewPage(Page<User> userPage) {
+    public Page<UserViewDTO> toViewPage(Page<User> userPage) {
         if (userPage == null) {
             return Page.empty();
         }
 
-        List<UserView> views = userPage.getContent().stream()
+        List<UserViewDTO> views = userPage.getContent().stream()
                 .map(this::toView)
                 .collect(Collectors.toList());
 

@@ -1,7 +1,7 @@
 package com.keepguard.ms_auth.adapters.in.rest.authority.mapper;
 
 import com.keepguard.ms_auth.adapters.in.rest.authority.dto.*;
-import com.keepguard.ms_auth.domain.dto.authority.*;
+import com.keepguard.ms_auth.application.dto.authority.*;
 import com.keepguard.ms_auth.application.dto.authority.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -117,7 +117,7 @@ public class AuthorityAdapterMapper {
 
     // ========== VIEW TO RESPONSE DTO CONVERSIONS ==========
 
-    public AuthorityCreateResponseDTO toCreateResponseDTO(AuthorityCreateView view) {
+    public AuthorityCreateResponseDTO toCreateResponseDTO(AuthorityCreateViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -131,7 +131,7 @@ public class AuthorityAdapterMapper {
                 .build();
     }
 
-    public AuthorityUpdateResponseDTO toUpdateResponseDTO(AuthorityUpdateView view) {
+    public AuthorityUpdateResponseDTO toUpdateResponseDTO(AuthorityUpdateViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -145,7 +145,7 @@ public class AuthorityAdapterMapper {
                 .build();
     }
 
-    public AuthorityGetByIdResponseDTO toGetByIdResponseDTO(AuthorityGetByIdView view) {
+    public AuthorityGetByIdResponseDTO toGetByIdResponseDTO(AuthorityGetByIdViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -159,7 +159,7 @@ public class AuthorityAdapterMapper {
                 .build();
     }
 
-    public AuthorityGetByNameResponseDTO toGetByNameResponseDTO(AuthorityGetByNameView view) {
+    public AuthorityGetByNameResponseDTO toGetByNameResponseDTO(AuthorityGetByNameViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -173,7 +173,7 @@ public class AuthorityAdapterMapper {
                 .build();
     }
 
-    public AuthorityListResponseDTO toListResponseDTO(AuthorityListView view) {
+    public AuthorityListResponseDTO toListResponseDTO(AuthorityListViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -187,7 +187,7 @@ public class AuthorityAdapterMapper {
                 .build();
     }
 
-    public AuthoritySearchResponseDTO toSearchResponseDTO(AuthoritySearchView view) {
+    public AuthoritySearchResponseDTO toSearchResponseDTO(AuthoritySearchViewDTO view) {
         if (view == null) {
             return null;
         }

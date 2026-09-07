@@ -5,7 +5,7 @@ import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
-import com.keepguard.ms_auth.domain.dto.authority.*;
+import com.keepguard.ms_auth.application.dto.authority.*;
 import com.keepguard.ms_auth.domain.entity.authority.Authority;
 import com.keepguard.ms_auth.application.dto.authority.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +51,7 @@ class AuthorityCommandServiceTest {
                 .updatedAt(LocalDateTime.now())
                 .build();
         when(repository.save(any(Authority.class))).thenReturn(savedAuthority);
-        var view = new AuthorityCreateView(savedAuthority.getId(), "READ_USERS", "desc", savedAuthority.getCreatedAt(), savedAuthority.getUpdatedAt());
+        var view = new AuthorityCreateViewDTO(savedAuthority.getId(), "READ_USERS", "desc", savedAuthority.getCreatedAt(), savedAuthority.getUpdatedAt());
         when(mapper.toCreateView(savedAuthority)).thenReturn(view);
 
         var result = commandService.create(cmd);
@@ -99,7 +99,7 @@ class AuthorityCommandServiceTest {
         when(repository.findById(id)).thenReturn(Optional.of(existing));
         when(repository.findByName("WRITE_USERS")).thenReturn(Optional.empty());
         when(repository.save(any(Authority.class))).thenAnswer(inv -> inv.getArgument(0));
-        var view = new AuthorityUpdateView(id, "WRITE_USERS", "updated desc", existing.getCreatedAt(), LocalDateTime.now());
+        var view = new AuthorityUpdateViewDTO(id, "WRITE_USERS", "updated desc", existing.getCreatedAt(), LocalDateTime.now());
         when(mapper.toUpdateView(any())).thenReturn(view);
 
         var result = commandService.update(cmd);
@@ -173,7 +173,7 @@ class AuthorityCommandServiceTest {
                 .build();
         when(repository.findById(id)).thenReturn(Optional.of(existing));
         when(repository.save(any(Authority.class))).thenAnswer(inv -> inv.getArgument(0));
-        var view = new AuthorityUpdateView(id, "READ_USERS", "updated desc", existing.getCreatedAt(), LocalDateTime.now());
+        var view = new AuthorityUpdateViewDTO(id, "READ_USERS", "updated desc", existing.getCreatedAt(), LocalDateTime.now());
         when(mapper.toUpdateView(any())).thenReturn(view);
 
         var result = commandService.update(cmd);

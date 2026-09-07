@@ -1,7 +1,7 @@
 package com.keepguard.ms_auth.infrastructure.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.keepguard.ms_auth.application.dto.role.RoleCacheView;
+import com.keepguard.ms_auth.application.dto.role.RoleCacheViewDTO;
 import com.keepguard.ms_auth.application.port.out.cache.RoleCachePort;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -44,7 +44,7 @@ public class RoleCacheService implements RoleCachePort {
     private String roleCachePrefix;
 
     @CircuitBreaker(name = "redisCache")
-    public void cacheRoleById(String roleId, RoleCacheView role) {
+    public void cacheRoleById(String roleId, RoleCacheViewDTO role) {
         try {
             String key = roleCachePrefix + ":" + roleId;
             String value = objectMapper.writeValueAsString(role);
@@ -56,7 +56,7 @@ public class RoleCacheService implements RoleCachePort {
 
     @CircuitBreaker(name = "redisCache", fallbackMethod = "cacheFallback")
     @Retry(name = "redisCache")
-    public RoleCacheView getRoleByIdFromCache(String roleId) {
+    public RoleCacheViewDTO getRoleByIdFromCache(String roleId) {
         try {
             var key = "%s:%s".formatted(roleCachePrefix, roleId);
             var value = redisTemplate.opsForValue().get(key);
@@ -65,13 +65,13 @@ public class RoleCacheService implements RoleCachePort {
                 return null;
             }
             
-            return objectMapper.readValue(value, RoleCacheView.class);
+            return objectMapper.readValue(value, RoleCacheViewDTO.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
     
-    private RoleCacheView cacheFallback(String roleId, Exception ex) {
+    private RoleCacheViewDTO cacheFallback(String roleId, Exception ex) {
         log.warn("FALLBACK: Redis indisponivel, buscando do banco | roleId={} | erro={}", 
             roleId, ex.getClass().getSimpleName());
         return null;

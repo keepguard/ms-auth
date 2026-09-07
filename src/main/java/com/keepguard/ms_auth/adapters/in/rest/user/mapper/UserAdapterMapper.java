@@ -3,8 +3,8 @@ package com.keepguard.ms_auth.adapters.in.rest.user.mapper;
 import com.keepguard.ms_auth.adapters.in.rest.user.dto.request.*;
 import com.keepguard.ms_auth.adapters.in.rest.user.dto.response.*;
 import com.keepguard.ms_auth.application.dto.user.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
-import com.keepguard.ms_auth.domain.dto.user.*;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
+import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -255,7 +255,7 @@ public class UserAdapterMapper {
 
     // Conversões internas movidas para UserApplicationMapper
 
-    public UserResponseDTO toResponseDTO(UserView view) {
+    public UserResponseDTO toResponseDTO(UserViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -273,7 +273,7 @@ public class UserAdapterMapper {
         return dto;
     }
 
-    public UserResponseDTO toResponseDTO(UserSearchView view) {
+    public UserResponseDTO toResponseDTO(UserSearchViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -291,7 +291,7 @@ public class UserAdapterMapper {
         return dto;
     }
 
-    public UserDetailsResponseDTO toDetailsResponseDTO(UserView view) {
+    public UserDetailsResponseDTO toDetailsResponseDTO(UserViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -332,11 +332,11 @@ public class UserAdapterMapper {
                 .companyCode(view.companyCode())
                 .build();
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter UserView para UserDetailsResponseDTO: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao converter UserViewDTO para UserDetailsResponseDTO: " + e.getMessage(), e);
         }
     }
 
-    public UserByCodeResponseDTO toUserByCodeResponseDTO(UserGetByCodeView view) {
+    public UserByCodeResponseDTO toUserByCodeResponseDTO(UserGetByCodeViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -376,11 +376,11 @@ public class UserAdapterMapper {
                 .companyCode(view.companyCode())
                 .build();
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter UserGetByCodeView para UserByCodeResponseDTO: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao converter UserGetByCodeViewDTO para UserByCodeResponseDTO: " + e.getMessage(), e);
         }
     }
 
-    public UserByIdExternalResponseDTO toUserByIdExternalResponseDTO(UserGetByIdExternalView view) {
+    public UserByIdExternalResponseDTO toUserByIdExternalResponseDTO(UserGetByIdExternalViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -420,11 +420,11 @@ public class UserAdapterMapper {
                 .companyCode(view.companyCode())
                 .build();
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter UserGetByIdExternalView para UserByIdExternalResponseDTO: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao converter UserGetByIdExternalViewDTO para UserByIdExternalResponseDTO: " + e.getMessage(), e);
         }
     }
 
-    public UserByEmailResponseDTO toUserByEmailResponseDTO(UserGetByEmailView view) {
+    public UserByEmailResponseDTO toUserByEmailResponseDTO(UserGetByEmailViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -464,11 +464,11 @@ public class UserAdapterMapper {
                 .companyCode(view.companyCode())
                 .build();
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter UserGetByEmailView para UserByEmailResponseDTO: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao converter UserGetByEmailViewDTO para UserByEmailResponseDTO: " + e.getMessage(), e);
         }
     }
 
-    public UserByUsernameResponseDTO toUserByUsernameResponseDTO(UserGetByUsernameView view) {
+    public UserByUsernameResponseDTO toUserByUsernameResponseDTO(UserGetByUsernameViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -508,11 +508,11 @@ public class UserAdapterMapper {
                 .companyCode(view.companyCode())
                 .build();
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter UserGetByUsernameView para UserByUsernameResponseDTO: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao converter UserGetByUsernameViewDTO para UserByUsernameResponseDTO: " + e.getMessage(), e);
         }
     }
 
-    public UserSearchResponseDTO toSearchResponseDTO(PageResultView<UserSearchView> pageResultView) {
+    public UserSearchResponseDTO toSearchResponseDTO(PageResultViewDTO<UserSearchViewDTO> pageResultView) {
         if (pageResultView == null) {
             return null;
         }
@@ -532,7 +532,7 @@ public class UserAdapterMapper {
             .build();
     }
 
-    private UserDetailsResponseDTO toDetailsResponseDTOFromSearchView(UserSearchView view) {
+    private UserDetailsResponseDTO toDetailsResponseDTOFromSearchView(UserSearchViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -572,7 +572,7 @@ public class UserAdapterMapper {
                 .companyCode(view.companyCode())
                 .build();
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter UserSearchView para UserDetailsResponseDTO: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao converter UserSearchViewDTO para UserDetailsResponseDTO: " + e.getMessage(), e);
         }
     }
 

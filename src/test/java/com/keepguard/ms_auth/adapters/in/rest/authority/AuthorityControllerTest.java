@@ -3,9 +3,9 @@ package com.keepguard.ms_auth.adapters.in.rest.authority;
 import com.keepguard.ms_auth.adapters.in.rest.authority.dto.*;
 import com.keepguard.ms_auth.adapters.in.rest.authority.mapper.AuthorityAdapterMapper;
 import com.keepguard.ms_auth.application.dto.authority.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.port.in.AuthorityPort;
-import com.keepguard.ms_auth.domain.dto.authority.*;
+import com.keepguard.ms_auth.application.dto.authority.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,7 +43,7 @@ class AuthorityControllerTest {
         req.setName("READ_USERS");
 
         var createCmd = mock(AuthorityCreateCommandDTO.class);
-        var view = mock(AuthorityCreateView.class);
+        var view = mock(AuthorityCreateViewDTO.class);
         when(mapper.toCreateCommand(any())).thenReturn(createCmd);
         when(authorityPort.create(createCmd)).thenReturn(view);
         when(mapper.toCreateResponseDTO(view)).thenReturn(
@@ -71,7 +71,7 @@ class AuthorityControllerTest {
     void update_shouldReturnOk() throws Exception {
         UUID id = UUID.randomUUID();
         var updateCmd = mock(AuthorityUpdateCommandDTO.class);
-        var view = mock(AuthorityUpdateView.class);
+        var view = mock(AuthorityUpdateViewDTO.class);
         when(mapper.toUpdateCommand(eq(id), any())).thenReturn(updateCmd);
         when(authorityPort.update(updateCmd)).thenReturn(view);
         when(mapper.toUpdateResponseDTO(view)).thenReturn(
@@ -109,7 +109,7 @@ class AuthorityControllerTest {
     void getById_shouldReturnOkWhenExists() throws Exception {
         UUID id = UUID.randomUUID();
         var query = mock(AuthorityGetByIdQueryDTO.class);
-        var view = mock(AuthorityGetByIdView.class);
+        var view = mock(AuthorityGetByIdViewDTO.class);
         when(mapper.toGetByIdQuery(eq(id))).thenReturn(query);
         when(authorityPort.findById(query)).thenReturn(Optional.of(view));
         when(mapper.toGetByIdResponseDTO(view)).thenReturn(
@@ -146,7 +146,7 @@ class AuthorityControllerTest {
     void getByName_shouldReturnOkWhenExists() throws Exception {
         String name = "READ_USERS";
         var query = mock(AuthorityGetByNameQueryDTO.class);
-        var view = mock(AuthorityGetByNameView.class);
+        var view = mock(AuthorityGetByNameViewDTO.class);
         when(mapper.toGetByNameQuery(eq(name))).thenReturn(query);
         when(authorityPort.findByName(query)).thenReturn(Optional.of(view));
         when(mapper.toGetByNameResponseDTO(view)).thenReturn(
@@ -170,7 +170,7 @@ class AuthorityControllerTest {
     void listAll_shouldReturnList() throws Exception {
         var query = mock(AuthorityGetAllQueryDTO.class);
         when(mapper.toGetAllQuery()).thenReturn(query);
-        when(authorityPort.findAll(query)).thenReturn(List.of(mock(AuthorityListView.class)));
+        when(authorityPort.findAll(query)).thenReturn(List.of(mock(AuthorityListViewDTO.class)));
         when(mapper.toListResponseDTO(any())).thenReturn(
             AuthorityListResponseDTO.builder()
                 .id(UUID.randomUUID())
@@ -192,7 +192,7 @@ class AuthorityControllerTest {
     void search_shouldReturnPage() throws Exception {
         var query = mock(AuthoritySearchQueryDTO.class);
         when(mapper.toSearchQuery(any())).thenReturn(query);
-        var view = new PageResultView<AuthoritySearchView>(List.of(mock(AuthoritySearchView.class)), 0, 10, 1, 1, true, true, false, false);
+        var view = new PageResultViewDTO<AuthoritySearchViewDTO>(List.of(mock(AuthoritySearchViewDTO.class)), 0, 10, 1, 1, true, true, false, false);
         when(authorityPort.findAll(query)).thenReturn(view);
         when(mapper.toSearchResponseDTO(any())).thenReturn(
             AuthoritySearchResponseDTO.builder()

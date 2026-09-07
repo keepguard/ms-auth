@@ -3,7 +3,7 @@ package com.keepguard.ms_auth.test.builder;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import com.keepguard.ms_auth.domain.enums.UserStatus;
 import com.keepguard.ms_auth.application.dto.user.*;
-import com.keepguard.ms_auth.domain.dto.user.*;
+import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.ms_auth.adapters.in.rest.user.dto.request.*;
 import com.keepguard.ms_auth.adapters.in.rest.user.dto.response.*;
 
@@ -167,8 +167,8 @@ public class UserTestBuilder {
             .build();
     }
     
-    public UserView buildView() {
-        return new UserView(
+    public UserViewDTO buildView() {
+        return new UserViewDTO(
             id,
             username,
             email,
@@ -188,8 +188,8 @@ public class UserTestBuilder {
 
     // ========== VIEW ESPECÍFICAS BUILDERS ==========
 
-    public UserGetByUsernameView buildGetByUsernameView() {
-        return new UserGetByUsernameView(
+    public UserGetByUsernameViewDTO buildGetByUsernameView() {
+        return new UserGetByUsernameViewDTO(
             id,
             username,
             email,
@@ -207,8 +207,8 @@ public class UserTestBuilder {
         );
     }
 
-    public UserGetByEmailView buildGetByEmailView() {
-        return new UserGetByEmailView(
+    public UserGetByEmailViewDTO buildGetByEmailView() {
+        return new UserGetByEmailViewDTO(
             id,
             username,
             email,
@@ -226,8 +226,8 @@ public class UserTestBuilder {
         );
     }
 
-    public UserGetByCodeView buildGetByCodeView() {
-        return new UserGetByCodeView(
+    public UserGetByCodeViewDTO buildGetByCodeView() {
+        return new UserGetByCodeViewDTO(
             id,
             username,
             email,
@@ -245,8 +245,8 @@ public class UserTestBuilder {
         );
     }
 
-    public UserGetByIdExternalView buildGetByIdExternalView() {
-        return new UserGetByIdExternalView(
+    public UserGetByIdExternalViewDTO buildGetByIdExternalView() {
+        return new UserGetByIdExternalViewDTO(
             id,
             username,
             email,
@@ -264,8 +264,8 @@ public class UserTestBuilder {
         );
     }
 
-    public UserSearchView buildSearchView() {
-        return new UserSearchView(
+    public UserSearchViewDTO buildSearchView() {
+        return new UserSearchViewDTO(
             id,
             username,
             email,
@@ -556,7 +556,7 @@ public class UserTestBuilder {
             .build();
     }
     
-    public UserSearchQueryDTO buildSearchCommandWithCriteria(UserSearchCriteriaView criteria) {
+    public UserSearchQueryDTO buildSearchCommandWithCriteria(UserSearchCriteriaViewDTO criteria) {
         return UserSearchQueryDTO.builder()
             .username(criteria.username())
             .email(criteria.email())

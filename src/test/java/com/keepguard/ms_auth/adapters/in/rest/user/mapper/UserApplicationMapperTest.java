@@ -50,10 +50,10 @@ class UserApplicationMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter User para UserView com sucesso")
+    @DisplayName("Deve converter User para UserViewDTO com sucesso")
     void shouldConvertUserToUserViewSuccessfully() {
         // When
-        UserView result = userApplicationMapper.toView(user);
+        UserViewDTO result = userApplicationMapper.toView(user);
         
         // Then
         assertNotNull(result);
@@ -71,10 +71,10 @@ class UserApplicationMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter User nulo para UserView nulo")
+    @DisplayName("Deve converter User nulo para UserViewDTO nulo")
     void shouldConvertNullUserToNullUserView() {
         // When
-        UserView result = userApplicationMapper.toView(null);
+        UserViewDTO result = userApplicationMapper.toView(null);
         
         // Then
         assertNull(result);
@@ -98,7 +98,7 @@ class UserApplicationMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(userWithNulls);
+        UserViewDTO result = userApplicationMapper.toView(userWithNulls);
         
         // Then
         assertNotNull(result);
@@ -138,7 +138,7 @@ class UserApplicationMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(specificUser);
+        UserViewDTO result = userApplicationMapper.toView(specificUser);
         
         // Then
         assertNotNull(result);
@@ -156,14 +156,14 @@ class UserApplicationMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter Page<User> para Page<UserView> com sucesso")
+    @DisplayName("Deve converter Page<User> para Page<UserViewDTO> com sucesso")
     void shouldConvertUserPageToUserViewPageSuccessfully() {
         // Given
         List<User> users = List.of(user);
         Page<User> userPage = new PageImpl<>(users, pageable, 1L);
         
         // When
-        Page<UserView> result = userApplicationMapper.toViewPage(userPage);
+        Page<UserViewDTO> result = userApplicationMapper.toViewPage(userPage);
         
         // Then
         assertNotNull(result);
@@ -173,17 +173,17 @@ class UserApplicationMapperTest {
         assertEquals(10, result.getSize());
         assertEquals(0, result.getNumber());
         
-        UserView userView = result.getContent().get(0);
+        UserViewDTO userView = result.getContent().get(0);
         assertEquals(user.getId(), userView.id());
         assertEquals(user.getUsername(), userView.username());
         assertEquals(user.getEmail(), userView.email());
     }
     
     @Test
-    @DisplayName("Deve converter Page<User> nula para Page<UserView> vazia")
+    @DisplayName("Deve converter Page<User> nula para Page<UserViewDTO> vazia")
     void shouldConvertNullUserPageToEmptyUserViewPage() {
         // When
-        Page<UserView> result = userApplicationMapper.toViewPage(null);
+        Page<UserViewDTO> result = userApplicationMapper.toViewPage(null);
         
         // Then
         assertNotNull(result);
@@ -193,13 +193,13 @@ class UserApplicationMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter Page<User> vazia para Page<UserView> vazia")
+    @DisplayName("Deve converter Page<User> vazia para Page<UserViewDTO> vazia")
     void shouldConvertEmptyUserPageToEmptyUserViewPage() {
         // Given
         Page<User> emptyUserPage = new PageImpl<>(List.of(), pageable, 0L);
         
         // When
-        Page<UserView> result = userApplicationMapper.toViewPage(emptyUserPage);
+        Page<UserViewDTO> result = userApplicationMapper.toViewPage(emptyUserPage);
         
         // Then
         assertNotNull(result);
@@ -223,7 +223,7 @@ class UserApplicationMapperTest {
         Page<User> userPage = new PageImpl<>(users, pageable, 2L);
         
         // When
-        Page<UserView> result = userApplicationMapper.toViewPage(userPage);
+        Page<UserViewDTO> result = userApplicationMapper.toViewPage(userPage);
         
         // Then
         assertNotNull(result);
@@ -231,11 +231,11 @@ class UserApplicationMapperTest {
         assertEquals(2L, result.getTotalElements());
         assertEquals(1, result.getTotalPages());
         
-        UserView userView1 = result.getContent().get(0);
+        UserViewDTO userView1 = result.getContent().get(0);
         assertEquals(user.getId(), userView1.id());
         assertEquals(user.getUsername(), userView1.username());
         
-        UserView userView2 = result.getContent().get(1);
+        UserViewDTO userView2 = result.getContent().get(1);
         assertEquals(user2.getId(), userView2.id());
         assertEquals(user2.getUsername(), userView2.username());
     }
@@ -249,7 +249,7 @@ class UserApplicationMapperTest {
         Page<User> userPage = new PageImpl<>(users, middlePageable, 11L); // Total 11 elementos
         
         // When
-        Page<UserView> result = userApplicationMapper.toViewPage(userPage);
+        Page<UserViewDTO> result = userApplicationMapper.toViewPage(userPage);
         
         // Then
         assertNotNull(result);
@@ -278,7 +278,7 @@ class UserApplicationMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(userWithEmailVerified);
+        UserViewDTO result = userApplicationMapper.toView(userWithEmailVerified);
         
         // Then
         assertNotNull(result);
@@ -303,7 +303,7 @@ class UserApplicationMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(userWithEmailNotVerified);
+        UserViewDTO result = userApplicationMapper.toView(userWithEmailNotVerified);
         
         // Then
         assertNotNull(result);
@@ -328,7 +328,7 @@ class UserApplicationMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(userWithStatus);
+        UserViewDTO result = userApplicationMapper.toView(userWithStatus);
         
         // Then
         assertNotNull(result);
@@ -353,7 +353,7 @@ class UserApplicationMapperTest {
             .build();
         
         // When
-        UserView result = userApplicationMapper.toView(userWithEmptyFields);
+        UserViewDTO result = userApplicationMapper.toView(userWithEmptyFields);
         
         // Then
         assertNotNull(result);
@@ -362,13 +362,13 @@ class UserApplicationMapperTest {
     }
 
     @Test
-    @DisplayName("Deve converter User para UserView com roles")
+    @DisplayName("Deve converter User para UserViewDTO com roles")
     void shouldConvertUserToUserViewWithRoles() {
         // Given
         List<String> roles = List.of("ROLE_USER", "ROLE_ADMIN");
         
         // When
-        UserView result = userApplicationMapper.toViewWithRoles(user, roles);
+        UserViewDTO result = userApplicationMapper.toViewWithRoles(user, roles);
         
         // Then
         assertNotNull(result);
@@ -386,10 +386,10 @@ class UserApplicationMapperTest {
     }
 
     @Test
-    @DisplayName("Deve converter User nulo para UserView nulo com roles")
+    @DisplayName("Deve converter User nulo para UserViewDTO nulo com roles")
     void shouldConvertNullUserToNullUserViewWithRoles() {
         // When
-        UserView result = userApplicationMapper.toViewWithRoles(null, List.of());
+        UserViewDTO result = userApplicationMapper.toViewWithRoles(null, List.of());
         
         // Then
         assertNull(result);
@@ -399,7 +399,7 @@ class UserApplicationMapperTest {
     @DisplayName("Deve converter User com roles vazias")
     void shouldConvertUserWithEmptyRoles() {
         // When
-        UserView result = userApplicationMapper.toViewWithRoles(user, List.of());
+        UserViewDTO result = userApplicationMapper.toViewWithRoles(user, List.of());
         
         // Then
         assertNotNull(result);
@@ -408,13 +408,13 @@ class UserApplicationMapperTest {
     }
 
     @Test
-    @DisplayName("Deve converter User para UserView com roles e defaults")
+    @DisplayName("Deve converter User para UserViewDTO com roles e defaults")
     void shouldConvertUserToUserViewWithRolesAndDefaults() {
         // Given
         List<String> roles = List.of("ROLE_USER");
         
         // When
-        UserView result = userApplicationMapper.toViewWithRolesAndDefaults(user, roles);
+        UserViewDTO result = userApplicationMapper.toViewWithRolesAndDefaults(user, roles);
         
         // Then
         assertNotNull(result);
@@ -449,7 +449,7 @@ class UserApplicationMapperTest {
         List<String> roles = List.of("ROLE_USER");
         
         // When
-        UserView result = userApplicationMapper.toViewWithRolesAndDefaults(userWithNulls, roles);
+        UserViewDTO result = userApplicationMapper.toViewWithRolesAndDefaults(userWithNulls, roles);
         
         // Then
         assertNotNull(result);
@@ -464,23 +464,23 @@ class UserApplicationMapperTest {
     }
 
     @Test
-    @DisplayName("Deve converter User nulo para UserView nulo com roles e defaults")
+    @DisplayName("Deve converter User nulo para UserViewDTO nulo com roles e defaults")
     void shouldConvertNullUserToNullUserViewWithRolesAndDefaults() {
         // When
-        UserView result = userApplicationMapper.toViewWithRolesAndDefaults(null, List.of());
+        UserViewDTO result = userApplicationMapper.toViewWithRolesAndDefaults(null, List.of());
         
         // Then
         assertNull(result);
     }
 
     @Test
-    @DisplayName("Deve converter User para UserGetByUsernameView com roles")
+    @DisplayName("Deve converter User para UserGetByUsernameViewDTO com roles")
     void shouldConvertUserToUserGetByUsernameViewWithRoles() {
         // Given
         List<String> roles = List.of("ROLE_USER", "ROLE_ADMIN");
         
         // When
-        UserGetByUsernameView result = userApplicationMapper.toUserGetByUsernameView(user, roles);
+        UserGetByUsernameViewDTO result = userApplicationMapper.toUserGetByUsernameView(user, roles);
         
         // Then
         assertNotNull(result);
@@ -493,23 +493,23 @@ class UserApplicationMapperTest {
     }
 
     @Test
-    @DisplayName("Deve retornar null ao converter User nulo para UserGetByUsernameView")
+    @DisplayName("Deve retornar null ao converter User nulo para UserGetByUsernameViewDTO")
     void shouldReturnNullWhenConvertingNullUserToUserGetByUsernameView() {
         // When
-        UserGetByUsernameView result = userApplicationMapper.toUserGetByUsernameView(null, List.of());
+        UserGetByUsernameViewDTO result = userApplicationMapper.toUserGetByUsernameView(null, List.of());
         
         // Then
         assertNull(result);
     }
 
     @Test
-    @DisplayName("Deve converter User para UserGetByEmailView com roles")
+    @DisplayName("Deve converter User para UserGetByEmailViewDTO com roles")
     void shouldConvertUserToUserGetByEmailViewWithRoles() {
         // Given
         List<String> roles = List.of("ROLE_USER");
         
         // When
-        UserGetByEmailView result = userApplicationMapper.toUserGetByEmailView(user, roles);
+        UserGetByEmailViewDTO result = userApplicationMapper.toUserGetByEmailView(user, roles);
         
         // Then
         assertNotNull(result);
@@ -520,23 +520,23 @@ class UserApplicationMapperTest {
     }
 
     @Test
-    @DisplayName("Deve retornar null ao converter User nulo para UserGetByEmailView")
+    @DisplayName("Deve retornar null ao converter User nulo para UserGetByEmailViewDTO")
     void shouldReturnNullWhenConvertingNullUserToUserGetByEmailView() {
         // When
-        UserGetByEmailView result = userApplicationMapper.toUserGetByEmailView(null, List.of());
+        UserGetByEmailViewDTO result = userApplicationMapper.toUserGetByEmailView(null, List.of());
         
         // Then
         assertNull(result);
     }
 
     @Test
-    @DisplayName("Deve converter User para UserGetByCodeView com roles")
+    @DisplayName("Deve converter User para UserGetByCodeViewDTO com roles")
     void shouldConvertUserToUserGetByCodeViewWithRoles() {
         // Given
         List<String> roles = List.of("ROLE_ADMIN");
         
         // When
-        UserGetByCodeView result = userApplicationMapper.toUserGetByCodeView(user, roles);
+        UserGetByCodeViewDTO result = userApplicationMapper.toUserGetByCodeView(user, roles);
         
         // Then
         assertNotNull(result);
@@ -548,23 +548,23 @@ class UserApplicationMapperTest {
     }
 
     @Test
-    @DisplayName("Deve retornar null ao converter User nulo para UserGetByCodeView")
+    @DisplayName("Deve retornar null ao converter User nulo para UserGetByCodeViewDTO")
     void shouldReturnNullWhenConvertingNullUserToUserGetByCodeView() {
         // When
-        UserGetByCodeView result = userApplicationMapper.toUserGetByCodeView(null, List.of());
+        UserGetByCodeViewDTO result = userApplicationMapper.toUserGetByCodeView(null, List.of());
         
         // Then
         assertNull(result);
     }
 
     @Test
-    @DisplayName("Deve converter User para UserGetByIdExternalView com roles e defaults")
+    @DisplayName("Deve converter User para UserGetByIdExternalViewDTO com roles e defaults")
     void shouldConvertUserToUserGetByIdExternalViewWithRolesAndDefaults() {
         // Given
         List<String> roles = List.of("ROLE_USER");
         
         // When
-        UserGetByIdExternalView result = userApplicationMapper.toUserGetByIdExternalView(user, roles);
+        UserGetByIdExternalViewDTO result = userApplicationMapper.toUserGetByIdExternalView(user, roles);
         
         // Then
         assertNotNull(result);
@@ -575,7 +575,7 @@ class UserApplicationMapperTest {
     }
 
     @Test
-    @DisplayName("Deve converter User com campos nulos para UserGetByIdExternalView usando defaults")
+    @DisplayName("Deve converter User com campos nulos para UserGetByIdExternalViewDTO usando defaults")
     void shouldConvertUserWithNullFieldsToUserGetByIdExternalViewUsingDefaults() {
         // Given
         User userWithNulls = User.builder()
@@ -594,7 +594,7 @@ class UserApplicationMapperTest {
         List<String> roles = List.of("ROLE_USER");
         
         // When
-        UserGetByIdExternalView result = userApplicationMapper.toUserGetByIdExternalView(userWithNulls, roles);
+        UserGetByIdExternalViewDTO result = userApplicationMapper.toUserGetByIdExternalView(userWithNulls, roles);
         
         // Then
         assertNotNull(result);
@@ -605,23 +605,23 @@ class UserApplicationMapperTest {
     }
 
     @Test
-    @DisplayName("Deve retornar null ao converter User nulo para UserGetByIdExternalView")
+    @DisplayName("Deve retornar null ao converter User nulo para UserGetByIdExternalViewDTO")
     void shouldReturnNullWhenConvertingNullUserToUserGetByIdExternalView() {
         // When
-        UserGetByIdExternalView result = userApplicationMapper.toUserGetByIdExternalView(null, List.of());
+        UserGetByIdExternalViewDTO result = userApplicationMapper.toUserGetByIdExternalView(null, List.of());
         
         // Then
         assertNull(result);
     }
 
     @Test
-    @DisplayName("Deve converter User para UserSearchView com roles")
+    @DisplayName("Deve converter User para UserSearchViewDTO com roles")
     void shouldConvertUserToUserSearchViewWithRoles() {
         // Given
         List<String> roles = List.of("ROLE_USER", "ROLE_MANAGER");
         
         // When
-        UserSearchView result = userApplicationMapper.toUserSearchView(user, roles);
+        UserSearchViewDTO result = userApplicationMapper.toUserSearchView(user, roles);
         
         // Then
         assertNotNull(result);
@@ -634,10 +634,10 @@ class UserApplicationMapperTest {
     }
 
     @Test
-    @DisplayName("Deve retornar null ao converter User nulo para UserSearchView")
+    @DisplayName("Deve retornar null ao converter User nulo para UserSearchViewDTO")
     void shouldReturnNullWhenConvertingNullUserToUserSearchView() {
         // When
-        UserSearchView result = userApplicationMapper.toUserSearchView(null, List.of());
+        UserSearchViewDTO result = userApplicationMapper.toUserSearchView(null, List.of());
         
         // Then
         assertNull(result);

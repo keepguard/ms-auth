@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class AuthorityApplicationMapper {
 
-    public AuthorityCreateView toCreateView(Authority authority) {
+    public AuthorityCreateViewDTO toCreateView(Authority authority) {
         if (authority == null) {
             return null;
         }
 
-        return new AuthorityCreateView(
+        return new AuthorityCreateViewDTO(
                 authority.getId(),
                 authority.getName(),
                 authority.getDescription(),
@@ -23,12 +23,12 @@ public class AuthorityApplicationMapper {
         );
     }
 
-    public AuthorityUpdateView toUpdateView(Authority authority) {
+    public AuthorityUpdateViewDTO toUpdateView(Authority authority) {
         if (authority == null) {
             return null;
         }
 
-        return new AuthorityUpdateView(
+        return new AuthorityUpdateViewDTO(
                 authority.getId(),
                 authority.getName(),
                 authority.getDescription(),
@@ -37,12 +37,12 @@ public class AuthorityApplicationMapper {
         );
     }
 
-    public AuthorityGetByIdView toGetByIdView(Authority authority) {
+    public AuthorityGetByIdViewDTO toGetByIdView(Authority authority) {
         if (authority == null) {
             return null;
         }
 
-        return new AuthorityGetByIdView(
+        return new AuthorityGetByIdViewDTO(
                 authority.getId(),
                 authority.getName(),
                 authority.getDescription(),
@@ -51,12 +51,12 @@ public class AuthorityApplicationMapper {
         );
     }
 
-    public AuthorityGetByNameView toGetByNameView(Authority authority) {
+    public AuthorityGetByNameViewDTO toGetByNameView(Authority authority) {
         if (authority == null) {
             return null;
         }
 
-        return new AuthorityGetByNameView(
+        return new AuthorityGetByNameViewDTO(
                 authority.getId(),
                 authority.getName(),
                 authority.getDescription(),
@@ -65,12 +65,12 @@ public class AuthorityApplicationMapper {
         );
     }
 
-    public AuthorityListView toListView(Authority authority) {
+    public AuthorityListViewDTO toListView(Authority authority) {
         if (authority == null) {
             return null;
         }
 
-        return new AuthorityListView(
+        return new AuthorityListViewDTO(
                 authority.getId(),
                 authority.getName(),
                 authority.getDescription(),
@@ -79,12 +79,12 @@ public class AuthorityApplicationMapper {
         );
     }
 
-    public AuthoritySearchView toSearchView(Authority authority) {
+    public AuthoritySearchViewDTO toSearchView(Authority authority) {
         if (authority == null) {
             return null;
         }
 
-        return new AuthoritySearchView(
+        return new AuthoritySearchViewDTO(
                 authority.getId(),
                 authority.getName(),
                 authority.getDescription(),

@@ -1,7 +1,7 @@
 package com.keepguard.ms_auth.application.mapper;
 
-import com.keepguard.ms_auth.application.dto.user.UserAuthCacheView;
-import com.keepguard.ms_auth.application.dto.user.UserRolesCacheView;
+import com.keepguard.ms_auth.application.dto.user.UserAuthCacheViewDTO;
+import com.keepguard.ms_auth.application.dto.user.UserRolesCacheViewDTO;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import org.springframework.stereotype.Component;
 
@@ -10,12 +10,12 @@ import java.util.List;
 @Component
 public class UserCacheMapper {
 
-    public UserAuthCacheView toAuthCacheView(User user) {
+    public UserAuthCacheViewDTO toAuthCacheView(User user) {
         if (user == null) {
             return null;
         }
 
-        return new UserAuthCacheView(
+        return new UserAuthCacheViewDTO(
             user.getId(),
             user.getIdUserExternal(),
             user.getCodeUser(),
@@ -33,7 +33,7 @@ public class UserCacheMapper {
         );
     }
 
-    public User toEntity(UserAuthCacheView dto) {
+    public User toEntity(UserAuthCacheViewDTO dto) {
         if (dto == null) {
             return null;
         }
@@ -56,12 +56,12 @@ public class UserCacheMapper {
             .build();
     }
 
-    public UserRolesCacheView toUserRolesCacheView(java.util.UUID codeUser, List<String> roles) {
+    public UserRolesCacheViewDTO toUserRolesCacheView(java.util.UUID codeUser, List<String> roles) {
         if (codeUser == null || roles == null) {
             return null;
         }
 
-        return new UserRolesCacheView(codeUser, roles);
+        return new UserRolesCacheViewDTO(codeUser, roles);
     }
 
 }

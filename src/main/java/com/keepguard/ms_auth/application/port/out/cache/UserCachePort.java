@@ -8,28 +8,28 @@ import java.util.UUID;
 public interface UserCachePort {
 
     // By Username
-    void cacheUserByUsername(UUID companyId, String username, UserGetByUsernameView user);
-    UserAuthCacheView getUserByUsernameFromCache(UUID companyId, String username);
+    void cacheUserByUsername(UUID companyId, String username, UserGetByUsernameViewDTO user);
+    UserAuthCacheViewDTO getUserByUsernameFromCache(UUID companyId, String username);
     void removeUserFromCacheByUsername(UUID companyId, String username);
 
     // By Email
-    void cacheUserByEmail(UUID companyId, String email, UserGetByEmailView user);
-    UserAuthCacheView getUserByEmailFromCache(UUID companyId, String email);
+    void cacheUserByEmail(UUID companyId, String email, UserGetByEmailViewDTO user);
+    UserAuthCacheViewDTO getUserByEmailFromCache(UUID companyId, String email);
     void removeUserFromCacheByEmail(UUID companyId, String email);
 
     // By CodeUser
-    void cacheUserByCodeUser(String codeUser, UserGetByCodeView user);
-    UserAuthCacheView getUserByCodeUserFromCache(String codeUser);
+    void cacheUserByCodeUser(String codeUser, UserGetByCodeViewDTO user);
+    UserAuthCacheViewDTO getUserByCodeUserFromCache(String codeUser);
     void removeUserFromCacheByCodeUser(String codeUser);
 
     // By IdExternal
-    void cacheUserByIdExternal(String idUserExternal, UserAuthCacheView user);
-    UserAuthCacheView getUserByIdExternalFromCache(String idUserExternal);
+    void cacheUserByIdExternal(String idUserExternal, UserAuthCacheViewDTO user);
+    UserAuthCacheViewDTO getUserByIdExternalFromCache(String idUserExternal);
     void removeUserFromCacheByIdExternal(String idUserExternal);
 
     // User Roles
-    void cacheUserRoles(String codeUser, UserRolesCacheView userRoles);
-    UserRolesCacheView getUserRolesFromCache(String codeUser);
+    void cacheUserRoles(String codeUser, UserRolesCacheViewDTO userRoles);
+    UserRolesCacheViewDTO getUserRolesFromCache(String codeUser);
     void removeUserRolesFromCache(String codeUser);
 
     // Clear All

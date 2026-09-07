@@ -1,10 +1,10 @@
 package com.keepguard.ms_auth.application.service.role;
 
 import com.keepguard.ms_auth.application.dto.role.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.mapper.RoleApplicationMapper;
 import com.keepguard.ms_auth.application.port.in.RolePort;
-import com.keepguard.ms_auth.domain.dto.role.*;
+import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,13 +24,13 @@ public class RoleUseCaseService implements RolePort {
     private final RoleApplicationMapper roleMapper;
 
     @Override
-    public RoleCreateView create(RoleCreateCommandDTO command) {
+    public RoleCreateViewDTO create(RoleCreateCommandDTO command) {
         log.info("Creating role: {}", command.getName());
         return roleCommandService.create(command);
     }
 
     @Override
-    public RoleUpdateView update(RoleUpdateCommandDTO command) {
+    public RoleUpdateViewDTO update(RoleUpdateCommandDTO command) {
         log.info("Updating role with ID: {}", command.getId());
         return roleCommandService.update(command);
     }
@@ -42,7 +42,7 @@ public class RoleUseCaseService implements RolePort {
     }
 
     @Override
-    public Optional<RoleGetByIdView> findById(RoleGetByIdQueryDTO command) {
+    public Optional<RoleGetByIdViewDTO> findById(RoleGetByIdQueryDTO command) {
         log.debug("Finding role by ID: {}", command.getId());
         UUID companyId = command.getCompanyId();
         return roleQueryService.findByIdForCompany(command.getId(), companyId)
@@ -50,7 +50,7 @@ public class RoleUseCaseService implements RolePort {
     }
 
     @Override
-    public Optional<RoleGetByNameView> findByName(RoleGetByNameQueryDTO command) {
+    public Optional<RoleGetByNameViewDTO> findByName(RoleGetByNameQueryDTO command) {
         log.debug("Finding role by name: {}", command.getName());
         UUID companyId = command.getCompanyId();
         return roleQueryService.findByCompanyIdAndName(companyId, command.getName())
@@ -58,7 +58,7 @@ public class RoleUseCaseService implements RolePort {
     }
 
     @Override
-    public List<RoleListView> findAll(RoleGetAllQueryDTO command) {
+    public List<RoleListViewDTO> findAll(RoleGetAllQueryDTO command) {
         log.debug("Finding all roles");
         UUID companyId = command.getCompanyId();
         return roleQueryService.findByCompanyId(companyId).stream()
@@ -67,16 +67,16 @@ public class RoleUseCaseService implements RolePort {
     }
 
     @Override
-    public PageResultView<RoleSearchView> findAll(RoleSearchQueryDTO command) {
+    public PageResultViewDTO<RoleSearchViewDTO> findAll(RoleSearchQueryDTO command) {
         log.debug("Finding all roles with pagination");
         UUID companyId = command.getCompanyId();
-        PageResultView<Role> pageResultView = roleQueryService.findByCompanyId(companyId, command.getPageable());
+        PageResultViewDTO<Role> pageResultView = roleQueryService.findByCompanyId(companyId, command.getPageable());
 
-        List<RoleSearchView> content = pageResultView.getContent().stream()
+        List<RoleSearchViewDTO> content = pageResultView.getContent().stream()
                 .map(roleMapper::toSearchView)
                 .toList();
 
-        return PageResultView.<RoleSearchView>builder()
+        return PageResultViewDTO.<RoleSearchViewDTO>builder()
                 .content(content)
                 .totalElements(pageResultView.getTotalElements())
                 .totalPages(pageResultView.getTotalPages())
@@ -89,13 +89,13 @@ public class RoleUseCaseService implements RolePort {
     }
 
     @Override
-    public RoleAddAuthorityView addAuthority(RoleAddAuthorityCommandDTO command) {
+    public RoleAddAuthorityViewDTO addAuthority(RoleAddAuthorityCommandDTO command) {
         log.info("Adding authority {} to role: {}", command.getAuthorityName(), command.getRoleId());
         return roleCommandService.addAuthority(command);
     }
 
     @Override
-    public RoleRemoveAuthorityView removeAuthority(RoleRemoveAuthorityCommandDTO command) {
+    public RoleRemoveAuthorityViewDTO removeAuthority(RoleRemoveAuthorityCommandDTO command) {
         log.info("Removing authority {} from role: {}", command.getAuthorityName(), command.getRoleId());
         return roleCommandService.removeAuthority(command);
     }

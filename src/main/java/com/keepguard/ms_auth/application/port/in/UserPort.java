@@ -1,17 +1,17 @@
 package com.keepguard.ms_auth.application.port.in;
 
 import com.keepguard.ms_auth.application.dto.user.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
-import com.keepguard.ms_auth.domain.dto.user.*;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
+import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
 
 public interface UserPort {
 
-    UserView create(UserCreateCommandDTO command);
+    UserViewDTO create(UserCreateCommandDTO command);
 
-    UserView createAdmin(UserCreateCommandDTO command);
+    UserViewDTO createAdmin(UserCreateCommandDTO command);
 
-    UserView createManager(UserCreateCommandDTO command);
+    UserViewDTO createManager(UserCreateCommandDTO command);
 
     void delete(UserDeleteCommandDTO command);
 
@@ -23,21 +23,21 @@ public interface UserPort {
 
     void validateEmailUser(UserValidateEmailCommandDTO command);
 
-    PageResultView<UserStatusHistory> getUserStatusHistory(UserGetStatusHistoryQueryDTO query);
+    PageResultViewDTO<UserStatusHistory> getUserStatusHistory(UserGetStatusHistoryQueryDTO query);
 
-    UserGetByUsernameView findByUsername(UserGetByUsernameQueryDTO query);
+    UserGetByUsernameViewDTO findByUsername(UserGetByUsernameQueryDTO query);
 
-    UserGetByIdExternalView findByIdUserExternal(UserGetByIdExternalQueryDTO query);
+    UserGetByIdExternalViewDTO findByIdUserExternal(UserGetByIdExternalQueryDTO query);
 
-    UserGetByEmailView findByEmail(UserGetByEmailQueryDTO query);
+    UserGetByEmailViewDTO findByEmail(UserGetByEmailQueryDTO query);
 
-    UserGetByCodeView findByCodeUser(UserGetByCodeQueryDTO query);
+    UserGetByCodeViewDTO findByCodeUser(UserGetByCodeQueryDTO query);
 
     void addRoleToUser(UserAddRoleCommandDTO command);
 
     void removeRoleFromUser(UserRemoveRoleCommandDTO command);
 
-    PageResultView<UserSearchView> searchUsers(UserSearchQueryDTO query);
+    PageResultViewDTO<UserSearchViewDTO> searchUsers(UserSearchQueryDTO query);
 
     void updateUserEmail(UserUpdateEmailCommandDTO command);
 }

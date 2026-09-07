@@ -45,7 +45,7 @@ class AuthorityQueryServiceTest {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-        var view = new AuthorityGetByIdView(id, "READ_USERS", "desc", authority.getCreatedAt(), authority.getUpdatedAt());
+        var view = new AuthorityGetByIdViewDTO(id, "READ_USERS", "desc", authority.getCreatedAt(), authority.getUpdatedAt());
         when(repository.findById(id)).thenReturn(Optional.of(authority));
         when(mapper.toGetByIdView(authority)).thenReturn(view);
 
@@ -81,7 +81,7 @@ class AuthorityQueryServiceTest {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-        var view = new AuthorityGetByNameView(authority.getId(), name, "desc", authority.getCreatedAt(), authority.getUpdatedAt());
+        var view = new AuthorityGetByNameViewDTO(authority.getId(), name, "desc", authority.getCreatedAt(), authority.getUpdatedAt());
         when(repository.findByName(name)).thenReturn(Optional.of(authority));
         when(mapper.toGetByNameView(authority)).thenReturn(view);
 
@@ -123,8 +123,8 @@ class AuthorityQueryServiceTest {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-        var view1 = new AuthorityListView(auth1.getId(), "READ_USERS", "desc1", auth1.getCreatedAt(), auth1.getUpdatedAt());
-        var view2 = new AuthorityListView(auth2.getId(), "WRITE_USERS", "desc2", auth2.getCreatedAt(), auth2.getUpdatedAt());
+        var view1 = new AuthorityListViewDTO(auth1.getId(), "READ_USERS", "desc1", auth1.getCreatedAt(), auth1.getUpdatedAt());
+        var view2 = new AuthorityListViewDTO(auth2.getId(), "WRITE_USERS", "desc2", auth2.getCreatedAt(), auth2.getUpdatedAt());
         when(repository.findAll()).thenReturn(List.of(auth1, auth2));
         when(mapper.toListView(auth1)).thenReturn(view1);
         when(mapper.toListView(auth2)).thenReturn(view2);
@@ -139,7 +139,7 @@ class AuthorityQueryServiceTest {
     }
 
     @Test
-    @DisplayName("findAll com paginação retorna PageResultView")
+    @DisplayName("findAll com paginação retorna PageResultViewDTO")
     void findAllPaginated_shouldReturnPageResultView() {
         Pageable pageable = PageRequest.of(0, 10);
         var auth = Authority.builder()
@@ -150,7 +150,7 @@ class AuthorityQueryServiceTest {
                 .updatedAt(LocalDateTime.now())
                 .build();
         Page<Authority> page = new PageImpl<>(List.of(auth), pageable, 1);
-        var view = new AuthoritySearchView(auth.getId(), "READ_USERS", "desc", auth.getCreatedAt(), auth.getUpdatedAt());
+        var view = new AuthoritySearchViewDTO(auth.getId(), "READ_USERS", "desc", auth.getCreatedAt(), auth.getUpdatedAt());
         when(repository.findAll(pageable)).thenReturn(page);
         when(mapper.toSearchView(auth)).thenReturn(view);
 

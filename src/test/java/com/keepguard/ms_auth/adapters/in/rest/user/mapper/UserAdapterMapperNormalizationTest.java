@@ -2,8 +2,8 @@ package com.keepguard.ms_auth.adapters.in.rest.user.mapper;
 
 import com.keepguard.ms_auth.adapters.in.rest.user.dto.request.UserCreateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.user.dto.request.UserSearchRequestDTO;
-import com.keepguard.ms_auth.domain.dto.user.UserCreateCommandDTO;
-import com.keepguard.ms_auth.domain.dto.user.UserGetByUsernameQueryDTO;
+import com.keepguard.ms_auth.application.dto.user.UserCreateCommandDTO;
+import com.keepguard.ms_auth.application.dto.user.UserGetByUsernameQueryDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

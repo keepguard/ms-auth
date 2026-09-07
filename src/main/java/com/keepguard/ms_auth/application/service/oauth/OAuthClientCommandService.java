@@ -1,19 +1,19 @@
 package com.keepguard.ms_auth.application.service.oauth;
 
 import com.keepguard.lib_common.logging.annotation.LogOperation;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenView;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenViewDTO;
 import com.keepguard.ms_auth.application.mapper.OAuthClientApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.port.out.persistence.OAuthClientRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.AlreadyExistsException;
 import com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientCreateCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientIdCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthClientUpdateCommandDTO;
-import com.keepguard.ms_auth.domain.dto.oauth.OAuthTokenCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientIdCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientUpdateCommandDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthTokenCommandDTO;
 import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.domain.enums.OAuthClientStatus;
@@ -66,7 +66,7 @@ public class OAuthClientCommandService {
             auditEntityType = "OAUTH_CLIENT"
     )
     @Transactional
-    public OAuthClientCreateView create(OAuthClientCreateCommandDTO command) {
+    public OAuthClientCreateViewDTO create(OAuthClientCreateCommandDTO command) {
         String clientId = requireClientId(command.getClientId());
         UUID companyId = requireCompanyId(command.getCompanyId());
         int ttl = resolveTtl(command.getTokenTtlSeconds());
@@ -110,7 +110,7 @@ public class OAuthClientCommandService {
             auditEntityType = "OAUTH_CLIENT"
     )
     @Transactional
-    public OAuthClientView update(OAuthClientUpdateCommandDTO command) {
+    public OAuthClientViewDTO update(OAuthClientUpdateCommandDTO command) {
         if (command == null) {
             throw new IllegalArgumentException("Dados de atualização são obrigatórios.");
         }
@@ -132,7 +132,7 @@ public class OAuthClientCommandService {
             auditEntityType = "OAUTH_CLIENT"
     )
     @Transactional
-    public OAuthClientView block(OAuthClientIdCommandDTO command) {
+    public OAuthClientViewDTO block(OAuthClientIdCommandDTO command) {
         OAuthClient client = requireClient(command.getCompanyId(), command.getId(), "block");
         client.block();
         OAuthClient saved = roleResolver.enrich(oauthClientRepository.save(client));
@@ -149,7 +149,7 @@ public class OAuthClientCommandService {
             auditEntityType = "OAUTH_CLIENT"
     )
     @Transactional
-    public OAuthClientView unblock(OAuthClientIdCommandDTO command) {
+    public OAuthClientViewDTO unblock(OAuthClientIdCommandDTO command) {
         OAuthClient client = requireClient(command.getCompanyId(), command.getId(), "unblock");
         client.unblock();
         OAuthClient saved = roleResolver.enrich(oauthClientRepository.save(client));
@@ -174,7 +174,7 @@ public class OAuthClientCommandService {
     }
 
     @Transactional(readOnly = true)
-    public OAuthTokenView issueToken(OAuthTokenCommandDTO command) {
+    public OAuthTokenViewDTO issueToken(OAuthTokenCommandDTO command) {
         UUID companyId = requireCompanyId(command.getCompanyId());
         if (command.getGrantType() == null || !GRANT_TYPE.equalsIgnoreCase(command.getGrantType().trim())) {
             throw new IllegalArgumentException("grantType deve ser client_credentials.");
@@ -212,7 +212,7 @@ public class OAuthClientCommandService {
         );
         metricsPort.incrementCounter("oauth_token_issued_total",
                 Map.of("client_id", client.getClientId()));
-        return new OAuthTokenView(token, "Bearer", client.getTokenTtlSeconds());
+        return new OAuthTokenViewDTO(token, "Bearer", client.getTokenTtlSeconds());
     }
 
     int resolveTtl(Integer requested) {

@@ -2,8 +2,8 @@ package com.keepguard.ms_auth.application.service.user;
 
 import com.keepguard.ms_auth.application.port.out.cache.UserCachePort;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
-import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
-import com.keepguard.ms_auth.domain.dto.user.*;
+import com.keepguard.ms_auth.application.port.in.DeviceSessionPort;
+import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.ms_auth.application.mapper.UserApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRepositoryPort;
@@ -53,7 +53,7 @@ class UserCommandServiceTest {
     @Mock private MetricsPort metricsPort;
     @Mock private UserCachePort userCachePort;
     @Mock private AccountLifecyclePolicy accountLifecyclePolicy;
-    @Mock private DeviceSessionService deviceSessionService;
+    @Mock private DeviceSessionPort deviceSessionService;
 
     @InjectMocks private UserCommandService userCommandService;
 

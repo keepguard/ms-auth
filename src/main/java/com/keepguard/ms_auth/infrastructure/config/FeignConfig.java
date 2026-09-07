@@ -4,12 +4,10 @@ import com.keepguard.ms_auth.infrastructure.interceptor.FeignCorrelationIdInterc
 import com.keepguard.ms_auth.infrastructure.interceptor.FeignErrorDecoder;
 import feign.Logger;
 import feign.codec.ErrorDecoder;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableFeignClients(basePackages = "com.keepguard.ms_auth.infrastructure.feign")
 public class FeignConfig {
 
     private final FeignCorrelationIdInterceptor correlationIdInterceptor;

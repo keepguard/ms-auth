@@ -1,9 +1,9 @@
 package com.keepguard.ms_auth.application.mapper;
 
-import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
-import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenView;
-import com.keepguard.ms_auth.application.dto.auth.AuthLogoutView;
-import com.keepguard.ms_auth.application.dto.user.UserView;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginViewDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenViewDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLogoutViewDTO;
+import com.keepguard.ms_auth.application.dto.user.UserViewDTO;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,48 +15,48 @@ import java.util.UUID;
 @Slf4j
 public class AuthApplicationMapper {
 
-    public AuthLoginView toAuthLoginView(String token, Long expiresIn) {
+    public AuthLoginViewDTO toAuthLoginView(String token, Long expiresIn) {
         if (token == null) {
             return null;
         }
 
         try {
-            return new AuthLoginView(token, expiresIn);
+            return new AuthLoginViewDTO(token, expiresIn);
         } catch (Exception e) {
-            log.error("Erro ao mapear dados para AuthLoginView: {}", e.getMessage(), e);
+            log.error("Erro ao mapear dados para AuthLoginViewDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
-    public AuthRefreshTokenView toAuthRefreshTokenView(String token, Long expiresIn) {
+    public AuthRefreshTokenViewDTO toAuthRefreshTokenView(String token, Long expiresIn) {
         if (token == null) {
             return null;
         }
 
         try {
-            return new AuthRefreshTokenView(token, expiresIn);
+            return new AuthRefreshTokenViewDTO(token, expiresIn);
         } catch (Exception e) {
-            log.error("Erro ao mapear dados para AuthRefreshTokenView: {}", e.getMessage(), e);
+            log.error("Erro ao mapear dados para AuthRefreshTokenViewDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
-    public AuthLogoutView toAuthLogoutView(String message, boolean success) {
+    public AuthLogoutViewDTO toAuthLogoutView(String message, boolean success) {
         try {
-            return new AuthLogoutView(message, success);
+            return new AuthLogoutViewDTO(message, success);
         } catch (Exception e) {
-            log.error("Erro ao mapear dados para AuthLogoutView: {}", e.getMessage(), e);
+            log.error("Erro ao mapear dados para AuthLogoutViewDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
-    public UserView toUserView(User user) {
+    public UserViewDTO toUserView(User user) {
         if (user == null) {
             return null;
         }
 
         try {
-            return new UserView(
+            return new UserViewDTO(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
@@ -73,7 +73,7 @@ public class AuthApplicationMapper {
                 user.getCompanyCode()
             );
         } catch (Exception e) {
-            log.error("Erro ao mapear User para UserView: {}", e.getMessage(), e);
+            log.error("Erro ao mapear User para UserViewDTO: {}", e.getMessage(), e);
             throw e;
         }
     }

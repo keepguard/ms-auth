@@ -1,7 +1,7 @@
 package com.keepguard.ms_auth.application.service.authority;
 
 import com.keepguard.ms_auth.application.dto.authority.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.mapper.AuthorityApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.domain.entity.authority.Authority;
@@ -23,32 +23,32 @@ public class AuthorityQueryService {
     private final AuthorityRepositoryPort authorityRepository;
     private final AuthorityApplicationMapper authorityMapper;
 
-    public Optional<AuthorityGetByIdView> findById(UUID id) {
+    public Optional<AuthorityGetByIdViewDTO> findById(UUID id) {
         return authorityRepository.findById(id)
                 .map(authorityMapper::toGetByIdView);
     }
 
-    public Optional<AuthorityGetByNameView> findByName(String name) {
+    public Optional<AuthorityGetByNameViewDTO> findByName(String name) {
         return authorityRepository.findByName(name)
                 .map(authorityMapper::toGetByNameView);
     }
 
-    public List<AuthorityListView> findAll() {
+    public List<AuthorityListViewDTO> findAll() {
         return authorityRepository.findAll().stream()
                 .map(authorityMapper::toListView)
                 .toList();
     }
 
-    public PageResultView<AuthoritySearchView> findAll(Pageable pageable) {
+    public PageResultViewDTO<AuthoritySearchViewDTO> findAll(Pageable pageable) {
         return toPageResult(authorityRepository.findAll(pageable));
     }
 
-    private PageResultView<AuthoritySearchView> toPageResult(Page<Authority> page) {
-        List<AuthoritySearchView> content = page.getContent().stream()
+    private PageResultViewDTO<AuthoritySearchViewDTO> toPageResult(Page<Authority> page) {
+        List<AuthoritySearchViewDTO> content = page.getContent().stream()
                 .map(authorityMapper::toSearchView)
                 .toList();
 
-        return PageResultView.<AuthoritySearchView>builder()
+        return PageResultViewDTO.<AuthoritySearchViewDTO>builder()
                 .content(content)
                 .totalElements(page.getTotalElements())
                 .totalPages(page.getTotalPages())

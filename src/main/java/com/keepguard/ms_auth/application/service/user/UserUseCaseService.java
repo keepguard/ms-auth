@@ -1,10 +1,10 @@
 package com.keepguard.ms_auth.application.service.user;
 
 import com.keepguard.ms_auth.application.dto.user.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.port.in.UserPort;
 import com.keepguard.ms_auth.application.service.exception.RateLimitExceededException;
-import com.keepguard.ms_auth.domain.dto.user.*;
+import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -21,18 +21,18 @@ public class UserUseCaseService implements UserPort {
     private final UserQueryService queryService;
 
     @Override
-    public UserView create(UserCreateCommandDTO command) {
+    public UserViewDTO create(UserCreateCommandDTO command) {
         return commandService.create(command);
     }
 
     @Override
-    public UserView createAdmin(UserCreateCommandDTO command) {
+    public UserViewDTO createAdmin(UserCreateCommandDTO command) {
         return commandService.createAdmin(command);
     }
 
     @Override
     @RateLimiter(name = "createManager", fallbackMethod = "createManagerRateLimitExceeded")
-    public UserView createManager(UserCreateCommandDTO command) {
+    public UserViewDTO createManager(UserCreateCommandDTO command) {
         return commandService.createManager(command);
     }
 
@@ -55,32 +55,32 @@ public class UserUseCaseService implements UserPort {
     }
 
     @Override
-    public UserGetByUsernameView findByUsername(UserGetByUsernameQueryDTO query) {
+    public UserGetByUsernameViewDTO findByUsername(UserGetByUsernameQueryDTO query) {
         return queryService.findByUsername(query);
     }
 
     @Override
-    public UserGetByEmailView findByEmail(UserGetByEmailQueryDTO query) {
+    public UserGetByEmailViewDTO findByEmail(UserGetByEmailQueryDTO query) {
         return queryService.findByEmail(query);
     }
 
     @Override
-    public UserGetByCodeView findByCodeUser(UserGetByCodeQueryDTO query) {
+    public UserGetByCodeViewDTO findByCodeUser(UserGetByCodeQueryDTO query) {
         return queryService.findByCodeUser(query);
     }
 
     @Override
-    public UserGetByIdExternalView findByIdUserExternal(UserGetByIdExternalQueryDTO query) {
+    public UserGetByIdExternalViewDTO findByIdUserExternal(UserGetByIdExternalQueryDTO query) {
         return queryService.findByIdUserExternal(query);
     }
 
     @Override
-    public PageResultView<UserStatusHistory> getUserStatusHistory(UserGetStatusHistoryQueryDTO query) {
+    public PageResultViewDTO<UserStatusHistory> getUserStatusHistory(UserGetStatusHistoryQueryDTO query) {
         return queryService.getUserStatusHistory(query);
     }
 
     @Override
-    public PageResultView<UserSearchView> searchUsers(UserSearchQueryDTO query) {
+    public PageResultViewDTO<UserSearchViewDTO> searchUsers(UserSearchQueryDTO query) {
         return queryService.searchUsers(query);
     }
 
@@ -109,7 +109,7 @@ public class UserUseCaseService implements UserPort {
         commandService.hardDelete(command);
     }
 
-    private UserView createManagerRateLimitExceeded(UserCreateCommandDTO command, RequestNotPermitted ex) {
+    private UserViewDTO createManagerRateLimitExceeded(UserCreateCommandDTO command, RequestNotPermitted ex) {
         log.warn("RATE LIMIT EXCEDIDO | createManager | username={}", command != null ? command.getUsername() : null);
         throw new RateLimitExceededException("Muitas tentativas de criar manager. Aguarde antes de tentar novamente.");
     }

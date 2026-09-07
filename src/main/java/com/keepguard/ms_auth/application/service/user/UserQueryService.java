@@ -1,6 +1,6 @@
 package com.keepguard.ms_auth.application.service.user;
 
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.ms_auth.application.mapper.UserApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.cache.UserCachePort;
@@ -11,7 +11,7 @@ import com.keepguard.ms_auth.application.port.out.persistence.UserRoleRepository
 import com.keepguard.ms_auth.application.port.out.persistence.UserStatusHistoryRepositoryPort;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
 import com.keepguard.ms_auth.application.service.exception.QueryOperationException;
-import com.keepguard.ms_auth.domain.dto.user.*;
+import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
 import lombok.RequiredArgsConstructor;
@@ -40,14 +40,14 @@ public class UserQueryService {
     private final UserCachePort userCachePort;
     private final UserApplicationMapper userMapper;
 
-    public UserGetByUsernameView findByUsername(UserGetByUsernameQueryDTO query) {
+    public UserGetByUsernameViewDTO findByUsername(UserGetByUsernameQueryDTO query) {
         User user = userRepository.findByUsernameAndCompanyId(query.getUsername(), query.getCompanyId())
             .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + query.getUsername(),
                 "USER_NOT_FOUND", Map.of("username", query.getUsername())));
 
         List<String> userRoles = getUserRoles(user.getId());
 
-        UserGetByUsernameView userView = userMapper.toUserGetByUsernameView(user, userRoles);
+        UserGetByUsernameViewDTO userView = userMapper.toUserGetByUsernameView(user, userRoles);
         userCachePort.cacheUserByUsername(query.getCompanyId(), query.getUsername(), userView);
 
         metricsPort.incrementCounter("user_queries_total",
@@ -56,7 +56,7 @@ public class UserQueryService {
         return userView;
     }
 
-    public UserGetByEmailView findByEmail(UserGetByEmailQueryDTO query) {
+    public UserGetByEmailViewDTO findByEmail(UserGetByEmailQueryDTO query) {
 
         User user = userRepository.findByEmailAndCompanyId(query.getEmail(), query.getCompanyId())
             .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + query.getEmail(),
@@ -64,7 +64,7 @@ public class UserQueryService {
 
         List<String> userRoles = getUserRoles(user.getId());
 
-        UserGetByEmailView userView = userMapper.toUserGetByEmailView(user, userRoles);
+        UserGetByEmailViewDTO userView = userMapper.toUserGetByEmailView(user, userRoles);
         userCachePort.cacheUserByEmail(query.getCompanyId(), query.getEmail(), userView);
 
         metricsPort.incrementCounter("user_queries_total",
@@ -74,7 +74,7 @@ public class UserQueryService {
 
     }
 
-    public UserGetByCodeView findByCodeUser(UserGetByCodeQueryDTO query) {
+    public UserGetByCodeViewDTO findByCodeUser(UserGetByCodeQueryDTO query) {
         UUID codeUserUuid = UUID.fromString(query.getCodeUser());
         User user = userRepository.findByCodeUserAndCompanyId(codeUserUuid, query.getCompanyId())
             .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + query.getCodeUser(),
@@ -82,7 +82,7 @@ public class UserQueryService {
 
         List<String> userRoles = getUserRoles(user.getId());
 
-        UserGetByCodeView userView = userMapper.toUserGetByCodeView(user, userRoles);
+        UserGetByCodeViewDTO userView = userMapper.toUserGetByCodeView(user, userRoles);
         userCachePort.cacheUserByCodeUser(query.getCodeUser(), userView);
 
         metricsPort.incrementCounter("user_queries_total",
@@ -91,7 +91,7 @@ public class UserQueryService {
         return userView;
     }
 
-    public UserGetByIdExternalView findByIdUserExternal(UserGetByIdExternalQueryDTO query) {
+    public UserGetByIdExternalViewDTO findByIdUserExternal(UserGetByIdExternalQueryDTO query) {
 
         UUID idUserExternalUuid = UUID.fromString(query.getIdUserExternal());
 
@@ -101,7 +101,7 @@ public class UserQueryService {
 
         List<String> userRoles = getUserRoles(user.getId());
 
-        UserGetByIdExternalView userView = userMapper.toUserGetByIdExternalView(user, userRoles);
+        UserGetByIdExternalViewDTO userView = userMapper.toUserGetByIdExternalView(user, userRoles);
 
         metricsPort.incrementCounter("user_queries_total",
             Map.of("query_type", "find_by_external_id", "status", "success"));
@@ -110,7 +110,7 @@ public class UserQueryService {
 
     }
 
-    public PageResultView<UserStatusHistory> getUserStatusHistory(UserGetStatusHistoryQueryDTO query) {
+    public PageResultViewDTO<UserStatusHistory> getUserStatusHistory(UserGetStatusHistoryQueryDTO query) {
 
         UUID idUserExternalUuid = UUID.fromString(query.getIdUserExternal());
 
@@ -132,7 +132,7 @@ public class UserQueryService {
         metricsPort.incrementCounter("user_queries_total",
             Map.of("query_type", "status_history", "status", "success"));
 
-        return PageResultView.<UserStatusHistory>builder()
+        return PageResultViewDTO.<UserStatusHistory>builder()
             .content(historyPage.getContent())
             .page(historyPage.getNumber())
             .size(historyPage.getSize())
@@ -145,7 +145,7 @@ public class UserQueryService {
             .build();
     }
 
-    public PageResultView<UserSearchView> searchUsers(UserSearchQueryDTO query) {
+    public PageResultViewDTO<UserSearchViewDTO> searchUsers(UserSearchQueryDTO query) {
         log.info("🔍 Buscando usuários com critérios: {}", query);
 
         Sort sort = Sort.by(Sort.Direction.fromString(
@@ -175,14 +175,14 @@ public class UserQueryService {
         metricsPort.incrementCounter("user_queries_total",
             Map.of("query_type", "search", "status", "success"));
 
-        List<UserSearchView> userViews = userPage.getContent().stream()
+        List<UserSearchViewDTO> userViews = userPage.getContent().stream()
             .map(user -> {
                 List<String> userRoles = getUserRoles(user.getId());
                 return userMapper.toUserSearchView(user, userRoles);
             })
             .toList();
 
-        return PageResultView.<UserSearchView>builder()
+        return PageResultViewDTO.<UserSearchViewDTO>builder()
             .content(userViews)
             .page(userPage.getNumber())
             .size(userPage.getSize())

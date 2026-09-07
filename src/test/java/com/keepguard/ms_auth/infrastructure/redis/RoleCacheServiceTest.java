@@ -1,7 +1,7 @@
 package com.keepguard.ms_auth.infrastructure.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.keepguard.ms_auth.application.dto.role.RoleCacheView;
+import com.keepguard.ms_auth.application.dto.role.RoleCacheViewDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ class RoleCacheServiceTest {
     private ValueOperations<String, String> valueOperations;
 
     private ObjectMapper objectMapper;
-    private RoleCacheView roleCacheViewDTO;
+    private RoleCacheViewDTO roleCacheViewDTO;
 
     @BeforeEach
     void setUp() {
@@ -52,7 +52,7 @@ class RoleCacheServiceTest {
         lenient().when(redisTemplate.delete(anyString())).thenReturn(true);
 
         // Setup test data
-        roleCacheViewDTO = new RoleCacheView(
+        roleCacheViewDTO = new RoleCacheViewDTO(
             UUID.randomUUID(),
             "ADMIN",
             "Administrator role",
@@ -85,7 +85,7 @@ class RoleCacheServiceTest {
         when(valueOperations.get("role_cache:role123")).thenReturn(roleJson);
 
         // When
-        RoleCacheView result = roleCacheServiceAdapter.getRoleByIdFromCache("role123");
+        RoleCacheViewDTO result = roleCacheServiceAdapter.getRoleByIdFromCache("role123");
 
         // Then
         assertNotNull(result);
@@ -110,7 +110,7 @@ class RoleCacheServiceTest {
         when(valueOperations.get("role_cache:nonexistent")).thenReturn(null);
 
         // When
-        RoleCacheView result = roleCacheServiceAdapter.getRoleByIdFromCache("nonexistent");
+        RoleCacheViewDTO result = roleCacheServiceAdapter.getRoleByIdFromCache("nonexistent");
 
         // Then
         assertNull(result);

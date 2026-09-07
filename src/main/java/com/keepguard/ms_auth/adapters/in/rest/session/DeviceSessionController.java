@@ -1,21 +1,19 @@
 package com.keepguard.ms_auth.adapters.in.rest.session;
 
-
-import java.util.UUID;
 import com.keepguard.lib_common.metrics.annotation.MetricsEndpoint;
-import com.keepguard.lib_common.utils.ValidationUtils;
 import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthLoginResponseDTO;
-import com.keepguard.ms_auth.adapters.in.rest.auth.mapper.AuthAdapterMapper;
-import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
-import com.keepguard.ms_auth.application.dto.session.DeviceSessionView;
-import com.keepguard.ms_auth.application.dto.session.SendDeviceChallengeCommandDTO;
-import com.keepguard.ms_auth.application.dto.session.VerifyDeviceChallengeCommandDTO;
-import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
+import com.keepguard.ms_auth.adapters.in.rest.session.dto.request.DeviceBlacklistRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.session.dto.request.SendDeviceChallengeRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.session.dto.request.VerifyDeviceChallengeRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.session.dto.response.DeviceBlacklistResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.session.dto.response.DeviceSessionResponseDTO;
+import com.keepguard.ms_auth.adapters.in.rest.session.mapper.DeviceSessionAdapterMapper;
+import com.keepguard.ms_auth.application.port.in.DeviceSessionPort;
 import com.keepguard.ms_auth.infrastructure.util.ClientIpResolver;
 import com.keepguard.ms_auth.infrastructure.util.ClientLocation;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -36,19 +33,18 @@ import jakarta.servlet.http.HttpServletRequest;
 @Tag(name = "Device & Sessions", description = "Endpoints para desafio MFA de novo dispositivo e gestão de sessões ativas")
 public class DeviceSessionController {
 
-    private final DeviceSessionService deviceSessionService;
-    private final AuthAdapterMapper authAdapterMapper;
+    private final DeviceSessionPort deviceSessionPort;
+    private final DeviceSessionAdapterMapper mapper;
 
     @PostMapping("/auth/device/challenge/send")
     @Operation(summary = "Enviar código de verificação para novo dispositivo",
                description = "Dispara o envio do OTP para o canal selecionado pelo usuário (EMAIL, SMS, WHATSAPP)")
     @MetricsEndpoint(endpoint = "auth_device_challenge_send")
     public ResponseEntity<Map<String, Object>> sendChallenge(
-            @Valid @RequestBody SendDeviceChallengeCommandDTO request,
+            @Valid @RequestBody SendDeviceChallengeRequestDTO request,
             @RequestHeader("X-Company-Id") UUID companyId) {
 
-        request.setCompanyId(companyId != null ? companyId.toString() : null);
-        Map<String, Object> response = deviceSessionService.sendChallenge(request);
+        Map<String, Object> response = deviceSessionPort.sendChallenge(mapper.toSendChallengeCommand(request, companyId));
         return ResponseEntity.ok(response);
     }
 
@@ -57,29 +53,26 @@ public class DeviceSessionController {
                description = "Valida o OTP de 6 dígitos, positiva o dispositivo e emite o JWT final")
     @MetricsEndpoint(endpoint = "auth_device_challenge_verify")
     public ResponseEntity<AuthLoginResponseDTO> verifyChallenge(
-            @Valid @RequestBody VerifyDeviceChallengeCommandDTO request,
+            @Valid @RequestBody VerifyDeviceChallengeRequestDTO request,
             @RequestHeader("X-Company-Id") UUID companyId) {
 
-        request.setCompanyId(companyId != null ? companyId.toString() : null);
-        AuthLoginView view = deviceSessionService.verifyChallenge(request);
-        AuthLoginResponseDTO response = authAdapterMapper.toLoginResponseDTO(view);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(mapper.toLoginResponse(
+                deviceSessionPort.verifyChallenge(mapper.toVerifyChallengeCommand(request, companyId))));
     }
 
     @GetMapping("/users/me/sessions")
     @Operation(summary = "Listar dispositivos conectados",
                description = "Retorna a lista de todas as sessões e aparelhos ativos na conta do usuário logado")
     @MetricsEndpoint(endpoint = "users_list_sessions")
-    public ResponseEntity<List<DeviceSessionView>> listSessions(
+    public ResponseEntity<List<DeviceSessionResponseDTO>> listSessions(
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader(value = "X-Device-Id", required = false) String currentDeviceId,
             HttpServletRequest httpRequest) {
 
         String codeUser = jwt.getSubject();
         String deviceId = currentDeviceId != null ? currentDeviceId : jwt.getClaimAsString("device_id");
-        List<DeviceSessionView> sessions = deviceSessionService.listUserSessions(
-                codeUser, deviceId, ClientIpResolver.from(httpRequest), ClientLocation.from(httpRequest));
-        return ResponseEntity.ok(sessions);
+        return ResponseEntity.ok(mapper.toSessionResponseList(deviceSessionPort.listUserSessions(
+                codeUser, deviceId, ClientIpResolver.from(httpRequest), ClientLocation.from(httpRequest))));
     }
 
     @DeleteMapping("/users/me/sessions/{deviceId}")
@@ -90,8 +83,7 @@ public class DeviceSessionController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("deviceId") String deviceId) {
 
-        String codeUser = jwt.getSubject();
-        deviceSessionService.revokeSession(codeUser, deviceId);
+        deviceSessionPort.revokeSession(jwt.getSubject(), deviceId);
         return ResponseEntity.noContent().build();
     }
 
@@ -103,9 +95,8 @@ public class DeviceSessionController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader(value = "X-Device-Id", required = false) String currentDeviceId) {
 
-        String codeUser = jwt.getSubject();
         String deviceId = currentDeviceId != null ? currentDeviceId : jwt.getClaimAsString("device_id");
-        deviceSessionService.revokeAllOtherSessions(codeUser, deviceId);
+        deviceSessionPort.revokeAllOtherSessions(jwt.getSubject(), deviceId);
         return ResponseEntity.noContent().build();
     }
 
@@ -118,20 +109,17 @@ public class DeviceSessionController {
             @RequestParam("token") String token,
             @RequestParam(value = "blacklist", defaultValue = "true") boolean blacklist) {
 
-        Map<String, Object> result = deviceSessionService.quickRevoke(token, blacklist);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(deviceSessionPort.quickRevoke(token, blacklist));
     }
 
     @GetMapping("/users/me/devices/blacklist")
     @Operation(summary = "Listar dispositivos na blacklist do usuário",
                description = "Retorna todos os dispositivos bloqueados para o usuário autenticado")
     @MetricsEndpoint(endpoint = "users_list_device_blacklist")
-    public ResponseEntity<List<com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry>> listBlacklist(
+    public ResponseEntity<List<DeviceBlacklistResponseDTO>> listBlacklist(
             @AuthenticationPrincipal Jwt jwt) {
 
-        String codeUser = jwt.getSubject();
-        List<com.keepguard.ms_auth.domain.entity.session.DeviceBlacklistEntry> list = deviceSessionService.listBlacklist(codeUser);
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(mapper.toBlacklistResponseList(deviceSessionPort.listBlacklist(jwt.getSubject())));
     }
 
     @PostMapping("/users/me/devices/blacklist")
@@ -140,18 +128,13 @@ public class DeviceSessionController {
     @MetricsEndpoint(endpoint = "users_add_device_blacklist")
     public ResponseEntity<Void> addDeviceToBlacklist(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody Map<String, String> request) {
+            @RequestBody DeviceBlacklistRequestDTO request) {
 
-        String codeUser = jwt.getSubject();
-        String deviceId = request.get("deviceId");
-        String deviceName = request.get("deviceName");
-        String reason = request.get("reason");
-
-        if (deviceId == null || deviceId.isBlank()) {
+        DeviceBlacklistRequestDTO body = mapper.emptyIfNull(request);
+        if (body.getDeviceId() == null || body.getDeviceId().isBlank()) {
             return ResponseEntity.badRequest().build();
         }
-
-        deviceSessionService.addDeviceToBlacklist(codeUser, deviceId, deviceName, reason);
+        deviceSessionPort.addDeviceToBlacklist(jwt.getSubject(), body.getDeviceId(), body.getDeviceName(), body.getReason());
         return ResponseEntity.noContent().build();
     }
 
@@ -163,8 +146,7 @@ public class DeviceSessionController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("deviceId") String deviceId) {
 
-        String codeUser = jwt.getSubject();
-        deviceSessionService.removeDeviceFromBlacklist(codeUser, deviceId);
+        deviceSessionPort.removeDeviceFromBlacklist(jwt.getSubject(), deviceId);
         return ResponseEntity.noContent().build();
     }
 }

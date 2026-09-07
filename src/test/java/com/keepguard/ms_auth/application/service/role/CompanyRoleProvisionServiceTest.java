@@ -1,6 +1,6 @@
 package com.keepguard.ms_auth.application.service.role;
 
-import com.keepguard.ms_auth.application.dto.role.ProvisionCompanyRolesView;
+import com.keepguard.ms_auth.application.dto.role.ProvisionCompanyRolesViewDTO;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.application.port.out.persistence.AuthorityRepositoryPort;
 import com.keepguard.ms_auth.application.port.out.persistence.CompanyRoleRepositoryPort;
@@ -55,7 +55,7 @@ class CompanyRoleProvisionServiceTest {
         when(companyRoleRepository.existsByCompanyId(companyId)).thenReturn(true);
         when(roleRepository.findByCompanyId(companyId)).thenReturn(List.of(existing));
 
-        ProvisionCompanyRolesView view = service.provision(companyId);
+        ProvisionCompanyRolesViewDTO view = service.provision(companyId);
 
         assertTrue(view.alreadyProvisioned());
         assertEquals(List.of(SystemRoleNames.ROLE_USER), view.roleNames());
@@ -93,7 +93,7 @@ class CompanyRoleProvisionServiceTest {
         });
         when(companyRoleRepository.save(any(CompanyRole.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ProvisionCompanyRolesView view = service.provision(companyId);
+        ProvisionCompanyRolesViewDTO view = service.provision(companyId);
 
         assertFalse(view.alreadyProvisioned());
         assertEquals(3, view.roleNames().size());
@@ -131,7 +131,7 @@ class CompanyRoleProvisionServiceTest {
         verify(roleRepository, never()).findByCompanyIdIsNullAndName(SystemRoleNames.ROLE_SYSTEM);
 
         when(companyRoleRepository.existsByCompanyId(companyB)).thenReturn(false);
-        ProvisionCompanyRolesView viewB = service.provision(companyB);
+        ProvisionCompanyRolesViewDTO viewB = service.provision(companyB);
         assertEquals(3, viewB.roleNames().size());
         verify(roleRepository, times(6)).save(any(Role.class));
     }

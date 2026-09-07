@@ -1,7 +1,7 @@
 package com.keepguard.ms_auth.adapters.in.rest.auth.mapper;
 
 import com.keepguard.ms_auth.adapters.in.rest.auth.dto.AuthLoginRequestDTO;
-import com.keepguard.ms_auth.domain.dto.auth.AuthLoginCommandDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginCommandDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

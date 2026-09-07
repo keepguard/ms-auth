@@ -1,6 +1,6 @@
 package com.keepguard.ms_auth.application.service.user;
 
-import com.keepguard.ms_auth.application.dto.user.UserView;
+import com.keepguard.ms_auth.application.dto.user.UserViewDTO;
 import com.keepguard.ms_auth.application.mapper.UserApplicationMapper;
 import com.keepguard.ms_auth.application.port.out.cache.UserCachePort;
 import com.keepguard.ms_auth.application.port.out.persistence.UserRepositoryPort;
@@ -13,9 +13,9 @@ import com.keepguard.ms_auth.application.service.exception.CompanyDefaultRolesNo
 import com.keepguard.ms_auth.application.service.exception.ConflictException;
 import com.keepguard.ms_auth.application.service.exception.ForbiddenException;
 import com.keepguard.ms_auth.application.service.exception.NotFoundException;
-import com.keepguard.ms_auth.application.service.session.DeviceSessionService;
+import com.keepguard.ms_auth.application.port.in.DeviceSessionPort;
 import com.keepguard.ms_auth.domain.enums.AccountLifecycleAction;
-import com.keepguard.ms_auth.domain.dto.user.*;
+import com.keepguard.ms_auth.application.dto.user.*;
 import com.keepguard.ms_auth.application.dto.user.UserHardDeleteCommandDTO;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import com.keepguard.ms_auth.domain.enums.UserStatusEventType;
@@ -54,7 +54,7 @@ public class UserCommandService {
     private final MetricsPort metricsPort;
     private final UserCachePort userCachePort;
     private final AccountLifecyclePolicy accountLifecyclePolicy;
-    private final DeviceSessionService deviceSessionService;
+    private final DeviceSessionPort deviceSessionPort;
 
     @LogOperation(
         operation = "CREATE_USER",
@@ -64,7 +64,7 @@ public class UserCommandService {
         auditEntityType = "USER"
     )
     @Transactional
-    public UserView create(UserCreateCommandDTO command) {
+    public UserViewDTO create(UserCreateCommandDTO command) {
         log.info("Creating user with username: {}", command.getUsername());
         User savedUser = persistNewUser(command);
         assignDefaultRoles(savedUser);
@@ -79,7 +79,7 @@ public class UserCommandService {
         auditEntityType = "USER"
     )
     @Transactional
-    public UserView createAdmin(UserCreateCommandDTO command) {
+    public UserViewDTO createAdmin(UserCreateCommandDTO command) {
         log.info("Creating admin with username: {}", command.getUsername());
         User savedUser = persistNewUser(command);
         assignCompanyRole(savedUser, SystemRoleNames.ROLE_ADMIN);
@@ -94,7 +94,7 @@ public class UserCommandService {
         auditEntityType = "USER"
     )
     @Transactional
-    public UserView createManager(UserCreateCommandDTO command) {
+    public UserViewDTO createManager(UserCreateCommandDTO command) {
         log.info("Creating manager with username: {}", command.getUsername());
         User savedUser = persistNewUser(command);
         assignCompanyRole(savedUser, SystemRoleNames.ROLE_MANAGER);
@@ -131,7 +131,7 @@ public class UserCommandService {
         );
 
         userCachePort.removeUserFromCache(user);
-        deviceSessionService.revokeAllSessions(user.getCodeUser().toString());
+        deviceSessionPort.revokeAllSessions(user.getCodeUser().toString());
 
         metricsPort.incrementCounter("user_deleted_total",
             Map.of("status", "success"));
@@ -206,7 +206,7 @@ public class UserCommandService {
         );
 
         userCachePort.removeUserFromCache(user);
-        deviceSessionService.revokeAllSessions(user.getCodeUser().toString());
+        deviceSessionPort.revokeAllSessions(user.getCodeUser().toString());
 
         metricsPort.incrementCounter("user_blocked_total",
             Map.of("status", "success"));
@@ -455,7 +455,7 @@ public class UserCommandService {
         log.info("Company role {} ({}) assigned to user {}", role.getId(), roleName, savedUser.getId());
     }
 
-    private UserView finishCreate(User savedUser) {
+    private UserViewDTO finishCreate(User savedUser) {
         userStatusHistoryRepository.save(
             UserStatusHistory.create(savedUser.getId(), UserStatusEventType.CREATED, "Usuário criado")
         );

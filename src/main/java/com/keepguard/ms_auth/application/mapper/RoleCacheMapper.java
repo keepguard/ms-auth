@@ -1,18 +1,18 @@
 package com.keepguard.ms_auth.application.mapper;
 
-import com.keepguard.ms_auth.application.dto.role.RoleCacheView;
+import com.keepguard.ms_auth.application.dto.role.RoleCacheViewDTO;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RoleCacheMapper {
 
-    public RoleCacheView toCacheView(Role role) {
+    public RoleCacheViewDTO toCacheView(Role role) {
         if (role == null) {
             return null;
         }
 
-        return new RoleCacheView(
+        return new RoleCacheViewDTO(
             role.getId(),
             role.getName(),
             role.getDescription(),
@@ -21,7 +21,7 @@ public class RoleCacheMapper {
         );
     }
 
-    public Role toEntity(RoleCacheView dto) {
+    public Role toEntity(RoleCacheViewDTO dto) {
         if (dto == null) {
             return null;
         }

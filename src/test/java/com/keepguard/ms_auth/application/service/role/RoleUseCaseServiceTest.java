@@ -1,18 +1,18 @@
 package com.keepguard.ms_auth.application.service.role;
 
-import com.keepguard.ms_auth.adapters.in.rest.role.dto.RoleCreateDTO;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleCreateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.role.dto.RoleResponseDTO;
-import com.keepguard.ms_auth.adapters.in.rest.role.dto.RoleUpdateDTO;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleUpdateRequestDTO;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.application.mapper.RoleApplicationMapper;
-import com.keepguard.ms_auth.domain.dto.role.RoleCreateCommandDTO;
-import com.keepguard.ms_auth.domain.dto.role.RoleUpdateCommandDTO;
-import com.keepguard.ms_auth.domain.dto.role.RoleDeleteCommandDTO;
-import com.keepguard.ms_auth.domain.dto.role.RoleGetByIdQueryDTO;
-import com.keepguard.ms_auth.domain.dto.role.RoleGetByNameQueryDTO;
-import com.keepguard.ms_auth.domain.dto.role.RoleGetAllQueryDTO;
-import com.keepguard.ms_auth.domain.dto.role.RoleSearchQueryDTO;
+import com.keepguard.ms_auth.application.dto.role.RoleCreateCommandDTO;
+import com.keepguard.ms_auth.application.dto.role.RoleUpdateCommandDTO;
+import com.keepguard.ms_auth.application.dto.role.RoleDeleteCommandDTO;
+import com.keepguard.ms_auth.application.dto.role.RoleGetByIdQueryDTO;
+import com.keepguard.ms_auth.application.dto.role.RoleGetByNameQueryDTO;
+import com.keepguard.ms_auth.application.dto.role.RoleGetAllQueryDTO;
+import com.keepguard.ms_auth.application.dto.role.RoleSearchQueryDTO;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.test.builder.RoleTestBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,18 +57,18 @@ class RoleUseCaseServiceTest {
     private UUID roleId;
     private UUID companyId;
     private Role role;
-    private RoleCreateDTO createDTO;
-    private RoleUpdateDTO updateDTO;
+    private RoleCreateRequestDTO createDTO;
+    private RoleUpdateRequestDTO updateDTO;
     private RoleResponseDTO responseDTO;
     private Pageable pageable;
     
     // View objects
-    private RoleCreateView createRoleView;
-    private RoleUpdateView updateRoleView;
-    private RoleGetByIdView getRoleByIdView;
-    private RoleGetByNameView getRoleByNameView;
-    private RoleListView listRoleView;
-    private RoleSearchView searchRoleView;
+    private RoleCreateViewDTO createRoleView;
+    private RoleUpdateViewDTO updateRoleView;
+    private RoleGetByIdViewDTO getRoleByIdView;
+    private RoleGetByNameViewDTO getRoleByNameView;
+    private RoleListViewDTO listRoleView;
+    private RoleSearchViewDTO searchRoleView;
     
     // CommandDTOs
     private RoleCreateCommandDTO createCommand;
@@ -90,12 +90,12 @@ class RoleUseCaseServiceTest {
             .withId(roleId)
             .buildDomain();
         
-        createDTO = RoleCreateDTO.builder()
+        createDTO = RoleCreateRequestDTO.builder()
             .name("ADMIN")
             .description("Administrador do sistema")
             .build();
         
-        updateDTO = RoleUpdateDTO.builder()
+        updateDTO = RoleUpdateRequestDTO.builder()
             .name("ADMIN_UPDATED")
             .description("Descrição atualizada")
             .build();
@@ -111,12 +111,12 @@ class RoleUseCaseServiceTest {
         pageable = PageRequest.of(0, 10);
         
         // Initialize View objects
-        createRoleView = new RoleCreateView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
-        updateRoleView = new RoleUpdateView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
-        getRoleByIdView = new RoleGetByIdView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
-        getRoleByNameView = new RoleGetByNameView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
-        listRoleView = new RoleListView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
-        searchRoleView = new RoleSearchView(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        createRoleView = new RoleCreateViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        updateRoleView = new RoleUpdateViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        getRoleByIdView = new RoleGetByIdViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        getRoleByNameView = new RoleGetByNameViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        listRoleView = new RoleListViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
+        searchRoleView = new RoleSearchViewDTO(roleId, "ADMIN", "Administrador do sistema", LocalDateTime.now(), LocalDateTime.now());
         
         // CommandDTOs
         createCommand = RoleCreateCommandDTO.builder()
@@ -164,7 +164,7 @@ class RoleUseCaseServiceTest {
         when(roleCommandService.create(createCommand)).thenReturn(createRoleView);
         
         // When
-        RoleCreateView result = roleUseCaseService.create(createCommand);
+        RoleCreateViewDTO result = roleUseCaseService.create(createCommand);
         
         // Then
         assertNotNull(result);
@@ -182,7 +182,7 @@ class RoleUseCaseServiceTest {
         when(roleCommandService.update(updateCommand)).thenReturn(updateRoleView);
         
         // When
-        RoleUpdateView result = roleUseCaseService.update(updateCommand);
+        RoleUpdateViewDTO result = roleUseCaseService.update(updateCommand);
         
         // Then
         assertNotNull(result);
@@ -213,7 +213,7 @@ class RoleUseCaseServiceTest {
         when(roleApplicationMapper.toGetByIdView(role)).thenReturn(getRoleByIdView);
         
         // When
-        Optional<RoleGetByIdView> result = roleUseCaseService.findById(getByIdCommand);
+        Optional<RoleGetByIdViewDTO> result = roleUseCaseService.findById(getByIdCommand);
         
         // Then
         assertTrue(result.isPresent());
@@ -231,7 +231,7 @@ class RoleUseCaseServiceTest {
         when(roleQueryService.findByIdForCompany(roleId, companyId)).thenReturn(Optional.empty());
         
         // When
-        Optional<RoleGetByIdView> result = roleUseCaseService.findById(getByIdCommand);
+        Optional<RoleGetByIdViewDTO> result = roleUseCaseService.findById(getByIdCommand);
         
         // Then
         assertFalse(result.isPresent());
@@ -249,7 +249,7 @@ class RoleUseCaseServiceTest {
         when(roleApplicationMapper.toGetByNameView(role)).thenReturn(getRoleByNameView);
         
         // When
-        Optional<RoleGetByNameView> result = roleUseCaseService.findByName(getByNameCommand);
+        Optional<RoleGetByNameViewDTO> result = roleUseCaseService.findByName(getByNameCommand);
         
         // Then
         assertTrue(result.isPresent());
@@ -272,7 +272,7 @@ class RoleUseCaseServiceTest {
         when(roleQueryService.findByCompanyIdAndName(companyId, roleName)).thenReturn(Optional.empty());
         
         // When
-        Optional<RoleGetByNameView> result = roleUseCaseService.findByName(getByNameCommandInexistente);
+        Optional<RoleGetByNameViewDTO> result = roleUseCaseService.findByName(getByNameCommandInexistente);
         
         // Then
         assertFalse(result.isPresent());
@@ -286,13 +286,13 @@ class RoleUseCaseServiceTest {
     void shouldFindAllRolesSuccessfully() {
         // Given
         List<Role> roles = List.of(role);
-        List<RoleListView> listRoleViews = List.of(listRoleView);
+        List<RoleListViewDTO> listRoleViews = List.of(listRoleView);
         
         when(roleQueryService.findByCompanyId(companyId)).thenReturn(roles);
         when(roleApplicationMapper.toListView(role)).thenReturn(listRoleView);
         
         // When
-        List<RoleListView> result = roleUseCaseService.findAll(getAllCommand);
+        List<RoleListViewDTO> result = roleUseCaseService.findAll(getAllCommand);
         
         // Then
         assertNotNull(result);
@@ -311,7 +311,7 @@ class RoleUseCaseServiceTest {
         when(roleQueryService.findByCompanyId(companyId)).thenReturn(List.of());
         
         // When
-        List<RoleListView> result = roleUseCaseService.findAll(getAllCommand);
+        List<RoleListViewDTO> result = roleUseCaseService.findAll(getAllCommand);
         
         // Then
         assertNotNull(result);
@@ -326,7 +326,7 @@ class RoleUseCaseServiceTest {
     void shouldFindAllRolesWithPaginationSuccessfully() {
         // Given
         List<Role> roles = List.of(role);
-        PageResultView<Role> pageResultView = PageResultView.<Role>builder()
+        PageResultViewDTO<Role> pageResultView = PageResultViewDTO.<Role>builder()
             .content(roles)
             .totalElements(1L)
             .totalPages(1)
@@ -338,7 +338,7 @@ class RoleUseCaseServiceTest {
             .hasPrevious(false)
             .build();
         
-        PageResultView<RoleSearchView> expectedPageResultView = PageResultView.<RoleSearchView>builder()
+        PageResultViewDTO<RoleSearchViewDTO> expectedPageResultView = PageResultViewDTO.<RoleSearchViewDTO>builder()
             .content(List.of(searchRoleView))
             .totalElements(1L)
             .totalPages(1)
@@ -353,7 +353,7 @@ class RoleUseCaseServiceTest {
         when(roleApplicationMapper.toSearchView(role)).thenReturn(searchRoleView);
         
         // When
-        PageResultView<RoleSearchView> result = roleUseCaseService.findAll(searchCommand);
+        PageResultViewDTO<RoleSearchViewDTO> result = roleUseCaseService.findAll(searchCommand);
         
         // Then
         assertNotNull(result);
@@ -375,7 +375,7 @@ class RoleUseCaseServiceTest {
     @DisplayName("Deve retornar página vazia quando não há roles na paginação")
     void shouldReturnEmptyPageWhenNoRolesInPagination() {
         // Given
-        PageResultView<Role> emptyPageResultView = PageResultView.<Role>builder()
+        PageResultViewDTO<Role> emptyPageResultView = PageResultViewDTO.<Role>builder()
             .content(List.of())
             .totalElements(0L)
             .totalPages(0)
@@ -390,7 +390,7 @@ class RoleUseCaseServiceTest {
         when(roleQueryService.findByCompanyId(companyId, pageable)).thenReturn(emptyPageResultView);
         
         // When
-        PageResultView<RoleSearchView> result = roleUseCaseService.findAll(searchCommand);
+        PageResultViewDTO<RoleSearchViewDTO> result = roleUseCaseService.findAll(searchCommand);
         
         // Then
         assertNotNull(result);
@@ -412,7 +412,7 @@ class RoleUseCaseServiceTest {
     void shouldFindAllRolesWithPaginationInMiddlePage() {
         // Given
         List<Role> roles = List.of(role);
-        PageResultView<Role> pageResultView = PageResultView.<Role>builder()
+        PageResultViewDTO<Role> pageResultView = PageResultViewDTO.<Role>builder()
             .content(roles)
             .totalElements(11L)
             .totalPages(3)
@@ -425,10 +425,10 @@ class RoleUseCaseServiceTest {
             .build();
         
         when(roleQueryService.findByCompanyId(companyId, pageable)).thenReturn(pageResultView);
-        when(roleApplicationMapper.toSearchView(role)).thenReturn(new RoleSearchView(roleId, "ADMIN", "Admin role", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleApplicationMapper.toSearchView(role)).thenReturn(new RoleSearchViewDTO(roleId, "ADMIN", "Admin role", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
-        PageResultView<RoleSearchView> result = roleUseCaseService.findAll(searchCommand);
+        PageResultViewDTO<RoleSearchViewDTO> result = roleUseCaseService.findAll(searchCommand);
         
         // Then
         assertNotNull(result);
@@ -466,11 +466,11 @@ class RoleUseCaseServiceTest {
         List<Role> roles = List.of(role, role2);
         
         when(roleQueryService.findByCompanyId(companyId)).thenReturn(roles);
-        when(roleApplicationMapper.toListView(role)).thenReturn(new RoleListView(roleId, "ADMIN", "Admin role", LocalDateTime.now(), LocalDateTime.now()));
-        when(roleApplicationMapper.toListView(role2)).thenReturn(new RoleListView(role2.getId(), "USER", "Usuário comum", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleApplicationMapper.toListView(role)).thenReturn(new RoleListViewDTO(roleId, "ADMIN", "Admin role", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleApplicationMapper.toListView(role2)).thenReturn(new RoleListViewDTO(role2.getId(), "USER", "Usuário comum", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
-        List<RoleListView> result = roleUseCaseService.findAll(getAllCommand);
+        List<RoleListViewDTO> result = roleUseCaseService.findAll(getAllCommand);
         
         // Then
         assertNotNull(result);
@@ -506,10 +506,10 @@ class RoleUseCaseServiceTest {
             .updatedAt(LocalDateTime.now())
             .build();
         
-        when(roleCommandService.create(createCommandWithLowercase)).thenReturn(new RoleCreateView(roleId, "user", "Usuário comum", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleCommandService.create(createCommandWithLowercase)).thenReturn(new RoleCreateViewDTO(roleId, "user", "Usuário comum", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
-        RoleCreateView result = roleUseCaseService.create(createCommandWithLowercase);
+        RoleCreateViewDTO result = roleUseCaseService.create(createCommandWithLowercase);
         
         // Then
         assertNotNull(result);
@@ -542,10 +542,10 @@ class RoleUseCaseServiceTest {
             .updatedAt(LocalDateTime.now())
             .build();
         
-        when(roleCommandService.update(updateCommandWithLowercase)).thenReturn(new RoleUpdateView(roleId, "admin_updated", "Updated description", LocalDateTime.now(), LocalDateTime.now()));
+        when(roleCommandService.update(updateCommandWithLowercase)).thenReturn(new RoleUpdateViewDTO(roleId, "admin_updated", "Updated description", LocalDateTime.now(), LocalDateTime.now()));
         
         // When
-        RoleUpdateView result = roleUseCaseService.update(updateCommandWithLowercase);
+        RoleUpdateViewDTO result = roleUseCaseService.update(updateCommandWithLowercase);
         
         // Then
         assertNotNull(result);

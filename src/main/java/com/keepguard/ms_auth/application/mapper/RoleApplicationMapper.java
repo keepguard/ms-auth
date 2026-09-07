@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class RoleApplicationMapper {
 
-    public RoleCreateView toCreateView(Role role) {
+    public RoleCreateViewDTO toCreateView(Role role) {
         if (role == null) {
             return null;
         }
 
-        return new RoleCreateView(
+        return new RoleCreateViewDTO(
                 role.getId(),
                 role.getName(),
                 role.getDescription(),
@@ -23,12 +23,12 @@ public class RoleApplicationMapper {
         );
     }
 
-    public RoleUpdateView toUpdateView(Role role) {
+    public RoleUpdateViewDTO toUpdateView(Role role) {
         if (role == null) {
             return null;
         }
 
-        return new RoleUpdateView(
+        return new RoleUpdateViewDTO(
                 role.getId(),
                 role.getName(),
                 role.getDescription(),
@@ -37,12 +37,12 @@ public class RoleApplicationMapper {
         );
     }
 
-    public RoleGetByIdView toGetByIdView(Role role) {
+    public RoleGetByIdViewDTO toGetByIdView(Role role) {
         if (role == null) {
             return null;
         }
 
-        return new RoleGetByIdView(
+        return new RoleGetByIdViewDTO(
                 role.getId(),
                 role.getName(),
                 role.getDescription(),
@@ -51,12 +51,12 @@ public class RoleApplicationMapper {
         );
     }
 
-    public RoleGetByNameView toGetByNameView(Role role) {
+    public RoleGetByNameViewDTO toGetByNameView(Role role) {
         if (role == null) {
             return null;
         }
 
-        return new RoleGetByNameView(
+        return new RoleGetByNameViewDTO(
                 role.getId(),
                 role.getName(),
                 role.getDescription(),
@@ -65,12 +65,12 @@ public class RoleApplicationMapper {
         );
     }
 
-    public RoleListView toListView(Role role) {
+    public RoleListViewDTO toListView(Role role) {
         if (role == null) {
             return null;
         }
 
-        return new RoleListView(
+        return new RoleListViewDTO(
                 role.getId(),
                 role.getName(),
                 role.getDescription(),
@@ -79,12 +79,12 @@ public class RoleApplicationMapper {
         );
     }
 
-    public RoleSearchView toSearchView(Role role) {
+    public RoleSearchViewDTO toSearchView(Role role) {
         if (role == null) {
             return null;
         }
 
-        return new RoleSearchView(
+        return new RoleSearchViewDTO(
                 role.getId(),
                 role.getName(),
                 role.getDescription(),
@@ -93,7 +93,7 @@ public class RoleApplicationMapper {
         );
     }
 
-    public RoleAddAuthorityView toAddAuthorityView(Role role, String authorityAdded) {
+    public RoleAddAuthorityViewDTO toAddAuthorityView(Role role, String authorityAdded) {
         if (role == null) {
             return null;
         }
@@ -103,7 +103,7 @@ public class RoleApplicationMapper {
                 .sorted()
                 .toList();
 
-        return new RoleAddAuthorityView(
+        return new RoleAddAuthorityViewDTO(
                 role.getId(),
                 role.getName(),
                 authorityAdded,
@@ -113,7 +113,7 @@ public class RoleApplicationMapper {
         );
     }
 
-    public RoleRemoveAuthorityView toRemoveAuthorityView(Role role, String authorityRemoved) {
+    public RoleRemoveAuthorityViewDTO toRemoveAuthorityView(Role role, String authorityRemoved) {
         if (role == null) {
             return null;
         }
@@ -123,7 +123,7 @@ public class RoleApplicationMapper {
                 .sorted()
                 .toList();
 
-        return new RoleRemoveAuthorityView(
+        return new RoleRemoveAuthorityViewDTO(
                 role.getId(),
                 role.getName(),
                 authorityRemoved,

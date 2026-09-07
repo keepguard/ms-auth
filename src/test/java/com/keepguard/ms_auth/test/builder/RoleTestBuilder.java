@@ -1,8 +1,10 @@
 package com.keepguard.ms_auth.test.builder;
 
 import com.keepguard.ms_auth.domain.entity.role.Role;
-import com.keepguard.ms_auth.domain.dto.role.*;
+import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.adapters.in.rest.role.dto.*;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleCreateRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleUpdateRequestDTO;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -153,15 +155,15 @@ public class RoleTestBuilder {
     
     // ========== DTO BUILDERS (for mapper tests) ==========
     
-    public RoleCreateDTO buildCreateDTO() {
-        return RoleCreateDTO.builder()
+    public RoleCreateRequestDTO buildCreateDTO() {
+        return RoleCreateRequestDTO.builder()
             .name(name)
             .description(description)
             .build();
     }
     
-    public RoleUpdateDTO buildUpdateDTO() {
-        return RoleUpdateDTO.builder()
+    public RoleUpdateRequestDTO buildUpdateDTO() {
+        return RoleUpdateRequestDTO.builder()
             .name(name)
             .description(description)
             .build();

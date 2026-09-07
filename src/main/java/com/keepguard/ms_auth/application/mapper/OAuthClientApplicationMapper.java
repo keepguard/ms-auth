@@ -1,7 +1,7 @@
 package com.keepguard.ms_auth.application.mapper;
 
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateView;
-import com.keepguard.ms_auth.application.dto.oauth.OAuthClientView;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientCreateViewDTO;
+import com.keepguard.ms_auth.application.dto.oauth.OAuthClientViewDTO;
 import com.keepguard.ms_auth.domain.entity.oauth.OAuthClient;
 import org.springframework.stereotype.Component;
 
@@ -11,11 +11,11 @@ import java.util.List;
 @Component
 public class OAuthClientApplicationMapper {
 
-    public OAuthClientCreateView toCreateView(OAuthClient client, String plainSecret) {
+    public OAuthClientCreateViewDTO toCreateView(OAuthClient client, String plainSecret) {
         if (client == null) {
             return null;
         }
-        return new OAuthClientCreateView(
+        return new OAuthClientCreateViewDTO(
                 client.getId(),
                 client.getCompanyId(),
                 client.getClientId(),
@@ -31,15 +31,15 @@ public class OAuthClientApplicationMapper {
         );
     }
 
-    public OAuthClientView toView(OAuthClient client) {
+    public OAuthClientViewDTO toView(OAuthClient client) {
         return toView(client, null);
     }
 
-    public OAuthClientView toView(OAuthClient client, String clientSecret) {
+    public OAuthClientViewDTO toView(OAuthClient client, String clientSecret) {
         if (client == null) {
             return null;
         }
-        return new OAuthClientView(
+        return new OAuthClientViewDTO(
                 client.getId(),
                 client.getCompanyId(),
                 client.getClientId(),

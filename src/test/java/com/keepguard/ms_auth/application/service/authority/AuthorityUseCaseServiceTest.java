@@ -1,8 +1,8 @@
 package com.keepguard.ms_auth.application.service.authority;
 
 import com.keepguard.ms_auth.application.dto.authority.*;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
-import com.keepguard.ms_auth.domain.dto.authority.*;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
+import com.keepguard.ms_auth.application.dto.authority.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ class AuthorityUseCaseServiceTest {
                 .name("READ_USERS")
                 .description("desc")
                 .build();
-        var view = new AuthorityCreateView(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
+        var view = new AuthorityCreateViewDTO(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         when(commandService.create(cmd)).thenReturn(view);
 
         var result = useCaseService.create(cmd);
@@ -56,7 +56,7 @@ class AuthorityUseCaseServiceTest {
                 .name("WRITE_USERS")
                 .description("desc")
                 .build();
-        var view = new AuthorityUpdateView(id, "WRITE_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
+        var view = new AuthorityUpdateViewDTO(id, "WRITE_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         when(commandService.update(cmd)).thenReturn(view);
 
         var result = useCaseService.update(cmd);
@@ -86,7 +86,7 @@ class AuthorityUseCaseServiceTest {
         var query = AuthorityGetByIdQueryDTO.builder()
                 .id(id)
                 .build();
-        var view = new AuthorityGetByIdView(id, "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
+        var view = new AuthorityGetByIdViewDTO(id, "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         when(queryService.findById(id)).thenReturn(Optional.of(view));
 
         var result = useCaseService.findById(query);
@@ -103,7 +103,7 @@ class AuthorityUseCaseServiceTest {
         var query = AuthorityGetByNameQueryDTO.builder()
                 .name(name)
                 .build();
-        var view = new AuthorityGetByNameView(UUID.randomUUID(), name, "desc", LocalDateTime.now(), LocalDateTime.now());
+        var view = new AuthorityGetByNameViewDTO(UUID.randomUUID(), name, "desc", LocalDateTime.now(), LocalDateTime.now());
         when(queryService.findByName(name)).thenReturn(Optional.of(view));
 
         var result = useCaseService.findByName(query);
@@ -118,7 +118,7 @@ class AuthorityUseCaseServiceTest {
     void findAll_shouldDelegateToQueryService() {
         var query = AuthorityGetAllQueryDTO.builder()
                 .build();
-        var view = new AuthorityListView(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
+        var view = new AuthorityListViewDTO(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
         when(queryService.findAll()).thenReturn(List.of(view));
 
         var result = useCaseService.findAll(query);
@@ -135,8 +135,8 @@ class AuthorityUseCaseServiceTest {
         var query = AuthoritySearchQueryDTO.builder()
                 .pageable(pageable)
                 .build();
-        var view = new AuthoritySearchView(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
-        var page = new PageResultView<>(List.of(view), 0, 10, 1, 1, true, true, false, false);
+        var view = new AuthoritySearchViewDTO(UUID.randomUUID(), "READ_USERS", "desc", LocalDateTime.now(), LocalDateTime.now());
+        var page = new PageResultViewDTO<>(List.of(view), 0, 10, 1, 1, true, true, false, false);
         when(queryService.findAll(pageable)).thenReturn(page);
 
         var result = useCaseService.findAll(query);

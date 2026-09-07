@@ -1,11 +1,11 @@
 package com.keepguard.ms_auth.application.service.auth;
 
-import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
-import com.keepguard.ms_auth.application.dto.auth.AuthLogoutView;
-import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenView;
-import com.keepguard.ms_auth.application.dto.user.UserView;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginViewDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthLogoutViewDTO;
+import com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenViewDTO;
+import com.keepguard.ms_auth.application.dto.user.UserViewDTO;
 import com.keepguard.ms_auth.application.mapper.AuthApplicationMapper;
-import com.keepguard.ms_auth.domain.dto.auth.*;
+import com.keepguard.ms_auth.application.dto.auth.*;
 import com.keepguard.ms_auth.domain.entity.user.User;
 import com.keepguard.ms_auth.test.builder.UserTestBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,7 @@ class AuthUseCaseServiceTest {
     private AuthResetPasswordCommandDTO resetPasswordRequest;
     private AuthValidateTokenQueryDTO validateTokenRequest;
     private User user;
-    private UserView userView;
+    private UserViewDTO userView;
     private String token;
     
     @BeforeEach
@@ -93,7 +93,7 @@ class AuthUseCaseServiceTest {
             .asActive()
             .buildDomain();
             
-        userView = new UserView(
+        userView = new UserViewDTO(
             user.getId(),
             user.getUsername(),
             user.getEmail(),
@@ -116,10 +116,10 @@ class AuthUseCaseServiceTest {
     void shouldLoginSuccessfully() {
         // Given
         when(authCommandService.login(loginRequest))
-            .thenReturn(new AuthLoginView(token, 3600L));
+            .thenReturn(new AuthLoginViewDTO(token, 3600L));
         
         // When
-        AuthLoginView response = authUseCaseService.login(loginRequest);
+        AuthLoginViewDTO response = authUseCaseService.login(loginRequest);
         
         // Then
         assertNotNull(response);
@@ -138,7 +138,7 @@ class AuthUseCaseServiceTest {
             .thenReturn(newToken);
         
         // When
-        AuthRefreshTokenView response = authUseCaseService.refreshToken(refreshTokenRequest);
+        AuthRefreshTokenViewDTO response = authUseCaseService.refreshToken(refreshTokenRequest);
         
         // Then
         assertNotNull(response);
@@ -160,7 +160,7 @@ class AuthUseCaseServiceTest {
         doNothing().when(authCommandService).logout(logoutRequest);
         
         // When
-        AuthLogoutView response = authUseCaseService.logout(logoutRequest);
+        AuthLogoutViewDTO response = authUseCaseService.logout(logoutRequest);
         
         // Then
         assertNotNull(response);
@@ -205,7 +205,7 @@ class AuthUseCaseServiceTest {
         when(authApplicationMapper.toUserView(user)).thenReturn(userView);
         
         // When
-        Optional<UserView> result = authUseCaseService.findByUsername(username, user.getCompanyId());
+        Optional<UserViewDTO> result = authUseCaseService.findByUsername(username, user.getCompanyId());
         
         // Then
         assertTrue(result.isPresent());
@@ -223,7 +223,7 @@ class AuthUseCaseServiceTest {
         when(authQueryService.findByUsername(username, user.getCompanyId())).thenReturn(Optional.empty());
         
         // When
-        Optional<UserView> result = authUseCaseService.findByUsername(username, user.getCompanyId());
+        Optional<UserViewDTO> result = authUseCaseService.findByUsername(username, user.getCompanyId());
         
         // Then
         assertTrue(result.isEmpty());
@@ -240,7 +240,7 @@ class AuthUseCaseServiceTest {
         when(authApplicationMapper.toUserView(user)).thenReturn(userView);
         
         // When
-        Optional<UserView> result = authUseCaseService.findByEmail(email, user.getCompanyId());
+        Optional<UserViewDTO> result = authUseCaseService.findByEmail(email, user.getCompanyId());
         
         // Then
         assertTrue(result.isPresent());
@@ -258,7 +258,7 @@ class AuthUseCaseServiceTest {
         when(authQueryService.findByEmail(email, user.getCompanyId())).thenReturn(Optional.empty());
         
         // When
-        Optional<UserView> result = authUseCaseService.findByEmail(email, user.getCompanyId());
+        Optional<UserViewDTO> result = authUseCaseService.findByEmail(email, user.getCompanyId());
         
         // Then
         assertTrue(result.isEmpty());
@@ -275,7 +275,7 @@ class AuthUseCaseServiceTest {
         when(authApplicationMapper.toUserView(user)).thenReturn(userView);
         
         // When
-        Optional<UserView> result = authUseCaseService.findByIdUserExternal(idUserExternal);
+        Optional<UserViewDTO> result = authUseCaseService.findByIdUserExternal(idUserExternal);
         
         // Then
         assertTrue(result.isPresent());
@@ -293,7 +293,7 @@ class AuthUseCaseServiceTest {
         when(authQueryService.findByIdUserExternal(idUserExternal)).thenReturn(Optional.empty());
         
         // When
-        Optional<UserView> result = authUseCaseService.findByIdUserExternal(idUserExternal);
+        Optional<UserViewDTO> result = authUseCaseService.findByIdUserExternal(idUserExternal);
         
         // Then
         assertTrue(result.isEmpty());
@@ -310,7 +310,7 @@ class AuthUseCaseServiceTest {
         when(authApplicationMapper.toUserView(user)).thenReturn(userView);
         
         // When
-        Optional<UserView> result = authUseCaseService.findByCodeUser(codeUser);
+        Optional<UserViewDTO> result = authUseCaseService.findByCodeUser(codeUser);
         
         // Then
         assertTrue(result.isPresent());
@@ -328,7 +328,7 @@ class AuthUseCaseServiceTest {
         when(authQueryService.findByCodeUser(codeUser)).thenReturn(Optional.empty());
         
         // When
-        Optional<UserView> result = authUseCaseService.findByCodeUser(codeUser);
+        Optional<UserViewDTO> result = authUseCaseService.findByCodeUser(codeUser);
         
         // Then
         assertTrue(result.isEmpty());

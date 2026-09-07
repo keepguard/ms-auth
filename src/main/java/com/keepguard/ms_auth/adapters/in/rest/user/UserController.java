@@ -19,7 +19,7 @@ import com.keepguard.ms_auth.adapters.in.rest.user.dto.response.*;
 import com.keepguard.ms_auth.adapters.in.rest.user.mapper.UserAdapterMapper;
 import com.keepguard.ms_auth.application.port.in.UserPort;
 import com.keepguard.ms_auth.application.service.exception.ForbiddenException;
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.domain.entity.user.UserStatusHistory;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -355,7 +355,7 @@ public class UserController {
         
         
         var query = mapper.toGetStatusHistoryQuery(idUserExternal, page, size, companyId);
-        PageResultView<UserStatusHistory> pageResultView = userService.getUserStatusHistory(query);
+        PageResultViewDTO<UserStatusHistory> pageResultView = userService.getUserStatusHistory(query);
         List<UserStatusHistoryResponseDTO> response = pageResultView.getContent().stream()
                 .map(mapper::toStatusHistoryResponseDTO)
                 .toList();
@@ -611,7 +611,7 @@ public class UserController {
         endpoint = "user_search",
         operation = "buscar usuários"
     )
-    public ResponseEntity<PageResultView<UserResponseDTO>> search(
+    public ResponseEntity<PageResultViewDTO<UserResponseDTO>> search(
             @Parameter(description = "ID do usuário") @RequestParam(required = false) String id,
             @Parameter(description = "Username (busca parcial)") @RequestParam(required = false) String username,
             @Parameter(description = "Email (busca parcial)") @RequestParam(required = false) String email,
@@ -651,7 +651,7 @@ public class UserController {
         var query = mapper.toSearchQuery(searchRequest, companyId);
         var pageResult = userService.searchUsers(query);
         
-        var response = PageResultView.<UserResponseDTO>builder()
+        var response = PageResultViewDTO.<UserResponseDTO>builder()
                 .content(pageResult.getContent().stream()
                         .map(mapper::toResponseDTO)
                         .toList())

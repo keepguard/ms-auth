@@ -2,6 +2,7 @@ package com.keepguard.ms_auth.infrastructure.geo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.keepguard.ms_auth.adapters.out.feign.GeoLocationClient;
 import com.keepguard.ms_auth.application.port.out.geo.GeoLocationPort;
 import com.keepguard.ms_auth.infrastructure.util.IpAddressUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -10,11 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -28,22 +25,21 @@ public class IpWhoIsGeoLocationAdapter implements GeoLocationPort {
     static final String INTERNAL = "Rede interna";
 
     private final ObjectMapper objectMapper;
-    private final HttpClient httpClient;
+    private final GeoLocationClient geoLocationClient;
     private final String lookupUrlTemplate;
     private final String fallbackUrlTemplate;
     private final Map<String, String> cache = new ConcurrentHashMap<>();
 
     public IpWhoIsGeoLocationAdapter(
             ObjectMapper objectMapper,
+            GeoLocationClient geoLocationClient,
             @Value("${app.geo.lookup-url:https://get.geojs.io/v1/ip/geo/%s.json}") String lookupUrlTemplate,
             @Value("${app.geo.fallback-url:https://ipwho.is/%s?fields=success,city,region,country,country_code}") String fallbackUrlTemplate
     ) {
         this.objectMapper = objectMapper;
+        this.geoLocationClient = geoLocationClient;
         this.lookupUrlTemplate = lookupUrlTemplate;
         this.fallbackUrlTemplate = fallbackUrlTemplate;
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofMillis(2000))
-                .build();
     }
 
     @Override
@@ -70,16 +66,11 @@ public class IpWhoIsGeoLocationAdapter implements GeoLocationPort {
     private String lookupUrl(String template, String ip) {
         try {
             String encodedIp = URLEncoder.encode(ip, StandardCharsets.UTF_8).replace("+", "%20");
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(template.formatted(encodedIp)))
-                    .timeout(Duration.ofMillis(3000))
-                    .GET()
-                    .build();
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() < 200 || response.statusCode() >= 300 || response.body() == null) {
+            String body = geoLocationClient.get(URI.create(template.formatted(encodedIp)));
+            if (body == null || body.isBlank()) {
                 return UNKNOWN;
             }
-            JsonNode json = objectMapper.readTree(response.body());
+            JsonNode json = objectMapper.readTree(body);
             if (json.path("success").isBoolean() && !json.path("success").asBoolean()) {
                 return UNKNOWN;
             }

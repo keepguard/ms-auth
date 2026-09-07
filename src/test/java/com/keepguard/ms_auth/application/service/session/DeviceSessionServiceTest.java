@@ -3,7 +3,7 @@ package com.keepguard.ms_auth.application.service.session;
 import com.keepguard.ms_auth.adapters.out.feign.CommunicationClient;
 import com.keepguard.ms_auth.adapters.out.feign.CompanyClient;
 import com.keepguard.ms_auth.adapters.out.feign.UserClient;
-import com.keepguard.ms_auth.application.dto.auth.AuthLoginView;
+import com.keepguard.ms_auth.application.dto.auth.AuthLoginViewDTO;
 import com.keepguard.ms_auth.application.dto.session.PasswordChangedNotifyCommand;
 import com.keepguard.ms_auth.application.dto.session.SendDeviceChallengeCommandDTO;
 import com.keepguard.ms_auth.application.dto.session.VerifyDeviceChallengeCommandDTO;
@@ -84,7 +84,7 @@ class DeviceSessionServiceTest {
     private SessionAccessPolicy sessionAccessPolicy;
 
     @InjectMocks
-    private DeviceSessionService deviceSessionService;
+    private DeviceSessionCommandService deviceSessionService;
 
     private DeviceChallengeSession mockChallenge;
     private final String challengeSessionId = "chal_12345";
@@ -221,7 +221,7 @@ class DeviceSessionServiceTest {
                 .trustDevice(true)
                 .build();
 
-        AuthLoginView result = deviceSessionService.verifyChallenge(command);
+        AuthLoginViewDTO result = deviceSessionService.verifyChallenge(command);
 
         assertNotNull(result);
         assertEquals("mock-jwt-token", result.token());
@@ -320,7 +320,7 @@ class DeviceSessionServiceTest {
                 .trustDevice(true)
                 .build();
 
-        AuthLoginView result = deviceSessionService.verifyChallenge(command);
+        AuthLoginViewDTO result = deviceSessionService.verifyChallenge(command);
 
         assertNotNull(result);
         assertEquals("AUTHENTICATED", result.status());

@@ -1,7 +1,9 @@
 package com.keepguard.ms_auth.adapters.in.rest.role.mapper;
 
 import com.keepguard.ms_auth.adapters.in.rest.role.dto.*;
-import com.keepguard.ms_auth.domain.dto.role.*;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleCreateRequestDTO;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleUpdateRequestDTO;
+import com.keepguard.ms_auth.application.dto.role.*;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.application.dto.role.*;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +15,7 @@ import java.util.UUID;
 @Slf4j
 public class RoleAdapterMapper {
 
-    public Role toEntity(RoleCreateDTO dto) {
+    public Role toEntity(RoleCreateRequestDTO dto) {
         if (dto == null) {
             return null;
         }
@@ -24,7 +26,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public Role toEntity(RoleUpdateDTO dto) {
+    public Role toEntity(RoleUpdateRequestDTO dto) {
         if (dto == null) {
             return null;
         }
@@ -75,7 +77,7 @@ public class RoleAdapterMapper {
 
     // ========== VIEW TO RESPONSE DTO CONVERSIONS ==========
 
-    public RoleResponseDTO toResponseDTO(RoleCreateView view) {
+    public RoleResponseDTO toResponseDTO(RoleCreateViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -89,7 +91,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public RoleResponseDTO toResponseDTO(RoleUpdateView view) {
+    public RoleResponseDTO toResponseDTO(RoleUpdateViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -103,7 +105,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public RoleResponseDTO toResponseDTO(RoleGetByIdView view) {
+    public RoleResponseDTO toResponseDTO(RoleGetByIdViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -117,7 +119,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public RoleResponseDTO toResponseDTO(RoleGetByNameView view) {
+    public RoleResponseDTO toResponseDTO(RoleGetByNameViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -131,7 +133,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public RoleResponseDTO toResponseDTO(RoleListView view) {
+    public RoleResponseDTO toResponseDTO(RoleListViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -145,7 +147,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public RoleResponseDTO toResponseDTO(RoleSearchView view) {
+    public RoleResponseDTO toResponseDTO(RoleSearchViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -253,7 +255,7 @@ public class RoleAdapterMapper {
 
     // ========== VIEW TO SPECIFIC RESPONSE DTO CONVERSIONS ==========
 
-    public RoleCreateResponseDTO toCreateResponseDTO(RoleCreateView view) {
+    public RoleCreateResponseDTO toCreateResponseDTO(RoleCreateViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -268,7 +270,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public RoleUpdateResponseDTO toUpdateResponseDTO(RoleUpdateView view) {
+    public RoleUpdateResponseDTO toUpdateResponseDTO(RoleUpdateViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -283,7 +285,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public RoleGetByIdResponseDTO toGetByIdResponseDTO(RoleGetByIdView view) {
+    public RoleGetByIdResponseDTO toGetByIdResponseDTO(RoleGetByIdViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -298,7 +300,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public RoleGetByNameResponseDTO toGetByNameResponseDTO(RoleGetByNameView view) {
+    public RoleGetByNameResponseDTO toGetByNameResponseDTO(RoleGetByNameViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -313,7 +315,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public RoleListResponseDTO toListResponseDTO(RoleListView view) {
+    public RoleListResponseDTO toListResponseDTO(RoleListViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -328,7 +330,7 @@ public class RoleAdapterMapper {
                 .build();
     }
 
-    public RoleSearchResponseDTO toSearchResponseDTO(RoleSearchView view) {
+    public RoleSearchResponseDTO toSearchResponseDTO(RoleSearchViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -345,7 +347,7 @@ public class RoleAdapterMapper {
 
     // ========== COMMAND DTO CONVERSIONS ==========
 
-    public RoleCreateCommandDTO toCreateCommand(RoleCreateDTO dto, UUID companyId) {
+    public RoleCreateCommandDTO toCreateCommand(RoleCreateRequestDTO dto, UUID companyId) {
         if (dto == null) {
             return null;
         }
@@ -356,12 +358,12 @@ public class RoleAdapterMapper {
                     .companyId(companyId)
                     .build();
         } catch (Exception e) {
-            log.error("Erro ao mapear RoleCreateDTO para RoleCreateCommandDTO: {}", e.getMessage(), e);
+            log.error("Erro ao mapear RoleCreateRequestDTO para RoleCreateCommandDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
 
-    public RoleUpdateCommandDTO toUpdateCommand(UUID id, RoleUpdateDTO dto, UUID companyId) {
+    public RoleUpdateCommandDTO toUpdateCommand(UUID id, RoleUpdateRequestDTO dto, UUID companyId) {
         if (dto == null) {
             return null;
         }
@@ -373,7 +375,7 @@ public class RoleAdapterMapper {
                     .companyId(companyId)
                     .build();
         } catch (Exception e) {
-            log.error("Erro ao mapear RoleUpdateDTO para RoleUpdateCommandDTO: {}", e.getMessage(), e);
+            log.error("Erro ao mapear RoleUpdateRequestDTO para RoleUpdateCommandDTO: {}", e.getMessage(), e);
             throw e;
         }
     }
@@ -455,7 +457,7 @@ public class RoleAdapterMapper {
         }
     }
 
-    public RoleAddAuthorityResponseDTO toAddAuthorityResponseDTO(RoleAddAuthorityView view) {
+    public RoleAddAuthorityResponseDTO toAddAuthorityResponseDTO(RoleAddAuthorityViewDTO view) {
         if (view == null) {
             return null;
         }
@@ -486,7 +488,7 @@ public class RoleAdapterMapper {
         }
     }
 
-    public RoleRemoveAuthorityResponseDTO toRemoveAuthorityResponseDTO(RoleRemoveAuthorityView view) {
+    public RoleRemoveAuthorityResponseDTO toRemoveAuthorityResponseDTO(RoleRemoveAuthorityViewDTO view) {
         if (view == null) {
             return null;
         }

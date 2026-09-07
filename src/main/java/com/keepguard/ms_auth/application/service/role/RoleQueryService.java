@@ -1,6 +1,6 @@
 package com.keepguard.ms_auth.application.service.role;
 
-import com.keepguard.ms_auth.application.dto.common.PageResultView;
+import com.keepguard.ms_auth.application.dto.common.PageResultViewDTO;
 import com.keepguard.ms_auth.application.port.out.persistence.RoleRepositoryPort;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import lombok.RequiredArgsConstructor;
@@ -45,16 +45,16 @@ public class RoleQueryService {
         return roleRepository.findByCompanyId(companyId);
     }
 
-    public PageResultView<Role> findAll(Pageable pageable) {
+    public PageResultViewDTO<Role> findAll(Pageable pageable) {
         return toPageResult(roleRepository.findAll(pageable));
     }
 
-    public PageResultView<Role> findByCompanyId(UUID companyId, Pageable pageable) {
+    public PageResultViewDTO<Role> findByCompanyId(UUID companyId, Pageable pageable) {
         return toPageResult(roleRepository.findByCompanyId(companyId, pageable));
     }
 
-    private PageResultView<Role> toPageResult(Page<Role> page) {
-        return PageResultView.<Role>builder()
+    private PageResultViewDTO<Role> toPageResult(Page<Role> page) {
+        return PageResultViewDTO.<Role>builder()
                 .content(page.getContent())
                 .totalElements(page.getTotalElements())
                 .totalPages(page.getTotalPages())

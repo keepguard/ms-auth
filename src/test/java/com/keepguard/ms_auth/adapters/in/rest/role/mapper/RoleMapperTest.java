@@ -1,8 +1,8 @@
 package com.keepguard.ms_auth.adapters.in.rest.role.mapper;
 
-import com.keepguard.ms_auth.adapters.in.rest.role.dto.RoleCreateDTO;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleCreateRequestDTO;
 import com.keepguard.ms_auth.adapters.in.rest.role.dto.RoleResponseDTO;
-import com.keepguard.ms_auth.adapters.in.rest.role.dto.RoleUpdateDTO;
+import com.keepguard.ms_auth.adapters.in.rest.role.dto.request.RoleUpdateRequestDTO;
 import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.test.builder.RoleTestBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,8 +30,8 @@ class RoleMapperTest {
     
     private UUID roleId;
     private Role role;
-    private RoleCreateDTO createDTO;
-    private RoleUpdateDTO updateDTO;
+    private RoleCreateRequestDTO createDTO;
+    private RoleUpdateRequestDTO updateDTO;
     private RoleResponseDTO responseDTO;
     
     @BeforeEach
@@ -57,7 +57,7 @@ class RoleMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter RoleCreateDTO para Role com sucesso")
+    @DisplayName("Deve converter RoleCreateRequestDTO para Role com sucesso")
     void shouldConvertRoleCreateDTOToRoleSuccessfully() {
         // When
         Role result = roleAdapterMapper.toEntity(createDTO);
@@ -72,20 +72,20 @@ class RoleMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter RoleCreateDTO nulo para Role nulo")
+    @DisplayName("Deve converter RoleCreateRequestDTO nulo para Role nulo")
     void shouldConvertNullRoleCreateDTOToNullRole() {
         // When
-        Role result = roleAdapterMapper.toEntity((RoleCreateDTO) null);
+        Role result = roleAdapterMapper.toEntity((RoleCreateRequestDTO) null);
         
         // Then
         assertNull(result);
     }
     
     @Test
-    @DisplayName("Deve converter RoleCreateDTO com campos nulos")
+    @DisplayName("Deve converter RoleCreateRequestDTO com campos nulos")
     void shouldConvertRoleCreateDTOWithNullFields() {
         // Given
-        RoleCreateDTO createDTOWithNulls = RoleCreateDTO.builder()
+        RoleCreateRequestDTO createDTOWithNulls = RoleCreateRequestDTO.builder()
             .name(null)
             .description(null)
             .build();
@@ -103,7 +103,7 @@ class RoleMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter RoleUpdateDTO para Role com sucesso")
+    @DisplayName("Deve converter RoleUpdateRequestDTO para Role com sucesso")
     void shouldConvertRoleUpdateDTOToRoleSuccessfully() {
         // When
         Role result = roleAdapterMapper.toEntity(updateDTO);
@@ -118,20 +118,20 @@ class RoleMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter RoleUpdateDTO nulo para Role nulo")
+    @DisplayName("Deve converter RoleUpdateRequestDTO nulo para Role nulo")
     void shouldConvertNullRoleUpdateDTOToNullRole() {
         // When
-        Role result = roleAdapterMapper.toEntity((RoleUpdateDTO) null);
+        Role result = roleAdapterMapper.toEntity((RoleUpdateRequestDTO) null);
         
         // Then
         assertNull(result);
     }
     
     @Test
-    @DisplayName("Deve converter RoleUpdateDTO com campos nulos")
+    @DisplayName("Deve converter RoleUpdateRequestDTO com campos nulos")
     void shouldConvertRoleUpdateDTOWithNullFields() {
         // Given
-        RoleUpdateDTO updateDTOWithNulls = RoleUpdateDTO.builder()
+        RoleUpdateRequestDTO updateDTOWithNulls = RoleUpdateRequestDTO.builder()
             .name(null)
             .description(null)
             .build();
@@ -225,10 +225,10 @@ class RoleMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter RoleCreateDTO com valores específicos")
+    @DisplayName("Deve converter RoleCreateRequestDTO com valores específicos")
     void shouldConvertRoleCreateDTOWithSpecificValues() {
         // Given
-        RoleCreateDTO specificCreateDTO = RoleCreateDTO.builder()
+        RoleCreateRequestDTO specificCreateDTO = RoleCreateRequestDTO.builder()
             .name("MANAGER")
             .description("Gerente do sistema")
             .build();
@@ -246,10 +246,10 @@ class RoleMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter RoleUpdateDTO com valores específicos")
+    @DisplayName("Deve converter RoleUpdateRequestDTO com valores específicos")
     void shouldConvertRoleUpdateDTOWithSpecificValues() {
         // Given
-        RoleUpdateDTO specificUpdateDTO = RoleUpdateDTO.builder()
+        RoleUpdateRequestDTO specificUpdateDTO = RoleUpdateRequestDTO.builder()
             .name("ADMIN_UPDATED")
             .description("Administrador atualizado")
             .build();
@@ -289,10 +289,10 @@ class RoleMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter RoleCreateDTO com descrição vazia")
+    @DisplayName("Deve converter RoleCreateRequestDTO com descrição vazia")
     void shouldConvertRoleCreateDTOWithEmptyDescription() {
         // Given
-        RoleCreateDTO createDTOWithEmptyDescription = RoleCreateDTO.builder()
+        RoleCreateRequestDTO createDTOWithEmptyDescription = RoleCreateRequestDTO.builder()
             .name("GUEST")
             .description("")
             .build();
@@ -332,10 +332,10 @@ class RoleMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter RoleCreateDTO com nome em maiúsculo")
+    @DisplayName("Deve converter RoleCreateRequestDTO com nome em maiúsculo")
     void shouldConvertRoleCreateDTOWithUppercaseName() {
         // Given
-        RoleCreateDTO createDTOWithUppercase = RoleCreateDTO.builder()
+        RoleCreateRequestDTO createDTOWithUppercase = RoleCreateRequestDTO.builder()
             .name("USER")
             .description("Usuário comum")
             .build();
@@ -353,10 +353,10 @@ class RoleMapperTest {
     }
     
     @Test
-    @DisplayName("Deve converter RoleUpdateDTO com nome em maiúsculo")
+    @DisplayName("Deve converter RoleUpdateRequestDTO com nome em maiúsculo")
     void shouldConvertRoleUpdateDTOWithUppercaseName() {
         // Given
-        RoleUpdateDTO updateDTOWithUppercase = RoleUpdateDTO.builder()
+        RoleUpdateRequestDTO updateDTOWithUppercase = RoleUpdateRequestDTO.builder()
             .name("MANAGER")
             .description("Gerente do sistema")
             .build();
