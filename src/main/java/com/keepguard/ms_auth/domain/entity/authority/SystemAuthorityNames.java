@@ -26,6 +26,8 @@ public final class SystemAuthorityNames {
     public static final String SESSION_READ = "session:read";
     public static final String SESSION_WRITE = "session:write";
     public static final String OPS_READ = "ops:read";
+    public static final String BILLING_READ = "billing:read";
+    public static final String BILLING_WRITE = "billing:write";
 
     public static final List<String> USER_ACTIONS = List.of(USER_BLOCK, USER_UNBLOCK, USER_DELETE);
     public static final List<String> MANAGER_ACTIONS = List.of(MANAGER_BLOCK, MANAGER_UNBLOCK, MANAGER_DELETE);
@@ -45,7 +47,9 @@ public final class SystemAuthorityNames {
             OAUTH_WRITE,
             SESSION_READ,
             SESSION_WRITE,
-            OPS_READ
+            OPS_READ,
+            BILLING_READ,
+            BILLING_WRITE
     );
 
     private SystemAuthorityNames() {
@@ -112,6 +116,12 @@ public final class SystemAuthorityNames {
         if (OPS_READ.equals(name)) {
             return "Permite consultar o health das conexões do core";
         }
+        if (BILLING_READ.equals(name)) {
+            return "Permite consultar planos, faturas e a própria assinatura";
+        }
+        if (BILLING_WRITE.equals(name)) {
+            return "Permite cadastrar credencial Asaas e CRUD de planos da company";
+        }
         return "Permissão do catálogo KeepGuard: " + name;
     }
 
@@ -125,7 +135,8 @@ public final class SystemAuthorityNames {
                     GUARDIAN_READ, GUARDIAN_WRITE,
                     OAUTH_READ, OAUTH_WRITE,
                     SESSION_READ, SESSION_WRITE,
-                    OPS_READ
+                    OPS_READ,
+                    BILLING_READ, BILLING_WRITE
             );
         }
         if (SystemRoleNames.ROLE_MANAGER.equals(roleName)) {
@@ -133,8 +144,12 @@ public final class SystemAuthorityNames {
                     USER_BLOCK, USER_UNBLOCK, USER_DELETE,
                     LLM_READ,
                     COLLECTOR_READ,
-                    SESSION_READ, SESSION_WRITE
+                    SESSION_READ, SESSION_WRITE,
+                    BILLING_READ
             );
+        }
+        if (SystemRoleNames.ROLE_USER.equals(roleName)) {
+            return List.of(BILLING_READ);
         }
         return List.of();
     }
