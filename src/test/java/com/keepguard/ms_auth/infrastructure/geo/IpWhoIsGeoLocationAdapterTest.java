@@ -17,4 +17,16 @@ class IpWhoIsGeoLocationAdapterTest {
         assertEquals("São Paulo, Brasil",
                 IpWhoIsGeoLocationAdapter.format("São Paulo", "São Paulo", "Brazil", "BR"));
     }
+
+    @Test
+    void returnsUnknownWhenLocalEnabledIsTrueWithoutExternalCalls() {
+        var adapter = new IpWhoIsGeoLocationAdapter(
+                new com.fasterxml.jackson.databind.ObjectMapper(),
+                null,
+                "https://lookup/%s",
+                "https://fallback/%s",
+                true
+        );
+        assertEquals(IpWhoIsGeoLocationAdapter.UNKNOWN, adapter.resolve("200.100.50.25"));
+    }
 }

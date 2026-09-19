@@ -28,18 +28,21 @@ public class IpWhoIsGeoLocationAdapter implements GeoLocationPort {
     private final GeoLocationClient geoLocationClient;
     private final String lookupUrlTemplate;
     private final String fallbackUrlTemplate;
+    private final boolean localEnabled;
     private final Map<String, String> cache = new ConcurrentHashMap<>();
 
     public IpWhoIsGeoLocationAdapter(
             ObjectMapper objectMapper,
             GeoLocationClient geoLocationClient,
             @Value("${app.geo.lookup-url:https://get.geojs.io/v1/ip/geo/%s.json}") String lookupUrlTemplate,
-            @Value("${app.geo.fallback-url:https://ipwho.is/%s?fields=success,city,region,country,country_code}") String fallbackUrlTemplate
+            @Value("${app.geo.fallback-url:https://ipwho.is/%s?fields=success,city,region,country,country_code}") String fallbackUrlTemplate,
+            @Value("${app.geo.local-enabled:false}") boolean localEnabled
     ) {
         this.objectMapper = objectMapper;
         this.geoLocationClient = geoLocationClient;
         this.lookupUrlTemplate = lookupUrlTemplate;
         this.fallbackUrlTemplate = fallbackUrlTemplate;
+        this.localEnabled = localEnabled;
     }
 
     @Override
@@ -55,6 +58,11 @@ public class IpWhoIsGeoLocationAdapter implements GeoLocationPort {
     }
 
     private String lookup(String ip) {
+        if (localEnabled) {
+            log.debug("GeoIP operando em modo local soberano (app.geo.local-enabled=true). Sem requisições de egress externo para IP.");
+            return UNKNOWN;
+        }
+        log.debug("Egress GeoIP externo acionado para resolução de IP (LGPD Art. 33)");
         String primary = lookupUrl(lookupUrlTemplate, ip);
         if (isResolved(primary)) {
             return primary;
