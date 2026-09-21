@@ -22,10 +22,13 @@ class SystemServiceRoleNamesTest {
     }
 
     @Test
-    @DisplayName("BFF Core só tem knowledge:read")
-    void bffCoreIsReadOnly() {
+    @DisplayName("BFF Core tem knowledge:read e llm read/write")
+    void bffCoreHasKnowledgeAndLlm() {
         assertEquals(
-                java.util.List.of(SystemAuthorityNames.KNOWLEDGE_READ),
+                java.util.List.of(
+                        SystemAuthorityNames.KNOWLEDGE_READ,
+                        SystemAuthorityNames.LLM_READ,
+                        SystemAuthorityNames.LLM_WRITE),
                 SystemServiceRoleNames.authoritiesFor(SystemServiceRoleNames.ROLE_SERVICE_BFF_CORE)
         );
     }

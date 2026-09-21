@@ -35,7 +35,7 @@ public final class SystemServiceRoleNames {
             return "Perfil para clients OAuth de coleta de dados. Permite leitura e escrita na base de conhecimento.";
         }
         if (ROLE_SERVICE_BFF_CORE.equals(name)) {
-            return "Perfil para o BFF Core. Permite leitura na base de conhecimento em nome do usuário autenticado.";
+            return "Perfil para o BFF Core. Permite leitura na base de conhecimento e uso do gateway LLM em nome do usuário autenticado.";
         }
         if (ROLE_SERVICE_ANALYST_FINANCE.equals(name)) {
             return "Perfil para o analista financeiro do investbot. Permite leitura na base de conhecimento e uso do gateway LLM.";
@@ -57,7 +57,10 @@ public final class SystemServiceRoleNames {
             return List.of(SystemAuthorityNames.KNOWLEDGE_WRITE, SystemAuthorityNames.KNOWLEDGE_READ);
         }
         if (ROLE_SERVICE_BFF_CORE.equals(roleName)) {
-            return List.of(SystemAuthorityNames.KNOWLEDGE_READ);
+            return List.of(
+                    SystemAuthorityNames.KNOWLEDGE_READ,
+                    SystemAuthorityNames.LLM_READ,
+                    SystemAuthorityNames.LLM_WRITE);
         }
         if (ROLE_SERVICE_ANALYST_FINANCE.equals(roleName)) {
             return List.of(
