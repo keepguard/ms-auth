@@ -65,7 +65,7 @@ management:
 
 security:
   jwt:
-    secret: Q2FjaG9ycm8gU2VndXJhbmNhIFByb2pldG8gS2VlcEd1YXJkIQ==
+    secret: ${JWT_SECRET}
     expiration: 3600000
   rate-limiting:
     max-attempts: 5

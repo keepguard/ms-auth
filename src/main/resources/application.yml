@@ -76,7 +76,7 @@ cache:
 # Configurações de Segurança e Rate Limiting
 security:
   jwt:
-    secret: ${JWT_SECRET:Q2FjaG9ycm8gU2VndXJhbmNhIFByb2pldG8gS2VlcEd1YXJkIQ==}
+    secret: ${JWT_SECRET}
     expiration: 3600000
     service-token:
       min-ttl-seconds: 900
@@ -298,10 +298,6 @@ spring:
   config:
     activate:
       on-profile: prod
-
-security:
-  jwt:
-    secret: Q2FjaG9ycm8gU2VndXJhbmNhIFByb2pldG8gS2VlcEd1YXJkIQ==
 
 springdoc:
   swagger-ui:
