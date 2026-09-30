@@ -88,6 +88,7 @@ public class AuthAdapterMapper {
         try {
             return AuthRefreshTokenCommandDTO.builder()
                     .token(dto.getToken())
+                    .refreshToken(dto.getRefreshToken())
                     .companyId(companyId)
                     .clientId(clientId)
                     .build();
@@ -201,6 +202,7 @@ public class AuthAdapterMapper {
         try {
             return AuthLoginResponseDTO.builder()
                     .token(view.token())
+                    .refreshToken(view.refreshToken())
                     .expiresIn(view.expiresIn())
                     .status(view.status())
                     .challengeSessionId(view.challengeSessionId())
@@ -221,6 +223,7 @@ public class AuthAdapterMapper {
         try {
             return AuthRefreshTokenResponseDTO.builder()
                     .token(view.token())
+                    .refreshToken(view.refreshToken())
                     .expiresIn(view.expiresIn())
                     .build();
         } catch (Exception e) {

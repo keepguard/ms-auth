@@ -18,6 +18,11 @@ public class AuthRefreshTokenResponseDTO {
             required = true)
     private String token;
 
+    @Schema(description = "Novo refresh token opaco, rotacionado a cada uso",
+            example = "rt_8f14e45fceea167a5a36dedd4bea2543...",
+            required = false)
+    private String refreshToken;
+
     @Schema(description = "Tempo de expiração do novo token em segundos",
             example = "3600",
             required = false)

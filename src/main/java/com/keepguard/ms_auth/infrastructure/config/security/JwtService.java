@@ -19,6 +19,9 @@ public class JwtService {
     @Value("${security.jwt.expiration}")
     private long expiration;
 
+    @Value("${security.jwt.access-expiration:900000}")
+    private long accessExpiration;
+
     private SecretKey key;
 
     @PostConstruct
@@ -27,10 +30,20 @@ public class JwtService {
     }
 
     public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId, String clientId) {
-        return generateToken(user, roles, authorities, tenantId, clientId, null);
+        return generateToken(user, roles, authorities, tenantId, clientId, null, null);
     }
 
     public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId, String clientId, String deviceId) {
+        return generateToken(user, roles, authorities, tenantId, clientId, deviceId, null);
+    }
+
+    /**
+     * Gera o access token. Quando {@code sid} é informado, o token carrega a
+     * claim de sessão usada pela revogação por sessão (em vez de por token
+     * exato) — ver bff-core jwt_middleware.
+     */
+    public String generateToken(User user, List<String> roles, List<String> authorities, String tenantId,
+                                 String clientId, String deviceId, String sid) {
         String finalClientId = sanitizeClientId(clientId);
         var builder = Jwts.builder()
                 .issuer("ms-auth")
@@ -46,10 +59,13 @@ public class JwtService {
         if (deviceId != null && !deviceId.isBlank()) {
             builder.claim("device_id", deviceId);
         }
-        
+        if (sid != null && !sid.isBlank()) {
+            builder.claim("sid", sid);
+        }
+
         return builder
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + accessExpiration))
                 .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }
@@ -118,6 +134,25 @@ public class JwtService {
         return UUID.fromString(claims.getSubject());
     }
 
+    /**
+     * Extrai o codeUser mesmo de um access token já expirado — usado no fluxo
+     * de refresh opaco, onde a credencial de rotação é o refresh token, não o
+     * JWT (que serve só para identificar de quem é a sessão). A assinatura
+     * ainda é verificada; só a expiração é tolerada.
+     */
+    public UUID extractUserIdIgnoringExpiration(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+            return UUID.fromString(claims.getSubject());
+        } catch (ExpiredJwtException e) {
+            return UUID.fromString(e.getClaims().getSubject());
+        }
+    }
+
     public String extractDeviceId(String token) {
         try {
             Claims claims = Jwts.parser()
@@ -131,8 +166,25 @@ public class JwtService {
         }
     }
 
+    public String extractSessionId(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+            return claims.get("sid", String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public long getExpiration() {
         return expiration;
+    }
+
+    public long getAccessExpiration() {
+        return accessExpiration;
     }
 
     private String sanitizeClientId(String clientId) {

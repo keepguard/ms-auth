@@ -21,6 +21,11 @@ public class AuthLoginResponseDTO {
             required = false)
     private String token;
 
+    @Schema(description = "Refresh token opaco, usado para renovar o access token sem novo login",
+            example = "rt_8f14e45fceea167a5a36dedd4bea2543...",
+            required = false)
+    private String refreshToken;
+
     @Schema(description = "Tempo de expiração do token em segundos",
             example = "3600",
             required = false)

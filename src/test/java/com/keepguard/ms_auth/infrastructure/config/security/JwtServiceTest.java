@@ -36,6 +36,7 @@ class JwtServiceTest {
         // Set private fields using reflection
         ReflectionTestUtils.setField(jwtService, "secret", secret);
         ReflectionTestUtils.setField(jwtService, "expiration", expiration);
+        ReflectionTestUtils.setField(jwtService, "accessExpiration", expiration);
         
         // Initialize the service
         jwtService.init();

@@ -17,6 +17,12 @@ public class AuthRefreshTokenCommandDTO {
     @NotBlank(message = "Token é obrigatório")
     private String token;
 
+    /**
+     * Refresh token opaco (novo fluxo). Quando presente, a rotação usa esta
+     * credencial em vez do JWT em {@code token}.
+     */
+    private String refreshToken;
+
     @NotBlank(message = "O header X-Company-Id é obrigatório")
     private UUID companyId;
 

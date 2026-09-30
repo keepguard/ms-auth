@@ -24,6 +24,7 @@ import com.keepguard.ms_auth.domain.entity.role.Role;
 import com.keepguard.ms_auth.domain.enums.UserStatus;
 import com.keepguard.ms_auth.infrastructure.config.security.JwtService;
 import com.keepguard.ms_auth.application.port.out.cache.TokenCachePort;
+import com.keepguard.ms_auth.application.dto.auth.IssuedTokenPairDTO;
 import com.keepguard.ms_auth.application.port.out.metrics.MetricsPort;
 import com.keepguard.ms_auth.adapters.out.feign.UserClient;
 import com.keepguard.ms_auth.infrastructure.config.security.LoginAttemptService;
@@ -73,6 +74,7 @@ public class AuthCommandService {
     private final LoginAttemptService loginAttemptService;
     private final DeviceSessionPort deviceSessionPort;
     private final GeoLocationPort geoLocationPort;
+    private final RefreshTokenIssuerService refreshTokenIssuerService;
 
     @Value("${cache.redis.ttl.reset-token}")
     private long resetTokenTtlSeconds;
@@ -204,6 +206,7 @@ public class AuthCommandService {
                 return new AuthLoginViewDTO(
                         null,
                         null,
+                        null,
                         "MFA_REQUIRED",
                         challengeSessionId,
                         false,
@@ -212,17 +215,20 @@ public class AuthCommandService {
             }
         }
 
-        // Dispositivo confiável: emite o token JWT final
+        // Dispositivo confiável: emite o par access+refresh da sessão
         List<String> roleNames = getUserRoles(user.getId());
         List<String> authorities = getUserAuthorities(user.getId());
 
-        String token = jwtService.generateToken(user, roleNames, authorities, jwtTenantClaim(user), request.getClientId(), deviceId);
+        IssuedTokenPairDTO issued = refreshTokenIssuerService.issueInitialPair(
+                user, roleNames, authorities, jwtTenantClaim(user), request.getClientId(), deviceId,
+                request.getCompanyId().toString());
+        String token = issued.getAccessToken();
 
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
-        // Salva token legado para compatibilidade
-        tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getExpiration());
+        // Salva token legado para compatibilidade (bff-auth/bff-core ainda checam tokenlogin:*)
+        tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getAccessExpiration());
 
         String ipAddress = IpAddressUtils.firstIp(request.getIpAddress());
         String locationHint = ClientLocation.sanitize(request.getLocation());
@@ -232,7 +238,7 @@ public class AuthCommandService {
 
         // Salva/Atualiza sessão por dispositivo no Redis (30 dias)
         UserSession session = UserSession.builder()
-                .sessionId("sess_" + UUID.randomUUID())
+                .sessionId(issued.getSid())
                 .codeUser(user.getCodeUser().toString())
                 .companyId(request.getCompanyId().toString())
                 .clientId(request.getClientId())
@@ -245,7 +251,7 @@ public class AuthCommandService {
                 .isTrusted(true)
                 .lastActiveAt(LocalDateTime.now().toString())
                 .createdAt(existingSession.map(UserSession::getCreatedAt).orElse(LocalDateTime.now().toString()))
-                .refreshToken(token)
+                .refreshToken(issued.getRefreshToken())
                 .build();
 
         sessionCachePort.saveUserSession(session, 2592000L); // 30 dias
@@ -279,7 +285,7 @@ public class AuthCommandService {
         metricsPort.incrementCounter("auth_login_success_total",
             Map.of("application", request.getCompanyId().toString()));
 
-        return new AuthLoginViewDTO(token, 3600L, "AUTHENTICATED", null, true, null);
+        return new AuthLoginViewDTO(token, issued.getRefreshToken(), issued.getExpiresIn(), "AUTHENTICATED", null, true, null);
     }
 
     private List<AvailableMfaChannelDTO> fetchAvailableChannels(UUID companyId, User user) {
@@ -417,12 +423,65 @@ public class AuthCommandService {
         auditEntityType = "USER"
     )
     @Transactional
-    public String refreshToken(AuthRefreshTokenCommandDTO request) {
-        log.info("Processing refresh token request - application={}, clientId={}", 
+    public IssuedTokenPairDTO refreshToken(AuthRefreshTokenCommandDTO request) {
+        log.info("Processing refresh token request - application={}, clientId={}",
             request.getCompanyId(), request.getClientId());
 
+        if (request.getRefreshToken() != null && !request.getRefreshToken().isBlank()) {
+            return refreshWithOpaqueToken(request);
+        }
+        return refreshWithLegacyJwt(request);
+    }
+
+    /**
+     * Fluxo novo: refresh token opaco, rotação com carência, sid estável.
+     */
+    private IssuedTokenPairDTO refreshWithOpaqueToken(AuthRefreshTokenCommandDTO request) {
+        // O codeUser/roles ainda precisam ser resolvidos; o refresh token opaco
+        // não carrega essas informações (é só um identificador de sessão), por
+        // isso o cliente também manda o último access token conhecido (mesmo
+        // expirado) para extrairmos o codeUser sem round-trip extra ao banco
+        // por username.
+        UUID codeUser = jwtService.extractUserIdIgnoringExpiration(request.getToken());
+        User user = userRepository.findByCodeUserAndCompanyId(codeUser, request.getCompanyId())
+                .orElseThrow(() -> new NotFoundException("User not found", "USER_NOT_FOUND",
+                        Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString())));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new InvalidCredentialsException("User is not active", "USER_NOT_ACTIVE",
+                    Map.of("codeUser", codeUser.toString(), "status", user.getStatus().toString(),
+                            "application", request.getCompanyId().toString()));
+        }
+
+        List<String> roleNames = getUserRoles(user.getId());
+        List<String> authorities = getUserAuthorities(user.getId());
+
+        IssuedTokenPairDTO issued = refreshTokenIssuerService.rotate(request.getRefreshToken(), user, roleNames,
+                authorities, jwtTenantClaim(user), request.getClientId(), request.getCompanyId().toString());
+
+        // Mantém o token legado também válido (compatibilidade bff-auth/bff-core)
+        tokenCachePort.saveToken(user.getCodeUser().toString(), issued.getAccessToken(), jwtService.getAccessExpiration());
+
+        String deviceId = jwtService.extractDeviceId(issued.getAccessToken());
+        if (deviceId != null) {
+            sessionCachePort.getUserSession(codeUser.toString(), deviceId).ifPresent(s -> {
+                s.setRefreshToken(issued.getRefreshToken());
+                s.setLastActiveAt(LocalDateTime.now().toString());
+                sessionCachePort.saveUserSession(s, 2592000L);
+            });
+        }
+
+        return issued;
+    }
+
+    /**
+     * Fluxo legado: refresh usando o próprio JWT como credencial de rotação
+     * (comportamento anterior à Fase 1), mantido para clientes que ainda não
+     * enviam refreshToken opaco.
+     */
+    private IssuedTokenPairDTO refreshWithLegacyJwt(AuthRefreshTokenCommandDTO request) {
         if (!jwtService.validateToken(request.getToken())) {
-            throw new InvalidCredentialsException("Invalid token", "INVALID_TOKEN", 
+            throw new InvalidCredentialsException("Invalid token", "INVALID_TOKEN",
                 Map.of("application", request.getCompanyId().toString()));
         }
 
@@ -431,21 +490,21 @@ public class AuthCommandService {
         // Valida se o token ainda está ativo no Redis (Refresh Token Rotation - RTR)
         if (!tokenCachePort.isTokenValid(codeUser.toString(), request.getToken())) {
             log.warn("Refresh token failed - Token revogado ou já rotacionado: codeUser={}, application={}", codeUser, request.getCompanyId());
-            throw new InvalidCredentialsException("Token revogado ou sessão encerrada", "TOKEN_REVOKED", 
+            throw new InvalidCredentialsException("Token revogado ou sessão encerrada", "TOKEN_REVOKED",
                 Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
         }
-        
+
         User user = userRepository.findByCodeUserAndCompanyId(codeUser, request.getCompanyId())
                 .orElseThrow(() -> {
                     log.warn("Refresh token failed - User not found: codeUser={}, application={}", codeUser, request.getCompanyId());
-                    return new NotFoundException("User not found", "USER_NOT_FOUND", 
+                    return new NotFoundException("User not found", "USER_NOT_FOUND",
                         Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString()));
                 });
 
         if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new InvalidCredentialsException("User is not active", "USER_NOT_ACTIVE", 
-                Map.of("codeUser", codeUser.toString(), 
-                "status", user.getStatus().toString(), 
+            throw new InvalidCredentialsException("User is not active", "USER_NOT_ACTIVE",
+                Map.of("codeUser", codeUser.toString(),
+                "status", user.getStatus().toString(),
                 "application", request.getCompanyId().toString()));
         }
 
@@ -458,7 +517,7 @@ public class AuthCommandService {
 
         // Remove o token antigo e salva o novo (rotação de token)
         tokenCachePort.removeToken(codeUser.toString(), request.getToken());
-        tokenCachePort.saveToken(user.getCodeUser().toString(), newToken, jwtService.getExpiration());
+        tokenCachePort.saveToken(user.getCodeUser().toString(), newToken, jwtService.getAccessExpiration());
 
         // Atualiza a sessão correspondente no Redis com o novo token
         if (deviceId != null) {
@@ -469,7 +528,11 @@ public class AuthCommandService {
             });
         }
 
-        return newToken;
+        return IssuedTokenPairDTO.builder()
+                .accessToken(newToken)
+                .refreshToken(null)
+                .expiresIn(jwtService.getAccessExpiration() / 1000)
+                .build();
     }
 
     @LogOperation(
@@ -503,6 +566,10 @@ public class AuthCommandService {
         // Logout invalida apenas o token; a sessão do dispositivo (isTrusted) permanece
         // para que o MFA não seja exigido novamente no próximo login neste aparelho.
         String deviceId = jwtService.extractDeviceId(request.getToken());
+        String sid = jwtService.extractSessionId(request.getToken());
+        if (sid != null && !sid.isBlank()) {
+            refreshTokenIssuerService.revokeSession(sid);
+        }
         if (deviceId != null && !deviceId.isBlank()) {
             sessionCachePort.getUserSession(codeUser.toString(), deviceId).ifPresent(session -> {
                 session.setRefreshToken(null);

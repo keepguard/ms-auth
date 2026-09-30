@@ -135,11 +135,15 @@ class AuthUseCaseServiceTest {
         // Given
         String newToken = "new-jwt-token";
         when(authCommandService.refreshToken(refreshTokenRequest))
-            .thenReturn(newToken);
-        
+            .thenReturn(com.keepguard.ms_auth.application.dto.auth.IssuedTokenPairDTO.builder()
+                    .accessToken(newToken)
+                    .refreshToken("rt_opaque")
+                    .expiresIn(3600L)
+                    .build());
+
         // When
         AuthRefreshTokenViewDTO response = authUseCaseService.refreshToken(refreshTokenRequest);
-        
+
         // Then
         assertNotNull(response);
         assertEquals(newToken, response.token());

@@ -122,10 +122,10 @@ public class AuthUseCaseService implements AuthPort {
 
     @Override
     public AuthRefreshTokenViewDTO refreshToken(AuthRefreshTokenCommandDTO request) {
-        log.info("Processing refresh token request - application={}, clientId={}", 
+        log.info("Processing refresh token request - application={}, clientId={}",
             request.getCompanyId(), request.getClientId());
-        String token = authCommandService.refreshToken(request);
-        return new AuthRefreshTokenViewDTO(token, 3600L);
+        var issued = authCommandService.refreshToken(request);
+        return new AuthRefreshTokenViewDTO(issued.getAccessToken(), issued.getRefreshToken(), issued.getExpiresIn());
     }
 
     @Override

@@ -55,6 +55,7 @@ public class DeviceSessionCommandService {
     private final JwtService jwtService;
     private final GeoLocationPort geoLocationPort;
     private final SessionAccessPolicy sessionAccessPolicy;
+    private final com.keepguard.ms_auth.application.service.auth.RefreshTokenIssuerService refreshTokenIssuerService;
 
     @Value("${app.urls.frontend-base-url:http://localhost:3000}")
     private String defaultFrontendBaseUrl;
@@ -160,20 +161,23 @@ public class DeviceSessionCommandService {
         String tenantClaim = user.getTenantId() != null
                 ? user.getTenantId().toString()
                 : challenge.getCompanyId();
-        String token = jwtService.generateToken(user, roleNames, authorities, tenantClaim, challenge.getClientId(), challenge.getDeviceId());
+        com.keepguard.ms_auth.application.dto.auth.IssuedTokenPairDTO issued = refreshTokenIssuerService.issueInitialPair(
+                user, roleNames, authorities, tenantClaim, challenge.getClientId(), challenge.getDeviceId(),
+                challenge.getCompanyId());
+        String token = issued.getAccessToken();
 
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
         // Salva token legado
-        tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getExpiration());
+        tokenCachePort.saveToken(user.getCodeUser().toString(), token, jwtService.getAccessExpiration());
 
         // Registra a sessão do dispositivo no Redis
         String ipAddress = IpAddressUtils.firstIp(challenge.getIpAddress());
         String location = geoLocationPort.resolve(ipAddress);
 
         UserSession session = UserSession.builder()
-                .sessionId("sess_" + UUID.randomUUID())
+                .sessionId(issued.getSid())
                 .codeUser(challenge.getCodeUser())
                 .companyId(challenge.getCompanyId())
                 .clientId(challenge.getClientId())
@@ -186,7 +190,7 @@ public class DeviceSessionCommandService {
                 .isTrusted(Boolean.TRUE.equals(command.getTrustDevice()))
                 .lastActiveAt(LocalDateTime.now().toString())
                 .createdAt(LocalDateTime.now().toString())
-                .refreshToken(token)
+                .refreshToken(issued.getRefreshToken())
                 .build();
 
         sessionCachePort.saveUserSession(session, 2592000L); // 30 dias
@@ -243,7 +247,7 @@ public class DeviceSessionCommandService {
 
         log.info("Dispositivo verificado com sucesso! Sessão ativada | codeUser={} | deviceId={}", challenge.getCodeUser(), challenge.getDeviceId());
 
-        return new AuthLoginViewDTO(token, 3600L, "AUTHENTICATED", null, true, null);
+        return new AuthLoginViewDTO(token, issued.getRefreshToken(), issued.getExpiresIn(), "AUTHENTICATED", null, true, null);
     }
 
     private void sendNewDeviceNotification(DeviceChallengeSession challenge, String quickRevokeToken) {
@@ -539,10 +543,12 @@ public class DeviceSessionCommandService {
 
     @LogOperation(operation = "REVOKE_SESSION", description = "Revogação de sessão", auditAction = "REVOKE_SESSION", auditEntityType = "SESSION")
     public void revokeSession(String codeUser, String deviceId) {
-        // Remove token JWT correspondente do Redis se existir
+        // Revoga o refresh token opaco da sessão (sid). O access token legado
+        // (tokenlogin:*) já tem TTL curto (15 min) e não é removido aqui
+        // individualmente para não afetar outros dispositivos do usuário.
         sessionCachePort.getUserSession(codeUser, deviceId).ifPresent(s -> {
-            if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
-                tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+            if (s.getSessionId() != null && !s.getSessionId().isBlank()) {
+                refreshTokenIssuerService.revokeSession(s.getSessionId());
             }
         });
 
@@ -562,12 +568,12 @@ public class DeviceSessionCommandService {
 
     @LogOperation(operation = "REVOKE_ALL_OTHER_SESSIONS", description = "Revogação das demais sessões", auditAction = "REVOKE_ALL_OTHER_SESSIONS", auditEntityType = "SESSION")
     public void revokeAllOtherSessions(String codeUser, String currentDeviceId) {
-        // Localiza e remove os tokens de todas as outras sessões do Redis
+        // Revoga o refresh token opaco (sid) de todas as outras sessões
         List<UserSession> activeSessions = sessionCachePort.listUserSessions(codeUser);
         for (UserSession s : activeSessions) {
             if (s.getDeviceId() != null && !s.getDeviceId().equals(currentDeviceId)) {
-                if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
-                    tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+                if (s.getSessionId() != null && !s.getSessionId().isBlank()) {
+                    refreshTokenIssuerService.revokeSession(s.getSessionId());
                 }
             }
         }
@@ -591,11 +597,11 @@ public class DeviceSessionCommandService {
 
     @LogOperation(operation = "REVOKE_ALL_SESSIONS", description = "Revogação de todas as sessões", auditAction = "REVOKE_ALL_SESSIONS", auditEntityType = "SESSION")
     public void revokeAllSessions(String codeUser) {
-        // Localiza e remove os tokens de todas as sessões do Redis
+        // Revoga o refresh token opaco (sid) de todas as sessões
         List<UserSession> activeSessions = sessionCachePort.listUserSessions(codeUser);
         for (UserSession s : activeSessions) {
-            if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
-                tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+            if (s.getSessionId() != null && !s.getSessionId().isBlank()) {
+                refreshTokenIssuerService.revokeSession(s.getSessionId());
             }
         }
 
@@ -630,8 +636,8 @@ public class DeviceSessionCommandService {
 
         // 1. Revogar a sessão do dispositivo associado e remover o token do Redis
         sessionCachePort.getUserSession(codeUser, deviceId).ifPresent(s -> {
-            if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
-                tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+            if (s.getSessionId() != null && !s.getSessionId().isBlank()) {
+                refreshTokenIssuerService.revokeSession(s.getSessionId());
             }
         });
         sessionCachePort.removeUserSession(codeUser, deviceId);
@@ -687,8 +693,8 @@ public class DeviceSessionCommandService {
         AuditMdc.bind(codeUser, null, deviceId);
         // Encerra sessão do dispositivo se houver e remove o token do Redis
         sessionCachePort.getUserSession(codeUser, deviceId).ifPresent(s -> {
-            if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
-                tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+            if (s.getSessionId() != null && !s.getSessionId().isBlank()) {
+                refreshTokenIssuerService.revokeSession(s.getSessionId());
             }
         });
         sessionCachePort.removeUserSession(codeUser, deviceId);
@@ -784,8 +790,8 @@ public class DeviceSessionCommandService {
         AuditMdc.bind(codeUser, companyId != null ? companyId.toString() : null, deviceId);
         // Encerra sessão do dispositivo se houver e remove o token do Redis
         sessionCachePort.getUserSession(codeUser, deviceId).ifPresent(s -> {
-            if (s.getRefreshToken() != null && !s.getRefreshToken().isBlank()) {
-                tokenCachePort.removeToken(codeUser, s.getRefreshToken());
+            if (s.getSessionId() != null && !s.getSessionId().isBlank()) {
+                refreshTokenIssuerService.revokeSession(s.getSessionId());
             }
         });
         sessionCachePort.removeUserSession(codeUser, deviceId);

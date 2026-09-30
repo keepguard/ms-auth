@@ -112,7 +112,7 @@ class AuthControllerTest {
     void shouldRefreshTokenSuccessfully() {
         // Given
         String expectedToken = "new-jwt-token";
-        var expectedView = new com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenViewDTO(expectedToken, 3600L);
+        var expectedView = new com.keepguard.ms_auth.application.dto.auth.AuthRefreshTokenViewDTO(expectedToken, null, 3600L);
         
         when(authAdapterMapper.toRefreshTokenCommand(any(), any(), any())).thenReturn(AuthRefreshTokenCommandDTO.builder().build());
         when(authService.refreshToken(any(AuthRefreshTokenCommandDTO.class))).thenReturn(expectedView);

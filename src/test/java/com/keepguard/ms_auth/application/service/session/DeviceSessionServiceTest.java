@@ -83,6 +83,9 @@ class DeviceSessionServiceTest {
     @Mock
     private SessionAccessPolicy sessionAccessPolicy;
 
+    @Mock
+    private com.keepguard.ms_auth.application.service.auth.RefreshTokenIssuerService refreshTokenIssuerService;
+
     @InjectMocks
     private DeviceSessionCommandService deviceSessionService;
 
@@ -209,9 +212,14 @@ class DeviceSessionServiceTest {
 
         when(userRepository.findByCodeUserAndCompanyId(UUID.fromString(codeUser), UUID.fromString(companyId)))
                 .thenReturn(Optional.of(user));
-        when(jwtService.generateToken(any(), any(), any(), any(), any(), any()))
-                .thenReturn("mock-jwt-token");
-        when(jwtService.getExpiration()).thenReturn(3600L);
+        when(refreshTokenIssuerService.issueInitialPair(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(com.keepguard.ms_auth.application.dto.auth.IssuedTokenPairDTO.builder()
+                        .accessToken("mock-jwt-token")
+                        .refreshToken("rt_opaque")
+                        .sid("sess_test")
+                        .expiresIn(900L)
+                        .build());
+        when(jwtService.getAccessExpiration()).thenReturn(900000L);
         when(userRoleRepository.findByUserId(any())).thenReturn(Collections.emptyList());
 
         VerifyDeviceChallengeCommandDTO command = VerifyDeviceChallengeCommandDTO.builder()
@@ -227,7 +235,7 @@ class DeviceSessionServiceTest {
         assertEquals("mock-jwt-token", result.token());
         assertEquals("AUTHENTICATED", result.status());
 
-        verify(tokenCachePort, times(1)).saveToken(eq(codeUser), eq("mock-jwt-token"), eq(3600L));
+        verify(tokenCachePort, times(1)).saveToken(eq(codeUser), eq("mock-jwt-token"), anyLong());
         verify(sessionCachePort, times(1)).saveUserSession(any(), eq(2592000L));
         verify(sessionCachePort, times(1)).saveQuickRevokeToken(any(), eq(172800L));
         verify(sessionCachePort, times(1)).removeDeviceChallenge(challengeSessionId);
@@ -308,9 +316,14 @@ class DeviceSessionServiceTest {
 
         when(userRepository.findByCodeUserAndCompanyId(UUID.fromString(codeUser), UUID.fromString(companyId)))
                 .thenReturn(Optional.of(mockUser));
-        when(jwtService.generateToken(any(), any(), any(), any(), any(), any()))
-                .thenReturn("mock_jwt_token");
-        when(jwtService.getExpiration()).thenReturn(3600L);
+        when(refreshTokenIssuerService.issueInitialPair(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(com.keepguard.ms_auth.application.dto.auth.IssuedTokenPairDTO.builder()
+                        .accessToken("mock_jwt_token")
+                        .refreshToken("rt_opaque")
+                        .sid("sess_test")
+                        .expiresIn(900L)
+                        .build());
+        when(jwtService.getAccessExpiration()).thenReturn(900000L);
         when(userRoleRepository.findByUserId(any())).thenReturn(Collections.emptyList());
 
         VerifyDeviceChallengeCommandDTO command = VerifyDeviceChallengeCommandDTO.builder()

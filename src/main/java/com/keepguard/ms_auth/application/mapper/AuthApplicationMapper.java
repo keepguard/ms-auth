@@ -34,7 +34,7 @@ public class AuthApplicationMapper {
         }
 
         try {
-            return new AuthRefreshTokenViewDTO(token, expiresIn);
+            return new AuthRefreshTokenViewDTO(token, null, expiresIn);
         } catch (Exception e) {
             log.error("Erro ao mapear dados para AuthRefreshTokenViewDTO: {}", e.getMessage(), e);
             throw e;

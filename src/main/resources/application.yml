@@ -78,6 +78,11 @@ security:
   jwt:
     secret: ${JWT_SECRET}
     expiration: 3600000
+    access-expiration: 900000  # 15 min — access token do fluxo de refresh opaco
+    refresh-token:
+      sliding-ttl-seconds: 2592000  # 30 dias, renovado a cada rotação
+      absolute-ttl-seconds: 7776000  # 90 dias, teto duro independente de uso
+      rotation-grace-seconds: 60  # tolerância a corrida entre abas
     service-token:
       min-ttl-seconds: 900
       default-ttl-seconds: 28800

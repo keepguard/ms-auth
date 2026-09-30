@@ -28,6 +28,7 @@ import com.keepguard.ms_auth.adapters.out.feign.UserClient;
 import com.keepguard.ms_auth.application.port.out.cache.SessionCachePort;
 import com.keepguard.ms_auth.application.port.out.geo.GeoLocationPort;
 import com.keepguard.ms_auth.application.port.in.DeviceSessionPort;
+import com.keepguard.ms_auth.application.dto.auth.IssuedTokenPairDTO;
 import com.keepguard.ms_auth.infrastructure.config.security.LoginAttemptService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -99,7 +100,10 @@ class AuthCommandServiceTest {
 
     @Mock
     private GeoLocationPort geoLocationPort;
-    
+
+    @Mock
+    private RefreshTokenIssuerService refreshTokenIssuerService;
+
     @InjectMocks
     private AuthCommandService authCommandService;
     
@@ -134,15 +138,21 @@ class AuthCommandServiceTest {
         when(userRepository.findByUsernameAndCompanyId(username, user.getCompanyId())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPasswordHash())).thenReturn(true);
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
-        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn(token);
-        when(jwtService.getExpiration()).thenReturn(3600L);
+        when(refreshTokenIssuerService.issueInitialPair(any(), any(), any(), anyString(), any(), any(), anyString()))
+                .thenReturn(IssuedTokenPairDTO.builder()
+                        .accessToken(token)
+                        .refreshToken("rt_opaque")
+                        .sid("sess_test")
+                        .expiresIn(900L)
+                        .build());
+        when(jwtService.getAccessExpiration()).thenReturn(900000L);
         when(sessionCachePort.getUserSession(anyString(), anyString())).thenReturn(Optional.of(
                 com.keepguard.ms_auth.domain.entity.session.UserSession.builder()
                         .isTrusted(true)
                         .createdAt("2026-08-24T10:00:00")
                         .build()
         ));
-        
+
         // When
         AuthLoginCommandDTO loginRequest = AuthLoginCommandDTO.builder()
             .username(username)
@@ -151,17 +161,18 @@ class AuthCommandServiceTest {
             .deviceId("dev_test_123")
             .build();
         var result = authCommandService.login(loginRequest);
-        
+
         // Then
         assertNotNull(result);
         assertEquals(token, result.token());
+        assertEquals("rt_opaque", result.refreshToken());
         assertEquals("AUTHENTICATED", result.status());
         verify(userRepository, times(1)).findByUsernameAndCompanyId(username, user.getCompanyId());
         verify(passwordEncoder, times(1)).matches(password, user.getPasswordHash());
         verify(userRoleRepository, times(2)).findByUserId(user.getId()); // Chamado 2x: getUserRoles e getUserAuthorities
-        verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any());
+        verify(refreshTokenIssuerService, times(1)).issueInitialPair(any(), any(), any(), anyString(), any(), any(), anyString());
         verify(userRepository, times(1)).save(user);
-        verify(tokenCachePort, times(1)).saveToken(codeUser.toString(), token, 3600L);
+        verify(tokenCachePort, times(1)).saveToken(eq(codeUser.toString()), eq(token), anyLong());
         verify(sessionCachePort, times(1)).saveUserSession(any(), eq(2592000L));
         verify(metricsPort, times(1)).incrementCounter(anyString(), any());
         verify(loginAttemptService, times(1)).recordSuccessfulAttempt(username);
@@ -320,12 +331,18 @@ class AuthCommandServiceTest {
         when(userRepository.findByUsernameAndCompanyId(username, user.getCompanyId())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPasswordHash())).thenReturn(true);
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
-        when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn(token);
-        when(jwtService.getExpiration()).thenReturn(3600L);
+        when(refreshTokenIssuerService.issueInitialPair(any(), any(), any(), anyString(), any(), any(), anyString()))
+                .thenReturn(IssuedTokenPairDTO.builder()
+                        .accessToken(token)
+                        .refreshToken("rt_opaque")
+                        .sid("sess_test")
+                        .expiresIn(900L)
+                        .build());
+        when(jwtService.getAccessExpiration()).thenReturn(900000L);
         when(sessionCachePort.getUserSession(anyString(), anyString())).thenReturn(Optional.of(
                 com.keepguard.ms_auth.domain.entity.session.UserSession.builder().isTrusted(true).build()
         ));
-        
+
         // When
         AuthLoginCommandDTO loginRequest = AuthLoginCommandDTO.builder()
             .username(username)
@@ -355,20 +372,20 @@ class AuthCommandServiceTest {
         when(userRepository.findByCodeUserAndCompanyId(codeUser, companyId)).thenReturn(Optional.of(user));
         when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of());
         when(jwtService.generateToken(any(), any(), any(), anyString(), any(), any())).thenReturn("new-token");
-        when(jwtService.getExpiration()).thenReturn(3600L);
-        
+        when(jwtService.getAccessExpiration()).thenReturn(3600000L);
+
         // When
-        String result = authCommandService.refreshToken(refreshRequest);
-        
+        IssuedTokenPairDTO result = authCommandService.refreshToken(refreshRequest);
+
         // Then
-        assertEquals("new-token", result);
+        assertEquals("new-token", result.getAccessToken());
         verify(jwtService, times(1)).validateToken(token);
         verify(jwtService, times(1)).extractUserId(token);
         verify(tokenCachePort, times(1)).isTokenValid(codeUser.toString(), token);
         verify(userRepository, times(1)).findByCodeUserAndCompanyId(codeUser, companyId);
         verify(jwtService, times(1)).generateToken(any(), any(), any(), anyString(), any(), any());
         verify(tokenCachePort, times(1)).removeToken(codeUser.toString(), token);
-        verify(tokenCachePort, times(1)).saveToken(codeUser.toString(), "new-token", 3600L);
+        verify(tokenCachePort, times(1)).saveToken(codeUser.toString(), "new-token", 3600000L);
     }
     
     @Test
