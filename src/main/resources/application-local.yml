@@ -38,7 +38,7 @@ spring:
 
 security:
   jwt:
-    secret: Q2FjaG9ycm8gU2VndXJhbmNhIFByb2pldG8gS2VlcEd1YXJkIQ==
+    secret: ${JWT_SECRET:Q2FjaG9ycm8gU2VndXJhbmNhIFByb2pldG8gS2VlcEd1YXJkIQ==}
     expiration: 3600000
   oauth:
     client-secret-base: ${AUTH_CLIENT_SECRET_BASE:KgAuthClientSecretBase_7nR4wQ9pL2xH8mC3}
