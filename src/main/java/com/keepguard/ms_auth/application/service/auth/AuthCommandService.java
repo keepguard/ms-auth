@@ -435,14 +435,16 @@ public class AuthCommandService {
 
     /**
      * Fluxo novo: refresh token opaco, rotação com carência, sid estável.
+     * O refresh token não precisa vir acompanhado de nenhum JWT — o Redis já
+     * associa o hash do token opaco ao codeUser/companyId desde a emissão.
      */
     private IssuedTokenPairDTO refreshWithOpaqueToken(AuthRefreshTokenCommandDTO request) {
-        // O codeUser/roles ainda precisam ser resolvidos; o refresh token opaco
-        // não carrega essas informações (é só um identificador de sessão), por
-        // isso o cliente também manda o último access token conhecido (mesmo
-        // expirado) para extrairmos o codeUser sem round-trip extra ao banco
-        // por username.
-        UUID codeUser = jwtService.extractUserIdIgnoringExpiration(request.getToken());
+        com.keepguard.ms_auth.domain.entity.session.RefreshToken storedToken =
+                refreshTokenIssuerService.findByOpaqueToken(request.getRefreshToken())
+                        .orElseThrow(() -> new InvalidCredentialsException("Refresh token inválido ou expirado", "TOKEN_REVOKED",
+                                Map.of()));
+
+        UUID codeUser = UUID.fromString(storedToken.getCodeUser());
         User user = userRepository.findByCodeUserAndCompanyId(codeUser, request.getCompanyId())
                 .orElseThrow(() -> new NotFoundException("User not found", "USER_NOT_FOUND",
                         Map.of("codeUser", codeUser.toString(), "application", request.getCompanyId().toString())));

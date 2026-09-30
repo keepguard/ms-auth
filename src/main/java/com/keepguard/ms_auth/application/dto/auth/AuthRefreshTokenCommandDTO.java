@@ -14,12 +14,15 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AuthRefreshTokenCommandDTO {
 
-    @NotBlank(message = "Token é obrigatório")
+    /**
+     * JWT legado (fluxo anterior à Fase 1). Não é mais enviado pelo bff-auth.
+     */
     private String token;
 
     /**
      * Refresh token opaco (novo fluxo). Quando presente, a rotação usa esta
-     * credencial em vez do JWT em {@code token}.
+     * credencial em vez do JWT em {@code token}. Um dos dois é obrigatório —
+     * validado no controller, não aqui.
      */
     private String refreshToken;
 

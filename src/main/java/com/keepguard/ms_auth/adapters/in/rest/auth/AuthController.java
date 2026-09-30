@@ -153,8 +153,14 @@ public class AuthController {
             @RequestHeader(value = "X-Client-ID", defaultValue = "keepguard-default-client") String clientId) {
 
         log.info("Renovando token JWT - companyId={}, clientId={}", companyId, clientId);
-        
-        
+
+        boolean hasToken = request.getToken() != null && !request.getToken().isBlank();
+        boolean hasRefreshToken = request.getRefreshToken() != null && !request.getRefreshToken().isBlank();
+        if (!hasToken && !hasRefreshToken) {
+            throw new com.keepguard.ms_auth.application.service.exception.InvalidCredentialsException(
+                    "Token de refresh é obrigatório", "INVALID_TOKEN", java.util.Map.of());
+        }
+
         var command = mapper.toRefreshTokenCommand(request, companyId, clientId);
         var view = authService.refreshToken(command);
         var response = mapper.toRefreshTokenResponseDTO(view);

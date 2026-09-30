@@ -97,6 +97,16 @@ public class RefreshTokenIssuerService {
     }
 
     /**
+     * Resolve a que usuário/empresa pertence um refresh token opaco, sem
+     * exigir nenhum JWT auxiliar — o Redis já guarda essa associação desde a
+     * emissão. Usado pelo refresh para saber QUEM está pedindo renovação
+     * antes de buscar o User completo no banco.
+     */
+    public java.util.Optional<RefreshToken> findByOpaqueToken(String presentedRefreshToken) {
+        return refreshTokenCachePort.findByHash(refreshTokenGenerator.hash(presentedRefreshToken));
+    }
+
+    /**
      * Reuso detectado fora da janela de carência (token já tinha sido
      * substituído e a entrada antiga expirou) ou revogação explícita
      * (logout, troca de senha, revogação remota): derruba a família inteira.
